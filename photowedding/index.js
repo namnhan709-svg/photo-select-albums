@@ -3,9 +3,9 @@
         const ALBUM_NAMES_KEY = 'albumNames';
         const THEME_STORAGE_KEY = 'photoSelectTheme';
         const SETTINGS_STORAGE_KEY = 'photoSelectInterfaceSettings';
-        const PHOTO_CACHE_PREFIX = 'photoList:v12:';
+        const PHOTO_CACHE_PREFIX = 'photoList:v13:';
         const PHOTO_CACHE_TTL = 30 * 60 * 1000;
-        const DRIVE_COVER_CACHE_PREFIX = 'driveCover:v1:';
+        const DRIVE_COVER_CACHE_PREFIX = 'driveCover:v2:';
         const DRIVE_COVER_CACHE_TTL = 24 * 60 * 60 * 1000;
         const ALBUM_META_BATCH_SIZE = 1;
         const ALBUM_META_YIELD_MS = 0;
@@ -1617,7 +1617,7 @@
             const result = await response.json();
             const files = Array.isArray(result.files) ? result.files : [];
             const url = files.length
-                ? (files[0].thumbnailUrl || `https://drive.google.com/thumbnail?id=${encodeURIComponent(files[0].id)}&sz=w160`)
+                ? (files[0].thumbnailUrl || `https://lh3.googleusercontent.com/d/${encodeURIComponent(files[0].id)}=w320`)
                 : '';
             try {
                 localStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), url }));
@@ -1850,7 +1850,7 @@ if (!previousPermission && window.__SHARED_ALBUM_ALLOW_SAVE__) {
                 <div class="saved-album-item ${currentAlbumId === album.id ? 'active' : ''}" aria-current="${currentAlbumId === album.id ? 'true' : 'false'}" onclick="selectSavedAlbum('${album.id}')">
                     <div class="saved-album-visual">
                         <div class="saved-album-thumb" data-album-id="${String(album.id)}">
-                            ${album.cover ? `<img src="${album.cover}" loading="lazy" decoding="async" alt="${String(album.name || 'Album').replace(/"/g, '&quot;')}">` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;">📁</div>'}
+                            ${album.cover ? `<img src="${album.cover}" referrerpolicy="no-referrer" loading="lazy" decoding="async" alt="${String(album.name || 'Album').replace(/"/g, '&quot;')}">` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;">📁</div>'}
                         </div>
                         <span class="saved-album-badge">Bìa</span>
                         <span class="saved-album-time">${formatSavedAlbumDate(album.createdAt)}</span>
@@ -2113,8 +2113,11 @@ async function selectSavedAlbum(id) {
                         category: f.category || albumName,
                         folderPath: f.folderPath || [],
                         modifiedTime: f.modifiedTime,
-                        thumbnail: f.thumbnailUrl || `https://drive.google.com/thumbnail?id=${f.id}&sz=w${thumbnailSize}`,
-                        url: f.fullUrl || `https://drive.google.com/thumbnail?id=${f.id}&sz=w1280`
+                        thumbnailLink: f.thumbnailLink || '',
+                        thumbnailUrl: f.thumbnailUrl || '',
+                        fullUrl: f.fullUrl || '',
+                        thumbnail: f.thumbnailUrl || `https://lh3.googleusercontent.com/d/${encodeURIComponent(f.id)}=w${thumbnailSize}`,
+                        url: f.fullUrl || `https://lh3.googleusercontent.com/d/${encodeURIComponent(f.id)}=w1600`
                     }));
                     try {
                         sessionStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), photos: state.photos }));
@@ -2331,11 +2334,16 @@ async function selectSavedAlbum(id) {
                     item.addEventListener('click', () => openLightbox(index));
 
                     const image = document.createElement('img');
-                    image.src = photo.thumbnail;
+                    image.referrerPolicy = 'no-referrer';
                     image.alt = photo.name;
                     image.loading = index < 6 ? 'eager' : 'lazy';
                     image.decoding = 'async';
                     if (index < 2) image.fetchPriority = 'high';
+                    if (window.PhotoSelectAPI?.bindDriveImage) {
+                        window.PhotoSelectAPI.bindDriveImage(image, photo, 'thumb');
+                    } else {
+                        image.src = photo.thumbnail;
+                    }
 
                     const badge = document.createElement('div');
                     badge.className = 'photo-favorite-badge';
@@ -2602,22 +2610,30 @@ function updateStats() {
             updateLightboxDownloadAvailability();
             const photoId = String(photo.id);
             lightboxImage.dataset.photoId = photoId;
-            lightboxImage.onerror = () => {
-                lightboxImage.onerror = null;
-                showToast('Không thể tải ảnh xem trước');
-            };
+            lightboxImage.referrerPolicy = 'no-referrer';
             lightboxImage.alt = photo.name || 'Ảnh album';
-            lightboxImage.src = photo.thumbnail;
+            if (window.PhotoSelectAPI?.bindDriveImage) {
+                window.PhotoSelectAPI.bindDriveImage(lightboxImage, photo, 'full', () => {
+                    showToast('Không thể tải ảnh xem trước');
+                });
+            } else {
+                lightboxImage.onerror = () => {
+                    lightboxImage.onerror = null;
+                    showToast('Không thể tải ảnh xem trước');
+                };
+                lightboxImage.src = photo.thumbnail;
 
-            const fullResolutionImage = new Image();
-            fullResolutionImage.decoding = 'async';
-            fullResolutionImage.fetchPriority = 'high';
-            fullResolutionImage.src = photo.url;
-            fullResolutionImage.decode().then(() => {
-                if (lightboxImage.dataset.photoId === photoId) {
-                    lightboxImage.src = photo.url;
-                }
-            }).catch(() => {});
+                const fullResolutionImage = new Image();
+                fullResolutionImage.decoding = 'async';
+                fullResolutionImage.fetchPriority = 'high';
+                fullResolutionImage.referrerPolicy = 'no-referrer';
+                fullResolutionImage.src = photo.url;
+                fullResolutionImage.decode().then(() => {
+                    if (lightboxImage.dataset.photoId === photoId) {
+                        lightboxImage.src = photo.url;
+                    }
+                }).catch(() => {});
+            }
 
             document.getElementById('lightboxPhotoNumber').textContent = `#${index + 1}`;
             document.getElementById('lightboxCaption').textContent = photo.name || 'Ảnh album';
