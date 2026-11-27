@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Quản lý danh sách khách hàng studio của PHOTO SELECT.">
+    <link rel="icon" type="image/png" href="photowedding/logo/photo-select-logo-mark.png">
+    <title>Quản lý khách hàng - PHOTO SELECT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
+    <script src="js/theme-init.js"></script>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <style>
+        .crm-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin: 0 0 1rem; flex-wrap: wrap; }
+        .crm-toolbar h2 { margin: 0; font-size: 1.05rem; }
+        .crm-filters { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+        .crm-search, .crm-filter, .crm-form input, .crm-form select, .crm-form textarea {
+            min-height: 42px; padding: .65rem .8rem; border: 1px solid var(--border); border-radius: 10px;
+            color: var(--text); background: var(--surface); font: inherit; font-size: .85rem; outline: none;
+        }
+        .crm-search { width: min(300px, 60vw); }
+        .crm-form textarea { min-height: 76px; resize: vertical; }
+        .crm-search:focus, .crm-filter:focus, .crm-form input:focus, .crm-form select:focus, .crm-form textarea:focus {
+            border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+        }
+        .crm-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); box-shadow: 0 10px 24px rgba(63, 80, 69, .05); }
+        .crm-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .crm-table th { padding: .85rem 1rem; color: var(--muted); background: var(--surface-soft); font-size: .73rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+        .crm-table td { padding: .85rem 1rem; border-top: 1px solid var(--border); color: var(--text); font-size: .84rem; vertical-align: middle; }
+        .crm-table tbody tr:hover { background: color-mix(in srgb, var(--surface-soft) 55%, transparent); }
+        .crm-badge { display: inline-flex; align-items: center; gap: .35rem; padding: .28rem .6rem; border-radius: 99px; font-size: .73rem; font-weight: 800; white-space: nowrap; }
+        .crm-badge.lead { color: #1d4ed8; background: rgba(59, 130, 246, .12); }
+        .crm-badge.confirmed { color: #8a5a00; background: rgba(245, 158, 11, .14); }
+        .crm-badge.shooting { color: #7e22ce; background: rgba(147, 51, 234, .12); }
+        .crm-badge.completed { color: #237a50; background: rgba(35, 122, 80, .12); }
+        .crm-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+        .crm-actions .button { min-height: 34px; padding: .38rem .62rem; font-size: .71rem; }
+        .crm-empty { padding: 2.5rem 1rem !important; text-align: center; color: var(--muted); }
+        .crm-dialog { width: min(540px, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); padding: 0; overflow: auto; border: 1px solid var(--border); border-radius: 18px; color: var(--text); background: var(--surface); box-shadow: var(--shadow); }
+        .crm-dialog::backdrop { background: rgba(15, 23, 42, .5); backdrop-filter: blur(5px); }
+        .crm-dialog-inner { padding: 1.35rem; }
+        .crm-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+        .crm-dialog-header h2 { margin: 0; font-size: 1.15rem; }
+        .crm-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+        .crm-form label { display: grid; gap: .32rem; color: var(--muted); font-size: .72rem; font-weight: 800; }
+        .crm-form label.wide { grid-column: 1 / -1; }
+        .crm-form-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1rem; }
+        @media (max-width: 600px) { .crm-form-grid { grid-template-columns: 1fr; } .crm-search { width: 100%; } }
+    </style>
+</head>
+<body>
+    <header>
+        <a class="brand" href="./?home=1" aria-label="Về trang chủ">
+            <img class="brand-logo" src="photowedding/logo/photo-select-logo-mark.png" alt="">
+            PHOTO SELECT
+        </a>
+        <nav class="header-actions" aria-label="Điều hướng">
+            <a class="button" href="./?home=1">Trang chủ</a>
+            <div class="user-panel" id="userPanel" aria-expanded="false" aria-haspopup="true">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-meta">
+                    <strong id="userNameText">Người dùng</strong>
+                    <small id="userEmailText">Đang tải...</small>
+                </div>
+                <div class="account-menu" id="accountMenu" role="menu" aria-label="Cài đặt tài khoản">
+                    <div class="account-header">
+                        <div class="account-avatar" id="accountAvatar">U</div>
+                        <div class="account-profile-summary">
+                            <strong id="greetingName">Người dùng</strong>
+                            <small id="greetingEmail">Đang tải...</small>
+                        </div>
+                    </div>
+                    <div class="account-footer">
+                        <a class="account-action" href="./?logout=1" role="menuitem">Đăng xuất</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="dashboard-dialog" id="dashboardDialog" role="dialog" aria-modal="true" aria-labelledby="dashboardDialogTitle">
+        <section class="dashboard-dialog-content">
+            <button class="button dashboard-dialog-close" id="dashboardDialogClose" type="button" aria-label="Đóng">×</button>
+            <h2 id="dashboardDialogTitle">Cài đặt</h2>
+            <div id="dashboardDialogBody"></div>
+        </section>
+    </div>
+
+    <div class="dashboard-shell">
+        <aside class="dashboard-sidebar" aria-label="Menu chính">
+            <p class="sidebar-caption">Không gian làm việc</p>
+            <nav class="sidebar-nav" aria-label="Điều hướng chính">
+                <a class="sidebar-link" href="./?home=1"><span class="sidebar-icon" aria-hidden="true">home</span><span>Trang chủ</span></a>
+                <a class="sidebar-link" href="albums.html"><span class="sidebar-icon" aria-hidden="true">photo_library</span><span>Album gần đây</span></a>
+                <a class="sidebar-link" href="studio-contracts.html"><span class="sidebar-icon" aria-hidden="true">description</span><span>Hợp đồng</span></a>
+                <a class="sidebar-link" href="studio-photographers.html"><span class="sidebar-icon" aria-hidden="true">groups</span><span>Quản lý thợ</span></a>
+                <a class="sidebar-link" href="studio-customers.html" aria-current="page"><span class="sidebar-icon" aria-hidden="true">group</span><span>Khách hàng</span></a>
+                <a class="sidebar-link" href="studio-reports.html"><span class="sidebar-icon" aria-hidden="true">insights</span><span>Báo cáo</span></a>
+                <div class="sidebar-divider" aria-hidden="true"></div>
+                <button class="sidebar-link" type="button" data-dashboard-dialog="settings-menu">
+                    <span class="sidebar-icon" aria-hidden="true">settings</span><span>Cài đặt</span>
+                </button>
+            </nav>
+            <div class="sidebar-account">
+                <span class="sidebar-account-mark" aria-hidden="true">PS</span>
+                <span class="sidebar-account-copy"><strong>PHOTO SELECT</strong><small>Không gian làm việc</small></span>
+            </div>
+        </aside>
+
+        <main>
+            <section class="page-heading">
+                <div>
+                    <p class="eyebrow">Dashboard / Khách hàng</p>
+                    <h1>Quản lý khách hàng</h1>
+                    <p>Theo dõi thông tin cặp đôi, lịch chụp dự kiến, giá trị gói dịch vụ và tạo nhanh hợp đồng.</p>
+                </div>
+                <button class="button button-primary" id="addCustomerBtn" type="button">＋ Thêm khách hàng</button>
+            </section>
+
+            <section class="dashboard-summary" aria-label="Tổng quan khách hàng">
+                <article class="summary-card"><span class="summary-label">Tổng khách hàng</span><strong class="summary-value" id="customerTotal">0</strong></article>
+                <article class="summary-card"><span class="summary-label">Đã chốt / Đang thực hiện</span><strong class="summary-value" id="customerActive">0</strong></article>
+                <article class="summary-card"><span class="summary-label">Tổng giá trị gói dự kiến</span><strong class="summary-value" id="customerRevenue">0 VNĐ</strong></article>
+            </section>
+
+            <section aria-labelledby="customerListHeading">
+                <div class="crm-toolbar">
+                    <h2 id="customerListHeading">Danh sách khách hàng</h2>
+                    <div class="crm-filters">
+                        <input class="crm-search" id="customerSearch" type="search" placeholder="Tìm tên, SĐT, email, gói chụp..." aria-label="Tìm khách hàng">
+                        <select class="crm-filter" id="customerStatusFilter" aria-label="Lọc trạng thái">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="lead">Mới tư vấn</option>
+                            <option value="confirmed">Đã chốt lịch</option>
+                            <option value="shooting">Đang chụp / Hậu kỳ</option>
+                            <option value="completed">Đã bàn giao</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="crm-table-wrap">
+                    <table class="crm-table">
+                        <thead>
+                            <tr>
+                                <th>Khách hàng</th>
+                                <th>Liên hệ</th>
+                                <th>Gói & Ngày chụp</th>
+                                <th>Giá trị</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody"></tbody>
+                    </table>
+                </div>
+                <p class="status" id="customerStatusMsg" role="status" style="margin-top:.75rem;"></p>
+            </section>
+        </main>
+    </div>
+
+    <dialog class="crm-dialog" id="customerDialog" aria-labelledby="customerDialogTitle">
+        <div class="crm-dialog-inner">
+            <div class="crm-dialog-header">
+                <h2 id="customerDialogTitle">Thêm khách hàng</h2>
+                <button class="button" id="closeCustomerDialog" type="button" aria-label="Đóng">×</button>
+            </div>
+            <form class="crm-form" id="customerForm">
+                <input type="hidden" id="customerId">
+                <div class="crm-form-grid">
+                    <label>Họ và tên *<input id="customerName" required maxlength="120" placeholder="VD: Minh & Lan"></label>
+                    <label>Số điện thoại *<input id="customerPhone" type="tel" required maxlength="30" placeholder="0909 123 456"></label>
+                    <label>Email<input id="customerEmail" type="email" maxlength="120" placeholder="khach@gmail.com"></label>
+                    <label>Zalo / Facebook<input id="customerSocial" maxlength="160" placeholder="SĐT Zalo hoặc link FB"></label>
+                    <label>Gói dịch vụ<input id="customerPackage" maxlength="120" value="Gói chụp ảnh cưới trọn gói"></label>
+                    <label>Ngày chụp dự kiến<input id="customerShootDate" type="date"></label>
+                    <label>Giá trị gói (VNĐ)<input id="customerBudget" type="number" min="0" step="100000" value="20000000"></label>
+                    <label>Trạng thái
+                        <select id="customerStatus">
+                            <option value="lead">Mới tư vấn</option>
+                            <option value="confirmed">Đã chốt lịch</option>
+                            <option value="shooting">Đang chụp / Hậu kỳ</option>
+                            <option value="completed">Đã bàn giao</option>
+                        </select>
+                    </label>
+                    <label class="wide">Ghi chú<textarea id="customerNotes" maxlength="600" placeholder="Yêu cầu concept, địa điểm, lịch hẹn..."></textarea></label>
+                </div>
+                <div class="crm-form-actions">
+                    <button class="button" id="cancelCustomerDialog" type="button">Hủy</button>
+                    <button class="button button-primary" type="submit">Lưu khách hàng</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <script src="js/api.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/dialog.js"></script>
+    <script src="js/customers.js"></script>
+</body>
+</html>

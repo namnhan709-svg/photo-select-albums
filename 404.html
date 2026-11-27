@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang chuyển hướng - PHOTO SELECT</title>
+    <script>
+        (() => {
+            const path = window.location.pathname.toLowerCase();
+            const search = window.location.search || '';
+            const base = path.replace(/\/(albums|login|app|studio-[^/]+)\/?$/i, '/');
+            if (/\/albums\/?$/.test(path)) {
+                window.location.replace(`${base}albums.html${search}`);
+            } else if (/\/login\/?$/.test(path)) {
+                window.location.replace(`${base}login.html${search}`);
+            } else {
+                window.location.replace(`${base}index.html${search}`);
+            }
+        })();
+    </script>
+</head>
+<body style="font-family:sans-serif;padding:2rem;text-align:center;">
+    <p>Đang chuyển hướng tới trang PHOTO SELECT...</p>
+    <p><a href="./">Quay về trang chủ</a></p>
+</body>
+</html>

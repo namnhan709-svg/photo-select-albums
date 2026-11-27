@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Đăng nhập hệ thống quản lý album và ảnh khách chọn PHOTO SELECT.">
+    <link rel="icon" type="image/png" href="photowedding/logo/photo-select-logo-mark.png">
+    <title>Đăng nhập - PHOTO SELECT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="js/theme-init.js"></script>
+    <link rel="stylesheet" href="css/tokens.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 1.25rem;
+        }
+        .login-shell {
+            width: min(100%, 920px);
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+        .login-brand-side {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: clamp(1.5rem, 3vw, 2.5rem);
+            background: linear-gradient(155deg, #1b1b1b 0%, #2f3331 100%);
+            color: #f7f3ea;
+        }
+        .login-brand-top {
+            display: inline-flex;
+            align-items: center;
+            gap: .65rem;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-decoration: none;
+            color: #fff;
+        }
+        .login-brand-top img {
+            width: 30px;
+            height: 38px;
+            object-fit: contain;
+            background: #fff;
+            border-radius: 5px;
+        }
+        .login-brand-copy h1 {
+            margin: 1.2rem 0 .7rem;
+            font-size: clamp(1.6rem, 3vw, 2.15rem);
+            line-height: 1.18;
+        }
+        .login-brand-copy p {
+            margin: 0;
+            color: rgba(247, 243, 234, .78);
+            font-size: .88rem;
+            line-height: 1.6;
+        }
+        .login-highlights {
+            display: grid;
+            gap: .6rem;
+            margin-top: 1.5rem;
+        }
+        .login-highlight {
+            padding: .7rem .85rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .05);
+            font-size: .8rem;
+        }
+        .login-form-side {
+            padding: clamp(1.5rem, 3vw, 2.4rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .login-tabs {
+            display: flex;
+            gap: .45rem;
+            padding: .3rem;
+            border-radius: 12px;
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            margin-bottom: 1.25rem;
+        }
+        .login-tab {
+            flex: 1;
+            min-height: 38px;
+            border: 0;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--muted);
+            font-weight: 700;
+            font-size: .82rem;
+            cursor: pointer;
+        }
+        .login-tab.is-active {
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+        }
+        .login-form {
+            display: none;
+            gap: .85rem;
+        }
+        .login-form.is-active {
+            display: grid;
+        }
+        .login-form label {
+            display: grid;
+            gap: .32rem;
+            color: var(--muted);
+            font-size: .76rem;
+            font-weight: 700;
+        }
+        .login-form input[type="text"],
+        .login-form input[type="email"],
+        .login-form input[type="tel"],
+        .login-form input[type="password"] {
+            width: 100%;
+            min-height: 44px;
+            padding: .65rem .8rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            background: var(--bg);
+            font: inherit;
+            font-size: .88rem;
+            outline: none;
+        }
+        .login-form input:focus {
+            border-color: var(--accent);
+        }
+        .login-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .5rem;
+            font-size: .78rem;
+        }
+        .login-remember {
+            display: inline-flex !important;
+            grid-auto-flow: column;
+            align-items: center;
+            gap: .4rem;
+            color: var(--muted);
+            cursor: pointer;
+        }
+        .login-link-btn {
+            border: 0;
+            padding: 0;
+            background: transparent;
+            color: var(--accent);
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .login-divider {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            color: var(--muted);
+            font-size: .75rem;
+            margin: .2rem 0;
+        }
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .login-status {
+            min-height: 1.3rem;
+            margin: .8rem 0 0;
+            font-size: .82rem;
+            line-height: 1.45;
+            color: var(--muted);
+        }
+        .login-status.is-error { color: var(--danger); }
+        .login-status.is-success { color: #16a34a; }
+        .login-active-session {
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface-soft);
+            margin-bottom: 1rem;
+            display: none;
+            gap: .7rem;
+        }
+        .login-active-session.is-visible {
+            display: grid;
+        }
+        @media (max-width: 760px) {
+            .login-shell { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <main class="login-shell">
+        <section class="login-brand-side">
+            <a class="login-brand-top" href="./?home=1">
+                <img src="photowedding/logo/photo-select-logo-mark.png" alt="">
+                <span>PHOTO SELECT PRO</span>
+            </a>
+            <div class="login-brand-copy">
+                <h1>Quản lý album & theo dõi ảnh khách chọn</h1>
+                <p>Đăng nhập vào không gian làm việc Studio để kết nối thư mục Google Drive, gửi link cho khách thả tim và xem lại chính xác danh sách ảnh khách đã chọn.</p>
+                <div class="login-highlights">
+                    <div class="login-highlight">❤️ Đồng bộ danh sách ảnh khách đã thả tim vào database theo từng thư mục</div>
+                    <div class="login-highlight">💬 Ghi chú & bình luận trực tiếp trên từng file ảnh gốc</div>
+                    <div class="login-highlight">📦 Đóng gói ZIP, xuất `.txt`, lọc ảnh trực tiếp từ máy tính</div>
+                </div>
+            </div>
+            <p style="margin:1.5rem 0 0;font-size:.76rem;color:rgba(247,243,234,.68);">Tài khoản mẫu: <strong>studio@gmail.com</strong> · Mật khẩu: <strong>123456</strong></p>
+        </section>
+
+        <section class="login-form-side">
+            <div class="login-active-session" id="activeSessionBox">
+                <div>
+                    <strong id="activeSessionName">Đang đăng nhập</strong>
+                    <div id="activeSessionEmail" style="font-size:.8rem;color:var(--muted);"></div>
+                </div>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                    <a class="button button-primary" id="continueDashboardBtn" href="albums.html">Vào Album gần đây →</a>
+                    <a class="button" href="./?logout=1">Đăng xuất để đổi tài khoản</a>
+                </div>
+            </div>
+
+            <div class="login-tabs" role="tablist">
+                <button class="login-tab is-active" type="button" data-tab="login">Đăng nhập</button>
+                <button class="login-tab" type="button" data-tab="register">Đăng ký</button>
+                <button class="login-tab" type="button" data-tab="forgot">Quên mật khẩu</button>
+            </div>
+
+            <form class="login-form is-active" id="loginForm" data-panel="login">
+                <label>Email hoặc ID tài khoản
+                    <input id="loginIdentifier" name="login_id" type="text" required autocomplete="username" placeholder="studio@gmail.com">
+                </label>
+                <label>Mật khẩu
+                    <input id="loginPassword" name="password" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu">
+                </label>
+                <div class="login-row">
+                    <label class="login-remember"><input type="checkbox" name="remember_me" value="1" checked> Ghi nhớ đăng nhập</label>
+                    <button class="login-link-btn" type="button" id="fillDemoAccountBtn">Điền tài khoản mẫu</button>
+                </div>
+                <button class="button button-primary" type="submit">Đăng nhập vào hệ thống</button>
+                <div class="login-divider">hoặc</div>
+                <a class="button" href="photowedding/app.php?google=login">Đăng nhập nhanh bằng Google</a>
+            </form>
+
+            <form class="login-form" id="registerForm" data-panel="register">
+                <label>Họ và tên / Tên Studio
+                    <input name="name" type="text" required placeholder="VD: Minh Anh Studio">
+                </label>
+                <label>Số điện thoại
+                    <input name="phone" type="tel" required placeholder="0901 234 567">
+                </label>
+                <label>Email (@gmail.com)
+                    <input name="email" type="email" required placeholder="name@gmail.com">
+                </label>
+                <label>Mật khẩu (tối thiểu 6 ký tự)
+                    <input name="password" type="password" minlength="6" required placeholder="Tối thiểu 6 ký tự">
+                </label>
+                <button class="button button-primary" type="submit">Tạo tài khoản mới</button>
+            </form>
+
+            <form class="login-form" id="forgotForm" data-panel="forgot">
+                <label>Email đã đăng ký
+                    <input name="email" type="email" required placeholder="studio@gmail.com">
+                </label>
+                <button class="button button-primary" type="submit">Khôi phục mật khẩu</button>
+            </form>
+
+            <p class="login-status" id="loginStatus" role="status"></p>
+        </section>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        (() => {
+            const redirectTarget = new URLSearchParams(window.location.search).get('redirect') || 'albums.html';
+            const statusEl = document.getElementById('loginStatus');
+
+            function switchTab(tabName) {
+                document.querySelectorAll('.login-tab').forEach(btn => btn.classList.toggle('is-active', btn.dataset.tab === tabName));
+                document.querySelectorAll('.login-form').forEach(form => form.classList.toggle('is-active', form.dataset.panel === tabName));
+                statusEl.textContent = '';
+                statusEl.className = 'login-status';
+            }
+
+            document.querySelectorAll('.login-tab').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+
+            document.getElementById('fillDemoAccountBtn').addEventListener('click', () => {
+                document.getElementById('loginIdentifier').value = 'studio@gmail.com';
+                document.getElementById('loginPassword').value = '123456';
+                statusEl.textContent = 'Đã điền tài khoản mẫu studio@gmail.com.';
+                statusEl.className = 'login-status';
+            });
+
+            async function checkExistingSession() {
+                try {
+                    const res = await fetch('photowedding/app.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'session_state' })
+                    });
+                    const data = await res.json();
+                    if (data?.user?.id) {
+                        document.getElementById('activeSessionName').textContent = `Đang đăng nhập: ${data.user.name}`;
+                        document.getElementById('activeSessionEmail').textContent = data.user.email || '';
+                        document.getElementById('continueDashboardBtn').href = redirectTarget;
+                        document.getElementById('activeSessionBox').classList.add('is-visible');
+                    }
+                } catch {}
+            }
+
+            async function submitAuth(action, form) {
+                const payload = Object.fromEntries(new FormData(form));
+                payload.action = action;
+                statusEl.textContent = 'Đang xử lý...';
+                statusEl.className = 'login-status';
+                try {
+                    const res = await fetch('photowedding/app.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await res.json();
+                    if (!res.ok || !result.success) {
+                        throw new Error(result.message || 'Không thể hoàn tất yêu cầu.');
+                    }
+                    statusEl.textContent = result.message || 'Thành công!';
+                    statusEl.className = 'login-status is-success';
+                    if (action === 'login' || action === 'register') {
+                        window.location.replace(redirectTarget);
+                    }
+                } catch (err) {
+                    statusEl.textContent = err.message || 'Lỗi kết nối máy chủ.';
+                    statusEl.className = 'login-status is-error';
+                }
+            }
+
+            document.getElementById('loginForm').addEventListener('submit', e => { e.preventDefault(); submitAuth('login', e.currentTarget); });
+            document.getElementById('registerForm').addEventListener('submit', e => { e.preventDefault(); submitAuth('register', e.currentTarget); });
+            document.getElementById('forgotForm').addEventListener('submit', e => { e.preventDefault(); submitAuth('forgot', e.currentTarget); });
+
+            checkExistingSession();
+        })();
+    </script>
+</body>
+</html>

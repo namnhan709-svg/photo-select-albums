@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+   
+    <!-- CHỐNG CACHE TOÀN TRANG -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PHOTO SELECT - Chọn ảnh yêu thích từ album Google Drive và lưu danh sách nhanh chóng.">
+    <meta name="theme-color" content="#1b1b1b">
+    <link rel="icon" type="image/png" href="photowedding/logo/photo-select-logo-mark.png">
+    <title>PHOTO SELECT - Lựa chọn ảnh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://drive.google.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <link rel="stylesheet" href="css/home.css">
+<script>window.__APP_USER__ = {"id":0,"name":"","email":"","phone":""};window.__SHARED_FOLDER_ID__ = "";window.__SHARED_OWNER_USER_ID__ = 0;window.__SHARED_ALBUM_ALLOW_SAVE__ = true;</script></head>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="header-container">
+            <div class="header-left">
+                <img class="header-logo" src="photowedding/logo/photo-select-logo-mark.png" alt="">
+                PHOTO SELECT
+            </div>
+            
+            <div class="header-right">
+                <button class="header-btn" id="loginBtnHeader" type="button" title="Đăng nhập">Đăng nhập</button>
+                <button class="header-btn" id="homeBtn" type="button" title="Trang chủ" style="display:none;">Trang chủ</button>
+                <a class="header-btn" id="manageAlbumsBtn" href="albums.html" title="Album gần đây" style="display: none;">Album gần đây</a>
+                <button class="header-btn notification-btn" id="notificationBtn" type="button" title="Thông báo" aria-label="Thông báo" aria-expanded="false">🔔<span class="notification-badge" id="notificationBadge" hidden>0</span></button>
+                <button class="header-btn" id="shareLinkBtn" title="Chia sẻ link" style="display: none;">🔗 Chia sẻ</button>
+                <div class="user-panel" id="userPanel" aria-expanded="false" aria-haspopup="true">
+                    <div class="user-avatar" id="userAvatar">K</div>
+                    <div class="user-meta">
+                        <strong id="userNameText">Khách</strong>
+                        <small id="userEmailText">Chưa đăng nhập</small>
+                    </div>
+                    <div class="account-menu" id="accountMenu" role="menu" aria-label="Cài đặt tài khoản">
+                        <div class="account-header">
+                            <div class="account-avatar" id="accountAvatar">K</div>
+                            <div class="account-profile-summary">
+                                <strong id="greetingName">Khách</strong>
+                                <small id="greetingEmail">Chưa đăng nhập</small>
+                            </div>
+                        </div>
+                        <div class="account-menu-list">
+                            <button class="account-menu-item" id="profileInfoBtn" type="button" title="Thông tin cá nhân" aria-label="Thông tin cá nhân">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                Thông tin cá nhân
+                            </button>
+                            <button class="account-menu-item" id="changePasswordBtn" type="button" title="Tài khoản" aria-label="Tài khoản">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><circle cx="12" cy="12" r="3.5"/><rect x="4" y="4" width="16" height="16" rx="4"/></svg>
+                                Tài khoản
+                            </button>
+                            <button class="account-menu-item" id="settingsBtn" type="button" title="Cài đặt" aria-label="Cài đặt">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.56V20a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9.8 18.3a1.7 1.7 0 0 0-1.87.34l-.06.06A2 2 0 1 1 5.04 15.7l.06-.06A1.7 1.7 0 0 0 6 13.8a1.7 1.7 0 0 0-1.56-1H4.35a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 6 7.2a1.7 1.7 0 0 0-.34-1.87l-.06-.06A2 2 0 1 1 8.43 2.44l.06.06A1.7 1.7 0 0 0 10.36 3a1.7 1.7 0 0 0 1-1.56V1.35a2 2 0 0 1 4 0v.09A1.7 1.7 0 0 0 15.2 3a1.7 1.7 0 0 0 1.87-.34l.06-.06A2 2 0 1 1 19.96 8.3l-.06.06A1.7 1.7 0 0 0 18.6 10.2a1.7 1.7 0 0 0 1.56 1h.09a2 2 0 0 1 0 4h-.09A1.7 1.7 0 0 0 18.6 16.8Z"/></svg>
+                                Cài đặt
+                            </button>
+                            <button class="account-menu-item" id="securityBtn" type="button" title="Bảo mật" aria-label="Bảo mật">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10a5 5 0 0 0-9-3.5A5 5 0 0 0 4 12c0 6 8 10 8 10Z"/><path d="M9.09 9.09a3 3 0 0 1 5.82 1.82A3 3 0 0 1 12 15a3 3 0 0 1-2.91-4.09Z"/></svg>
+                                Bảo mật
+                            </button>
+                            <button class="account-menu-item" id="activityHistoryBtn" type="button" title="Lịch sử hoạt động" aria-label="Lịch sử hoạt động">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h3l2-6 4 12 2-6h7"/><path d="M6 19h12"/></svg>
+                                Lịch sử hoạt động
+                            </button>
+                        </div>
+                        <div class="account-footer">
+                            <button class="account-action" id="logoutBtn" type="button" title="Đăng xuất" aria-label="Đăng xuất">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+                                Đăng xuất
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+        <div class="photo-select-staff-hero">
+        <section class="auth-welcome main-welcome">
+            <div class="main-welcome-copy">
+                <span class="brand-tag">PHOTO SELECT <span aria-hidden="true">✦</span> PRO</span>
+                <h2>Chọn ảnh yêu thích<br><span>dễ dàng hơn.</span></h2>
+                <p>Giải pháp chọn ảnh thông minh tích hợp trực tiếp với Google Drive. Khách hàng thả tim, bạn dễ dàng tổng hợp danh sách ảnh yêu thích.</p>
+                <p>Ghi chú và lựa chọn được quản lý cùng album, giúp rút ngắn thời gian chốt ảnh với khách hàng.</p>
+                <div class="main-welcome-actions">
+                    <a class="hero-cta" href="albums.html">KHÁM PHÁ PHOTO SELECT PRO <span aria-hidden="true">→</span></a>
+                    <span class="hero-note">Quản lý album · Đồng bộ Google Drive</span>
+                </div>
+                <div class="auth-features">
+                    <div class="auth-feature"><span aria-hidden="true">☁</span><strong>Đồng bộ Google Drive</strong><small>Quản lý ảnh cùng album</small></div>
+                    <div class="auth-feature"><span aria-hidden="true">▤</span><strong>Xuất danh sách</strong><small>Gửi lựa chọn gọn gàng</small></div>
+                    <div class="auth-feature"><span aria-hidden="true">▯</span><strong>Tối ưu Mobile</strong><small>Chọn ảnh ở mọi nơi</small></div>
+                </div>
+                <div class="photo-ad-proof">Một album chung · Lựa chọn rõ ràng · Hậu kỳ nhanh hơn</div>
+            </div>
+            <div class="hero-visual" role="group" aria-label="Album ảnh cưới tự động chuyển cảnh">
+                <div class="wedding-carousel" id="weddingCarousel">
+                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Ngày mình gặp nhau</figcaption></figure>
+                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Khoảnh khắc hạnh phúc</figcaption></figure>
+                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Ngày vui trọn vẹn</figcaption></figure>
+                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Cùng nhau về chung một nhà</figcaption></figure>
+                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Ánh nhìn đầu tiên</figcaption></figure>
+                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Lời hẹn ước</figcaption></figure>
+                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Một ngày thật đáng nhớ</figcaption></figure>
+                </div>
+                <button class="hero-carousel-control hero-carousel-prev" type="button" aria-label="Ảnh trước">‹</button>
+                <button class="hero-carousel-control hero-carousel-next" type="button" aria-label="Ảnh tiếp theo">›</button>
+                <span class="hero-floating-card hero-floating-heart" aria-hidden="true">♥</span>
+                <span class="hero-floating-card hero-floating-selection" aria-hidden="true">Khách đã chọn <strong>50/100 ảnh</strong></span>
+                <span class="hero-floating-card hero-floating-note" aria-hidden="true"><span>▤</span> Ghi chú:<br>“Làm mờ nền”</span>
+                <div class="wedding-carousel-dots" id="weddingCarouselDots" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <span class="hero-floating-progress" aria-hidden="true"></span>
+            </div>
+        </section>
+        <section class="photo-ad-section" aria-labelledby="photoAdBenefitsTitle">
+            <div class="photo-ad-heading">
+                <span class="photo-ad-eyebrow">Chọn ảnh nhẹ nhàng hơn</span>
+                <h3 id="photoAdBenefitsTitle">Để khách chọn ảnh. Studio thảnh thơi hơn.</h3>
+                <p>Không còn phải dò từng tin nhắn để tổng hợp lựa chọn. Mọi yêu thích và ghi chú được gom ngay trong album để bạn tiện theo dõi.</p>
+            </div>
+            <div class="photo-ad-benefits">
+                <article class="photo-ad-benefit">
+                    <span class="photo-ad-benefit-icon" aria-hidden="true">♡</span>
+                    <h4>Khách chọn trực quan</h4>
+                    <p>Khách xem album và thả tim vào những bức ảnh muốn chọn, kể cả khi đang dùng điện thoại.</p>
+                </article>
+                <article class="photo-ad-benefit">
+                    <span class="photo-ad-benefit-icon" aria-hidden="true">▤</span>
+                    <h4>Ghi chú đúng ảnh</h4>
+                    <p>Trao đổi và ghi chú ngay trên ảnh để studio nắm rõ yêu cầu chỉnh sửa của khách.</p>
+                </article>
+                <article class="photo-ad-benefit">
+                    <span class="photo-ad-benefit-icon" aria-hidden="true">↗</span>
+                    <h4>Tổng hợp nhanh gọn</h4>
+                    <p>Lọc ảnh đã chọn, xuất danh sách mã ảnh hoặc tải ảnh yêu thích để tiếp tục xử lý.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="photo-ad-section" aria-labelledby="photoAdWorkflowTitle">
+            <div class="photo-ad-heading">
+                <span class="photo-ad-eyebrow">Quy trình thật đơn giản</span>
+                <h3 id="photoAdWorkflowTitle">Từ album Google Drive đến bộ ảnh khách yêu thích</h3>
+                <p>Thiết lập album, gửi khách đường dẫn và để Photo Select giúp bạn theo sát từng lựa chọn.</p>
+            </div>
+            <div class="photo-ad-steps">
+                <article class="photo-ad-step">
+                    <span class="photo-ad-step-number">01</span>
+                    <h4>Kết nối album</h4>
+                    <p>Chọn thư mục ảnh trên Google Drive để hiển thị album cho khách.</p>
+                </article>
+                <article class="photo-ad-step">
+                    <span class="photo-ad-step-number">02</span>
+                    <h4>Chia sẻ với khách</h4>
+                    <p>Gửi liên kết album để khách xem, chọn ảnh yêu thích và để lại ghi chú.</p>
+                </article>
+                <article class="photo-ad-step">
+                    <span class="photo-ad-step-number">03</span>
+                    <h4>Sẵn sàng hậu kỳ</h4>
+                    <p>Xem lại lựa chọn đã tổng hợp, rồi xuất danh sách hoặc tải ảnh cần xử lý.</p>
+                </article>
+            </div>
+        </section>
+
+        </div>
+
+        <div id="staffTeamPromo" aria-label="Giới thiệu công cụ quản lý thợ chụp">
+            <section class="staff-ad-hero">
+                <div class="staff-ad-wrap staff-ad-hero-grid">
+                    <div class="staff-ad-copy">
+                        <span class="staff-ad-eyebrow">Studio vận hành gọn hơn</span>
+                        <h2>Đội ngũ vững vàng, <span>mỗi buổi chụp</span> thêm an tâm.</h2>
+                        <p>Thông tin thợ chụp thường nằm rải rác trong tin nhắn và bảng tính? Gom hồ sơ đội ngũ về một nơi để studio dễ tìm người, nắm chuyên môn và theo dõi tình trạng làm việc.</p>
+                        <div class="staff-ad-actions">
+                            <a class="staff-ad-button" href="studio-photographers.html">Khám phá quản lý thợ <span aria-hidden="true">→</span></a>
+                            <a class="staff-ad-button staff-ad-button-light" href="#staffAdBenefits">Tìm hiểu tính năng</a>
+                        </div>
+                        <div class="staff-ad-trust"><span aria-hidden="true">✓</span> Dễ tra cứu · Rõ thông tin · Thuận tiện kết nối</div>
+                    </div>
+                    <div class="staff-ad-preview" aria-label="Minh họa bảng quản lý đội ngũ thợ chụp">
+                        <div class="staff-ad-preview-top">
+                            <div class="staff-ad-preview-title"><strong>Đội ngũ studio</strong><small>Danh sách thợ chụp của bạn</small></div>
+                            <span class="staff-ad-online">● Đang hoạt động</span>
+                        </div>
+                        <div class="staff-ad-stats">
+                            <div class="staff-ad-stat"><strong>12</strong><small>Tổng nhân sự</small></div>
+                            <div class="staff-ad-stat"><strong>09</strong><small>Đang hoạt động</small></div>
+                            <div class="staff-ad-stat"><strong>03</strong><small>Tạm nghỉ</small></div>
+                        </div>
+                        <div class="staff-ad-list">
+                            <div class="staff-ad-person">
+                                <span class="staff-ad-avatar">MA</span>
+                                <span class="staff-ad-person-name"><strong>Minh Anh</strong><small>Ảnh cưới · Hà Nội</small></span>
+                                <span class="staff-ad-status">Hoạt động</span>
+                            </div>
+                            <div class="staff-ad-person">
+                                <span class="staff-ad-avatar staff-ad-avatar-green">QT</span>
+                                <span class="staff-ad-person-name"><strong>Quốc Thịnh</strong><small>Phóng sự · Đà Nẵng</small></span>
+                                <span class="staff-ad-status">Hoạt động</span>
+                            </div>
+                            <div class="staff-ad-person">
+                                <span class="staff-ad-avatar staff-ad-avatar-blue">HL</span>
+                                <span class="staff-ad-person-name"><strong>Hà Linh</strong><small>Ảnh chân dung · TP.HCM</small></span>
+                                <span class="staff-ad-status staff-ad-status-leave">Tạm nghỉ</span>
+                            </div>
+                        </div>
+                        <p class="staff-ad-caption">Giao diện minh họa · Thông tin mẫu</p>
+                    </div>
+                </div>
+                </section>
+
+                <section class="staff-ad-section" id="staffAdBenefits">
+                <div class="staff-ad-wrap">
+                    <div class="staff-ad-heading">
+                        <span class="staff-ad-eyebrow">Quản lý tập trung</span>
+                        <h3>Ít mất thời gian tìm kiếm.<br>Nhiều thời gian chăm sóc khách hàng.</h3>
+                        <p>Hồ sơ đội ngũ rõ ràng giúp bạn nắm được ai phù hợp, ai sẵn sàng và cách liên hệ khi cần.</p>
+                    </div>
+                    <div class="staff-ad-benefits">
+                        <article class="staff-ad-benefit">
+                            <span class="staff-ad-benefit-icon" aria-hidden="true">◎</span>
+                            <h4>Nắm rõ đội ngũ</h4>
+                            <p>Lưu thông tin liên hệ, chuyên môn và địa điểm chụp trong hồ sơ từng thành viên.</p>
+                        </article>
+                        <article class="staff-ad-benefit">
+                            <span class="staff-ad-benefit-icon" aria-hidden="true">↗</span>
+                            <h4>Theo dõi trạng thái</h4>
+                            <p>Phân biệt nhân sự đang hoạt động, tạm nghỉ hoặc ngừng hợp tác để tra cứu thuận tiện.</p>
+                        </article>
+                        <article class="staff-ad-benefit">
+                            <span class="staff-ad-benefit-icon" aria-hidden="true">⌕</span>
+                            <h4>Tìm và kết nối nhanh</h4>
+                            <p>Tìm theo thông tin thành viên, lọc theo trạng thái và mở kênh liên hệ khi cần.</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="staff-ad-section staff-ad-workflow">
+                <div class="staff-ad-wrap">
+                    <div class="staff-ad-heading">
+                        <span class="staff-ad-eyebrow">Bắt đầu thật đơn giản</span>
+                        <h3>Từ danh sách rời rạc đến đội ngũ rõ ràng</h3>
+                        <p>Thiết lập thông tin cơ bản một lần, cập nhật khi đội ngũ thay đổi.</p>
+                    </div>
+                    <div class="staff-ad-steps">
+                        <article class="staff-ad-step">
+                            <span class="staff-ad-step-number">01</span>
+                            <h4>Thêm thành viên</h4>
+                            <p>Tạo hồ sơ với tên, thông tin liên hệ và chuyên môn của thợ chụp.</p>
+                        </article>
+                        <article class="staff-ad-step">
+                            <span class="staff-ad-step-number">02</span>
+                            <h4>Bổ sung thông tin</h4>
+                            <p>Ghi địa điểm chụp, ngày chụp và kênh kết nối để cả nhóm dễ tra cứu.</p>
+                        </article>
+                        <article class="staff-ad-step">
+                            <span class="staff-ad-step-number">03</span>
+                            <h4>Cập nhật trạng thái</h4>
+                            <p>Chỉnh sửa hồ sơ khi lịch làm việc hoặc tình trạng hợp tác thay đổi.</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <section class="customer-album-title" aria-live="polite">
+            <span>Album ảnh</span>
+            <h1 id="customerAlbumTitle">Album ảnh</h1>
+            <p class="guest-permission-status" id="guestPermissionStatus" aria-live="polite"></p>
+            <div id="guestSelectionIdentityBar" style="margin-top:.6rem;display:none;justify-content:center;align-items:center;gap:.45rem;flex-wrap:wrap;">
+                <label for="guestNameInput" style="font-size:.78rem;color:var(--secondary);font-weight:700;">Tên của bạn:</label>
+                <input id="guestNameInput" type="text" maxlength="60" placeholder="VD: Cô dâu Lan / Chú rể Minh" style="min-height:34px;padding:.35rem .65rem;border-radius:9px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font:inherit;font-size:.8rem;width:min(240px,70vw);">
+                <button id="confirmGuestSelectionBtn" type="button" style="min-height:34px;padding:.38rem .85rem;border-radius:9px;border:0;background:var(--accent-gradient);color:#171510;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer;">✅ Gửi danh sách đã chọn cho Studio</button>
+            </div>
+        </section>
+
+        <input type="hidden" id="folderId">
+
+    <nav class="album-category-nav" id="albumCategoryNav" aria-label="Chọn thư mục ảnh"></nav>
+
+        <!-- STATISTICS -->
+        <div class="statistics" id="statistics" style="display: none;">
+            <div class="stat-item" data-filter="all">
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">Tổng ảnh</div>
+            </div>
+            <div class="stat-item" data-filter="selected">
+                <div class="stat-value" id="statSelected">0</div>
+                <div class="stat-label">Đã chọn ❤️</div>
+            </div>
+            <div class="stat-item" data-filter="unselected">
+                <div class="stat-value" id="statUnselected">0</div>
+                <div class="stat-label">Chưa chọn 🤍</div>
+            </div>
+            <div class="stat-item" id="commentStatBtn" role="button" tabindex="0" aria-expanded="false">
+                <div class="stat-value" id="statComments">0</div>
+                <div class="stat-label">Bình luận 💬</div>
+            </div>
+        </div>
+
+        <section class="comment-summary-panel" id="commentSummaryPanel" aria-live="polite">
+            <strong class="comment-summary-title">Ảnh có bình luận của khách</strong>
+            <div id="commentSummaryContent" class="comment-summary-loading">Chưa tải danh sách bình luận.</div>
+        </section>
+
+        <!-- TOOLBAR -->
+        <div class="toolbar" id="toolbar" style="display: none;">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Tìm tên ảnh...">
+            </div>
+            <div class="filter-controls">
+                <button class="filter-btn active" data-filter="all">Tất cả</button>
+                <button class="filter-btn" data-filter="selected" id="selectedFilterBtn">❤️ Đã chọn: <span id="selectedFilterCount">0</span></button>
+                <button class="filter-btn" data-filter="unselected">🤍 Chưa chọn</button>
+                <select id="categorySelect" aria-label="Nhóm ảnh">
+                    <option value="all">Tất cả nhóm</option>
+                </select>
+                <select id="sortSelect">
+                    <option value="default">Thứ tự chuẩn</option>
+                    <option value="name-asc">Tên A → Z</option>
+                    <option value="name-desc">Tên Z → A</option>
+                </select>
+                <button class="export-btn" id="toolbarZipBtn" type="button"><svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m-5-5 5 5 5-5M4 15v4h16v-4"/></svg> Tải ảnh yêu thích</button>
+                <button class="export-btn" id="toolbarCopyBtn" type="button">🖼️ Lọc ảnh nhanh: <span id="copiedCount">0</span></button>
+                <button class="export-btn" id="toolbarExportBtn" type="button">⬇️ Xuất .txt</button>
+            </div>
+        </div>
+
+        <!-- PHOTO GRID -->
+        <div class="photo-grid" id="photoGrid" style="display: none;"></div>
+
+        <!-- EMPTY STATE -->
+        <div id="emptyState" style="display: none; text-align: center; padding: 4rem 1rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">📷</div>
+            <h3>Không có bức ảnh nào để hiển thị</h3>
+            <p style="color: var(--secondary); margin-top: 0.3rem;">Vui lòng kết nối thư mục hoặc chọn bộ lọc khác</p>
+        </div>
+
+        <!-- LOADING TEXT -->
+        <p id="loadingText" style="text-align: center; display: none; padding: 3rem; font-weight: 700; color: var(--accent);">
+            Đang quét và kết nối ảnh từ Google Drive...
+        </p>
+
+    </div>
+
+    <div class="modal" id="recentAlbumsModal" role="dialog" aria-modal="true" aria-labelledby="recentAlbumsTitle">
+        <div class="modal-content">
+            <button class="auth-close" id="recentAlbumsClose" type="button" aria-label="Đóng">✕</button>
+            <div class="saved-albums">
+                <div class="saved-albums-heading">
+                    <h4 id="recentAlbumsTitle">📁 Album đã lưu gần đây</h4>
+                    <div class="album-management-actions">
+                        <button class="album-management-btn" type="button" id="editRecentAlbumBtn">Sửa</button>
+                        <button class="album-management-btn danger" type="button" id="deleteRecentAlbumBtn">Xóa</button>
+                        <button class="album-management-btn" type="button" id="showDeletedAlbumsBtn">Lịch sử</button>
+                        <div class="album-delete-mode-actions">
+                            <button class="album-management-btn danger" type="button" id="confirmDeleteAlbumsBtn">Xác nhận xóa</button>
+                            <button class="album-management-btn" type="button" id="cancelDeleteAlbumsBtn">Thoát</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="savedAlbumsList" class="saved-albums-list"></div>
+                <div id="savedAlbumsPagination" class="saved-albums-pagination" aria-label="Phân trang album đã xem gần đây"></div>
+                <div id="deletedAlbumsHistory" class="deleted-albums-history"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar" id="bottomBar">
+        <span class="bottom-bar-text">❤️ Đã chọn <span id="bottomBarCount">0</span> ảnh</span>
+    </div>
+
+    <nav class="page-jump-controls" aria-label="Điều hướng trang">
+        <button class="page-jump-btn" id="pageTopBtn" type="button" title="Lên đầu trang" aria-label="Lên đầu trang">↑</button>
+        <button class="page-jump-btn" id="pageMiddleBtn" type="button" title="Đến giữa trang" aria-label="Đến giữa trang">↕</button>
+        <button class="page-jump-btn" id="pageBottomBtn" type="button" title="Xuống cuối trang" aria-label="Xuống cuối trang">↓</button>
+    </nav>
+
+    <aside class="admin-chat" id="adminChat">
+        <button class="admin-chat-toggle" id="adminChatToggle" type="button" aria-label="Chat admin" aria-expanded="false" title="Chat admin">
+            <svg class="admin-chat-mark" viewBox="0 0 64 64" role="img" aria-hidden="true">
+                <path fill="#2498e5" d="M5 29C5 14 17 5 32 5s27 9 27 24c0 8-4 15-10 20-7 6-17 9-29 9H8c-3 0-5-2-5-5 0-2 1-3 3-5l5-5C7 39 5 34 5 29Z"/>
+                <path fill="#62afe7" d="M30 57c13 0 23-3 29-9 4-4 7-9 8-15 1 2 2 5 2 8 0 8-4 15-10 20-7 6-17 9-29 9H17c-2 0-3-1-4-2l12-11h5Z"/>
+                <path fill="white" stroke="white" stroke-linecap="round" stroke-width="4" d="M20 24h24M20 34h15"/>
+            </svg>
+            <span>Chat admin</span>
+        </button>
+        <form class="admin-chat-panel" id="adminChatForm">
+            <h3>Góp ý với admin</h3>
+            <p>Gửi câu hỏi hoặc góp ý trực tiếp. Bạn không cần đăng nhập.</p>
+            <div class="admin-chat-messages" id="adminChatMessages" aria-live="polite">
+                <div class="admin-chat-empty">Chưa có tin nhắn nào.</div>
+            </div>
+            <div class="admin-chat-typing" id="adminChatTyping" aria-live="polite"></div>
+            <textarea id="adminChatInput" maxlength="2000" placeholder="Ví dụ: Tôi muốn góp ý về cách hiển thị ảnh..."></textarea>
+            <div class="admin-chat-actions">
+                <button class="admin-chat-report-toggle" id="adminChatReportToggle" type="button" aria-pressed="false">⚠️ Báo lỗi</button>
+                <button class="admin-chat-submit" id="adminChatSubmit" type="submit">Gửi góp ý</button>
+            </div>
+            <div class="admin-chat-message" id="adminChatMessage" role="status"></div>
+        </form>
+    </aside>
+
+    <!-- LIGHTBOX -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightboxClose">✕</button>
+            <img class="lightbox-image" id="lightboxImage" src="" alt="">
+            <div class="lightbox-photo-number" id="lightboxPhotoNumber" aria-live="polite"></div>
+            <div class="lightbox-caption" id="lightboxCaption"></div>
+            <div class="lightbox-controls">
+                <button class="lightbox-btn" id="lightboxPrev">←</button>
+                <button class="lightbox-btn" id="lightboxHeart">❤️</button>
+                <div class="lightbox-download-wrap" id="lightboxDownloadWrap">
+                    <button class="lightbox-btn lightbox-download-toggle" id="lightboxDownloadToggle" type="button" title="Tải ảnh" aria-label="Tải ảnh" aria-haspopup="menu" aria-expanded="false"><svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m-5-5 5 5 5-5M4 15v4h16v-4"/></svg></button>
+                    <div class="lightbox-download-menu" id="lightboxDownloadMenu" role="menu" aria-label="Tùy chọn tải ảnh">
+                        <button id="downloadCurrentLightboxPhoto" type="button" role="menuitem">Tải ảnh đang xem</button>
+                        <button id="downloadSharedAlbum" type="button" role="menuitem">Tải toàn bộ album</button>
+                        <p class="lightbox-download-status" id="lightboxDownloadStatus" role="status" aria-live="polite"></p>
+                    </div>
+                </div>
+                <button class="lightbox-btn" id="lightboxNext">→</button>
+            </div>
+            <div class="lightbox-comment-panel">
+                <div class="lightbox-comments" id="lightboxComments">Đang tải bình luận...</div>
+                <form class="lightbox-comment-form" id="lightboxCommentForm">
+                    <input id="lightboxCommentInput" type="text" maxlength="500" placeholder="Viết bình luận cho ảnh này..." required>
+                    <button type="submit">Gửi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+        <div class="modal-content share-modal-content">
+            <button class="auth-close" id="shareClose" type="button" aria-label="Đóng">✕</button>
+            <h3 id="shareTitle">Chia sẻ album</h3>
+            <div id="shareSecurityQuestion">
+                <p class="share-security-question">Bạn có muốn đặt mã bảo mật cho link gửi khách không?</p>
+                <div class="share-security-actions">
+                    <button class="btn btn-secondary" id="shareWithoutCodeBtn" type="button">Không đặt mã</button>
+                    <button class="btn btn-primary" id="shareWithCodeBtn" type="button">Đặt mã bảo vệ</button>
+                </div>
+            </div>
+            <div id="shareCodeForm" hidden>
+                <label class="share-security-option" for="shareAccessCode">Mã bảo mật</label>
+                <input id="shareAccessCode" class="share-code-input" type="password" minlength="4" maxlength="64" autocomplete="new-password" placeholder="Nhập mã từ 4 ký tự">
+                <button class="btn btn-primary" id="createProtectedShareBtn" type="button">Tạo link có mã</button>
+            </div>
+            <p id="shareSecurityMessage" class="share-security-message"></p>
+            <div class="share-link-row">
+                <input id="shareUrlInput" type="text" readonly aria-label="Link album" placeholder="Link sẽ xuất hiện sau khi tạo">
+                <button id="copyShareUrlBtn" type="button">Copy link</button>
+            </div>
+            <div class="share-preview">
+                <div class="share-qr-placeholder" id="shareQrPlaceholder" aria-label="Album sẵn sàng chia sẻ">
+                    <svg viewBox="0 0 120 120" role="img" aria-hidden="true">
+                        <rect x="16" y="24" width="88" height="70" rx="10" fill="#d4af37" opacity=".2" stroke="#d4af37" stroke-width="2"/>
+                        <path d="M25 79 47 56l15 15 11-12 22 20" fill="none" stroke="#d4af37" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="77" cy="45" r="7" fill="#d4af37"/>
+                        <path d="M60 12v17M51.5 20.5h17" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                        <path d="m96 14 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Z" fill="#fff"/>
+                    </svg>
+                </div>
+                <img class="share-qr" id="shareQrImage" alt="Mã QR chia sẻ album" hidden>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div class="modal auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <div class="modal-content">
+            <div class="auth-layout">
+                <section class="auth-welcome">
+                    <span class="brand-tag">✨ PHOTO SELECT PRO</span>
+                    <h2 id="authTitle">CHỌN ẢNH YÊU THÍCH DỄ DÀNG</h2>
+                    <p>Chạm tim để lưu lại những khoảnh khắc ưng ý nhất và tải trọn bộ album đã chọn về máy chỉ trong một thao tác.</p>
+                    <div class="auth-features">
+                        <div class="auth-feature"><span>⚡</span><strong>Tốc độ</strong><small>Tải ảnh tức thì</small></div>
+                        <div class="auth-feature"><span>🔒</span><strong>Bảo mật</strong><small>Tài khoản riêng</small></div>
+                        <div class="auth-feature"><span>☁️</span><strong>Drive Sync</strong><small>Đồng bộ mượt</small></div>
+                    </div>
+                </section>
+                <section class="auth-form-panel">
+                    <button class="auth-close" id="authClose" type="button" aria-label="Đóng">✕</button>
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" type="button" data-auth-tab="login">Đăng nhập</button>
+                        <button class="auth-tab" type="button" data-auth-tab="register">Đăng ký</button>
+                    </div>
+                    <form class="auth-form active" data-auth-form="login">
+                        <label>ID hoặc Email<input name="login_id" type="text" required placeholder="Nhập tài khoản hoặc email..."></label>
+                        <label>Mật khẩu<input name="password" type="password" required placeholder="Tối thiểu 6 ký tự"></label>
+                        <div class="auth-options-row">
+                            <label class="remember-login"><input name="remember_me" type="checkbox" value="1"> Ghi nhớ đăng nhập trên thiết bị này</label>
+                            <button class="auth-forgot-link" type="button" data-auth-tab="forgot">Quên mật khẩu?</button>
+                        </div>
+                        <p class="auth-session-note">Chỉ khi bật tùy chọn này, tài khoản mới được duy trì khi mở lại ứng dụng. (Demo: <code>studio@gmail.com</code> / <code>123456</code>)</p>
+                        <button type="submit" class="btn btn-primary">Vào hệ thống</button>
+                        <div class="auth-oauth-divider"><span>hoặc</span></div>
+                        <a class="google-login-btn" href="photowedding/app.php?google=login">
+                            <span class="google-login-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" role="img">
+                                    <path fill="#4285F4" d="M21.35 12.27c0-.71-.06-1.4-.18-2.06H12v3.9h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.23Z"/>
+                                    <path fill="#34A853" d="M12 21.5c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.3v2.53A9.74 9.74 0 0 0 12 21.5Z"/>
+                                    <path fill="#FBBC05" d="M6.54 13.58A5.86 5.86 0 0 1 6.23 12c0-.55.11-1.09.31-1.58V7.89H3.3A9.5 9.5 0 0 0 2.25 12c0 1.48.35 2.88 1.05 4.11l3.24-2.53Z"/>
+                                    <path fill="#EA4335" d="M12 6.39c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 3.47 14.63 2.5 12 2.5a9.74 9.74 0 0 0-8.7 5.39l3.24 2.53C7.31 8.11 9.46 6.39 12 6.39Z"/>
+                                </svg>
+                            </span>
+                            <span>Đăng nhập bằng Google</span>
+                        </a>
+                    </form>
+                    <form class="auth-form" data-auth-form="register">
+                        <label>Họ và tên<input name="name" type="text" required placeholder="Nguyễn Văn A"></label>
+                        <label>Số điện thoại<input name="phone" type="tel" inputmode="tel" required placeholder="0912 345 678"></label>
+                        <label>Email<input name="email" type="email" required placeholder="name@example.com"></label>
+                        <label>Mật khẩu<input name="password" type="password" minlength="6" required placeholder="Tối thiểu 6 ký tự"></label>
+                        <button type="submit" class="btn btn-primary">Tạo tài khoản</button>
+                    </form>
+                    <form class="auth-form" data-auth-form="forgot">
+                        <label>Email đã đăng ký<input name="email" type="email" required placeholder="name@example.com"></label>
+                        <button type="submit" class="btn btn-primary">Gửi link khôi phục</button>
+                    </form>
+                    <p class="auth-message" id="authMessage" role="status"></p>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div class="modal" id="profileModal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+        <div class="modal-content">
+            <button class="auth-close" id="profileClose" type="button" aria-label="Đóng">✕</button>
+            <h3 id="profileTitle" style="margin-bottom: 1.2rem; color: var(--primary);">Thông tin cá nhân</h3>
+            <div class="password-form">
+                <label>Họ và tên
+                    <input id="profileNameInput" class="profile-info-readonly" type="text" readonly>
+                </label>
+                <label>Email
+                    <input id="profileEmailInput" class="profile-info-readonly" type="email" readonly>
+                </label>
+                <label>Số điện thoại
+                    <input id="profilePhoneInput" type="tel" inputmode="tel" placeholder="0912 345 678">
+                </label>
+            </div>
+            <div class="profile-save-row">
+                <button class="btn btn-primary" id="profileSaveBtn" type="button">Lưu số điện thoại</button>
+                <button class="profile-cancel-btn" id="profileCancelBtn" type="button">Đóng</button>
+            </div>
+            <p class="password-message" id="profileMessage" role="status"></p>
+        </div>
+    </div>
+
+    <div class="modal" id="notificationModal" role="dialog" aria-modal="true" aria-labelledby="notificationTitle">
+        <div class="modal-content">
+            <button class="auth-close" id="notificationClose" type="button" aria-label="Đóng">✕</button>
+            <h3 id="notificationTitle" style="margin-bottom:1.2rem;color:var(--primary);">Thông báo</h3>
+            <div id="notificationList" class="notification-list"><p class="hint">Chưa có thông báo mới.</p></div>
+        </div>
+    </div>
+
+    <!-- CHANGE PASSWORD MODAL -->
+    <div class="modal" id="passwordModal" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
+        <div class="modal-content">
+            <button class="auth-close" id="passwordClose" type="button" aria-label="Đóng">✕</button>
+            <h3 id="passwordTitle" style="margin-bottom: 1.2rem; color: var(--primary);">Đổi mật khẩu</h3>
+            <form class="password-form" id="passwordForm">
+                <label>Mật khẩu hiện tại<input name="old_password" type="password" required></label>
+                <label>Mật khẩu mới<input name="new_password" type="password" minlength="6" required></label>
+                <label>Xác nhận mật khẩu mới<input name="confirm_password" type="password" minlength="6" required></label>
+                <button type="submit" class="btn btn-primary">Cập nhật mật khẩu</button>
+            </form>
+            <p class="password-message" id="passwordMessage" role="status"></p>
+        </div>
+    </div>
+
+    <div class="modal settings-modal" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="modal-content">
+            <button class="auth-close" id="settingsClose" type="button" aria-label="Đóng">✕</button>
+            <h3 id="settingsTitle">Cài đặt giao diện</h3>
+            <div class="dashboard-theme-options" role="group" aria-label="Chọn giao diện">
+                <button class="dashboard-theme-option" type="button" data-settings-theme="sage" aria-pressed="false">
+                    <span class="dashboard-theme-option-icon" aria-hidden="true">☼</span>
+                    <strong>Giao diện sáng</strong>
+                    <small>Sáng rõ, tinh tế và dễ quan sát.</small>
+                </button>
+                <button class="dashboard-theme-option" type="button" data-settings-theme="dark" aria-pressed="false">
+                    <span class="dashboard-theme-option-icon" aria-hidden="true">◐</span>
+                    <strong>Giao diện tối</strong>
+                    <small>Nền trầm, chữ sáng, dịu mắt.</small>
+                </button>
+            </div>
+            <p class="dashboard-theme-status" id="settingsThemeStatus" role="status" aria-live="polite"></p>
+        </div>
+    </div>
+
+    <!-- EXPORT MODAL -->
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1rem;">Xuất danh sách ảnh đã chọn</h3>
+            <label class="export-include-name" for="exportIncludeName">
+                <input id="exportIncludeName" type="checkbox">
+                <span>Kèm tên file ảnh (bỏ chọn để chỉ xuất mã số)</span>
+            </label>
+            <div class="config-group" style="margin-bottom: 1rem;">
+                <label>Độ dài mã số (có thể chọn nhiều)</label>
+                <div class="export-digit-options">
+                    <label><input type="checkbox" name="exportDigitCount" value="3">3 số</label>
+                    <label><input type="checkbox" name="exportDigitCount" value="4" checked>4 số</label>
+                    <label><input type="checkbox" name="exportDigitCount" value="5">5 số</label>
+                    <label><input type="checkbox" name="exportDigitCount" value="6">6 số</label>
+                </div>
+            </div>
+            <div class="config-group" style="margin-bottom: 1.5rem;">
+                <label for="exportSeparator">Dấu ngăn cách giữa ảnh</label>
+                <select id="exportSeparator" style="width: 100%;">
+                    <option value=",">Dấu phẩy (,)</option>
+                    <option value=" . ">Dấu chấm (.)</option>
+                    <option value="\n">Xuống dòng</option>
+                    <option value=" ">Khoảng trắng</option>
+                    <option value="\t">Tab</option>
+                    <option value=";">Chấm phẩy (;)</option>
+                    <option value=" | ">Gạch đứng ( | )</option>
+                    <option value=" - ">Gạch ngang ( - )</option>
+                    <option value=" / ">Gạch chéo ( / )</option>
+                    <option value="custom">Tùy chỉnh</option>
+                </select>
+                <input id="exportCustomSeparator" type="text" maxlength="12" placeholder="Nhập dấu phân cách" aria-label="Dấu phân cách tùy chỉnh" hidden>
+            </div>
+            <div class="export-preview">
+                <label for="exportPreview">Xem trước</label>
+                <pre id="exportPreview">Chọn ảnh yêu thích để xem trước.</pre>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn-cancel" id="exportCancel">Hủy</button>
+                <button class="modal-btn-confirm" id="exportCopyBtn" type="button">📋 Copy nhanh</button>
+                <button class="modal-btn-confirm" id="exportDownloadBtn">Tải File .txt</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="zipProgressModal" role="dialog" aria-modal="true" aria-labelledby="zipProgressTitle">
+        <div class="modal-content zip-progress-content">
+            <div class="zip-progress-icon">📁</div>
+            <h3 id="zipProgressTitle">Đang đóng gói ảnh yêu thích</h3>
+            <p class="zip-progress-status" id="zipProgressStatus">Đang bắt đầu...</p>
+            <p class="zip-progress-warning" id="zipProgressWarning">Ảnh sẽ được đóng gói thành một file ZIP và giữ nguyên tên file gốc.</p>
+            <div class="zip-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="zipProgressTrack">
+                <div class="zip-progress-fill" id="zipProgressFill"></div>
+            </div>
+            <div class="zip-progress-percent" id="zipProgressPercent">0%</div>
+        </div>
+    </div>
+
+    <div class="modal" id="mobileDownloadNoticeModal" role="dialog" aria-modal="true" aria-labelledby="mobileDownloadNoticeTitle">
+        <div class="modal-content">
+            <h3 id="mobileDownloadNoticeTitle" style="margin-bottom:0.7rem;color:var(--primary);">Tải toàn album trên máy tính</h3>
+            <p style="color:var(--secondary);line-height:1.55;">Trên điện thoại, bạn vẫn có thể tải từng ảnh đang xem. Tải toàn bộ album hiện chỉ hỗ trợ trên máy tính.</p>
+            <div class="modal-buttons">
+                <button class="modal-btn-confirm" id="mobileDownloadNoticeClose" type="button">Đã hiểu</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="albumFolderDownloadModal" role="dialog" aria-modal="true" aria-labelledby="albumFolderDownloadTitle">
+        <div class="modal-content zip-setup-content">
+            <h3 id="albumFolderDownloadTitle">Chọn thư mục con cần tải</h3>
+            <p class="zip-setup-note">Ảnh ở thư mục album luôn được thêm vào ZIP. Chọn một thư mục cha để bao gồm cả các thư mục con bên trong.</p>
+            <label class="album-folder-select-all">
+                <input id="albumFolderSelectAll" type="checkbox" checked>
+                <span>Chọn tất cả thư mục con</span>
+            </label>
+            <div class="album-folder-list" id="albumFolderList"></div>
+            <p class="album-folder-selection-status" id="albumFolderSelectionStatus" role="status"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn-cancel" id="albumFolderDownloadCancel" type="button">Hủy</button>
+                <button class="modal-btn-confirm" id="albumFolderDownloadStart" type="button">Đóng gói và tải ZIP</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="zipSetupModal" role="dialog" aria-modal="true" aria-labelledby="zipSetupTitle">
+        <div class="modal-content zip-setup-content">
+            <h3 id="zipSetupTitle">Tải ảnh vào thư mục album</h3>
+            
+            <p class="zip-setup-note">Hệ thống sẽ đóng gói toàn bộ ảnh đã chọn thành một file ZIP rồi tải vào Downloads mặc định của trình duyệt.</p>
+            <p class="zip-setup-warning">Lưu ý: Ảnh được tải trực tiếp từ Google Drive, là ảnh gốc.</p>
+            
+            <div class="modal-buttons">
+                <button class="modal-btn-cancel" id="zipSetupCancel" type="button">Hủy</button>
+                <button class="modal-btn-confirm" id="zipSetupStart" type="button">📦 Đóng gói và tải ZIP</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="driveUploadModal" role="dialog" aria-modal="true" aria-labelledby="driveUploadTitle">
+        <div class="modal-content drive-upload-content">
+            <h3 id="driveUploadTitle">Sao chép ảnh yêu thích vào Google Drive</h3>
+            <p class="drive-upload-note">Dán link thư mục Google Drive để tạo thư mục con và sao chép ảnh yêu thích vào đó.</p>
+            <label class="drive-upload-label" for="driveUploadFolderLink">Link thư mục đích</label>
+            <input class="drive-upload-input" id="driveUploadFolderLink" type="url" placeholder="https://drive.google.com/drive/folders/..." autocomplete="off">
+            <button class="drive-permission-guide-btn" id="drivePermissionGuideBtn" type="button">Hướng dẫn</button>
+            <p class="drive-upload-status" id="driveUploadStatus" role="status"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn-cancel" id="driveUploadCancel" type="button">Hủy</button>
+                <button class="modal-btn-confirm" id="driveUploadStart" type="button">🚀 Bắt đầu sao chép</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="drivePermissionGuideModal" role="dialog" aria-modal="true" aria-labelledby="drivePermissionGuideTitle">
+        <div class="modal-content drive-guide-content">
+            <button class="auth-close" id="drivePermissionGuideClose" type="button" aria-label="Đóng">✕</button>
+            <h3 id="drivePermissionGuideTitle">Cấp quyền thư mục Google Drive</h3>
+            <ol>
+                <li>Mở thư mục Google Drive muốn nhận ảnh.</li>
+                <li>Bấm nút <strong>Chia sẻ</strong> ở góc phải.</li>
+                <li>Tại <strong>Quyền truy cập chung</strong>, chọn <code>Bất kỳ ai có đường liên kết</code>.</li>
+                <li>Ở quyền bên phải, chọn <code>Người chỉnh sửa</code>.</li>
+                <li>Bấm <strong>Sao chép đường liên kết</strong>, sau đó bấm <strong>Xong</strong>.</li>
+                <li>Quay lại cửa sổ sao chép ảnh, dán link vào ô <strong>Link thư mục đích</strong>.</li>
+            </ol>
+            <div class="modal-buttons">
+                <button class="modal-btn-confirm" id="drivePermissionGuideDone" type="button">Đã hiểu</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="quickFilterModal" role="dialog" aria-modal="true" aria-labelledby="quickFilterTitle">
+        <div class="modal-content quick-filter-content">
+            <h3 id="quickFilterTitle">Lọc ảnh nhanh từ máy tính</h3>
+            <p class="quick-filter-summary" id="quickFilterSummary">Ảnh yêu thích sẽ được dùng làm danh sách mã số để tìm trong thư mục nguồn.</p>
+            <div class="quick-filter-folder-row">
+                <button class="btn btn-secondary" id="quickFilterSourceBtn" type="button">Chọn thư mục nguồn</button>
+                <span class="quick-filter-folder-name" id="quickFilterSourceName">Chưa chọn thư mục nguồn</span>
+            </div>
+            <div class="quick-filter-folder-row">
+                <button class="btn btn-secondary" id="quickFilterDestinationBtn" type="button">Chọn thư mục lưu</button>
+                <span class="quick-filter-folder-name" id="quickFilterDestinationName">Chưa chọn thư mục lưu</span>
+            </div>
+            <p class="quick-filter-status" id="quickFilterStatus" role="status"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn-cancel" id="quickFilterCancel" type="button">Hủy</button>
+                <button class="modal-btn-confirm" id="quickFilterStart" type="button">▶ Bắt đầu lọc và copy</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="photowedding/index.js"></script>
+    <script>
+        (() => {
+            const slides = [...document.querySelectorAll('.wedding-slide')];
+            const dots = [...document.querySelectorAll('#weddingCarouselDots span')];
+            if (!slides.length || slides.length !== dots.length) return;
+
+            let activeSlide = 0;
+            const updateCarousel = () => {
+                const middle = Math.floor(slides.length / 2);
+                slides.forEach((slide, index) => {
+                    let position = (index - activeSlide + slides.length) % slides.length;
+                    if (position > middle) position -= slides.length;
+                    slide.dataset.position = Math.abs(position) > 2 ? 'hidden' : String(position);
+                    dots[index].classList.toggle('active', index === activeSlide);
+                });
+            };
+
+            const moveCarousel = (direction) => {
+                activeSlide = (activeSlide + direction + slides.length) % slides.length;
+                updateCarousel();
+            };
+
+            document.querySelector('.hero-carousel-prev')?.addEventListener('click', () => moveCarousel(-1));
+            document.querySelector('.hero-carousel-next')?.addEventListener('click', () => moveCarousel(1));
+            updateCarousel();
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                window.setInterval(() => moveCarousel(1), 4500);
+            }
+        })();
+    </script>
+</body>
+</html>

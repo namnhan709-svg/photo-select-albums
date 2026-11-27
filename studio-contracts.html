@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Soạn hợp đồng dịch vụ studio và in hoặc lưu thành PDF.">
+    <link rel="icon" type="image/png" href="photowedding/logo/photo-select-logo-mark.png">
+    <title>Hợp đồng studio - PHOTO SELECT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        try {
+            const savedSettings = JSON.parse(localStorage.getItem('photoSelectInterfaceSettings') || '{}');
+            const savedDashboardTheme = localStorage.getItem('photoSelectDashboardTheme');
+            const savedLegacyTheme = localStorage.getItem('photoSelectTheme');
+            const theme = savedSettings.theme === 'dark' || savedSettings.theme === 'sage'
+                ? savedSettings.theme
+                : (savedDashboardTheme === 'dark' || savedDashboardTheme === 'light'
+                    ? (savedDashboardTheme === 'dark' ? 'dark' : 'sage')
+                    : (savedLegacyTheme === 'dark' ? 'dark' : 'sage'));
+            document.documentElement.dataset.dashboardTheme = theme === 'dark' ? 'dark' : 'light';
+        } catch (error) {
+            console.warn('Không thể đọc giao diện Dashboard đã lưu.', error);
+        }
+    </script>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f5f5f3;
+            --surface: #fff;
+            --soft: #f0f0ee;
+            --text: #1e1e1e;
+            --muted: #666b70;
+            --border: #e5e5e2;
+            --accent: #3f5045;
+            --shadow: 0 18px 40px rgba(17, 17, 17, .08);
+        }
+        :root[data-dashboard-theme="dark"] {
+            color-scheme: dark;
+            --bg: #17191b;
+            --surface: #222528;
+            --soft: #292d30;
+            --text: #f3f1eb;
+            --muted: #a4aaa9;
+            --border: #393e41;
+            --accent: #d9b86c;
+            --shadow: 0 18px 40px rgba(0, 0, 0, .3);
+        }
+        * { box-sizing: border-box; }
+        body { min-height: 100vh; margin: 0; color: var(--text); background: linear-gradient(180deg, #f7f5f2 0%, #f2f0ec 100%); font-family: Manrope, sans-serif; }
+        button, input, textarea { font: inherit; }
+        .topbar { display: flex; min-height: 72px; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem clamp(1rem, 4vw, 3rem); border-bottom: 1px solid var(--border); background: rgba(255,255,255,.94); backdrop-filter: blur(8px); }
+        .brand { display: flex; align-items: center; gap: .65rem; font-weight: 800; letter-spacing: .02em; }
+        .brand img { width: 28px; height: 36px; object-fit: contain; }
+        .topbar a { color: var(--muted); font-size: .82rem; font-weight: 700; text-decoration: none; }
+        .topbar a:hover { color: var(--text); }
+        .dashboard-shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); width: 100%; min-height: calc(100vh - 72px); margin: 0; }
+        .dashboard-sidebar { position: sticky; top: 72px; display: flex; height: calc(100vh - 72px); min-height: 520px; flex-direction: column; padding: 1.35rem 1rem; border-right: 1px solid var(--border); background: rgba(255,255,255,.62); }
+        .sidebar-caption { margin: 0 0 .75rem .7rem; color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+        .sidebar-nav { display: grid; gap: .35rem; }
+        .sidebar-link { display: flex; width: 100%; min-height: 46px; align-items: center; gap: .75rem; padding: .65rem .75rem; border: 1px solid transparent; border-radius: 11px; color: var(--muted); background: transparent; font: inherit; font-size: .84rem; font-weight: 700; text-align: left; text-decoration: none; cursor: pointer; transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease; }
+        .sidebar-link:hover { color: var(--text); border-color: var(--border); background: var(--surface); transform: translateX(2px); }
+        .sidebar-link[aria-current="page"] { color: var(--text); border-color: var(--border); background: var(--surface); box-shadow: 0 5px 16px rgba(25,25,25,.06); }
+        .sidebar-link[aria-current="page"] .sidebar-icon { color: var(--accent); }
+        .sidebar-icon { flex: 0 0 auto; color: var(--muted); font-family: "Material Symbols Rounded"; font-size: 1.25rem; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-smoothing: antialiased; font-feature-settings: "liga"; }
+        .sidebar-divider { height: 1px; margin: 1rem .65rem; background: var(--border); }
+        .sidebar-account { display: flex; align-items: center; gap: .7rem; margin-top: auto; padding: .75rem; border: 1px solid var(--border); border-radius: 13px; background: var(--surface); }
+        .sidebar-account-mark { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border-radius: 10px; color: #fff; background: linear-gradient(135deg,#232323,#676767); font-size: .72rem; font-weight: 800; }
+        .sidebar-account-copy { display: grid; min-width: 0; gap: .15rem; }
+        .sidebar-account-copy strong { overflow: hidden; color: var(--text); font-size: .74rem; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-account-copy small { color: var(--muted); font-size: .67rem; }
+        :root[data-dashboard-theme="dark"] .topbar,
+        :root[data-dashboard-theme="dark"] .dashboard-sidebar { background: rgba(24,26,28,.92); }
+        :root[data-dashboard-theme="dark"] .sidebar-account-mark { color: #171510; background: linear-gradient(135deg,#d9b86c,#f0d99b); }
+        :root[data-dashboard-theme="dark"] label { color: var(--muted); }
+        :root[data-dashboard-theme="dark"] .button-primary { color: #171510; }
+        :root[data-dashboard-theme="dark"] .contract { border-color: #e8e5dc; color: #242424; background: #fff; }
+        .settings-dialog { display: none; position: fixed; inset: 0; z-index: 30; align-items: center; justify-content: center; padding: 1rem; background: rgba(15,23,42,.56); backdrop-filter: blur(5px); }
+        .settings-dialog.is-open { display: flex; }
+        .settings-panel { position: relative; display: flex; width: min(780px, calc(100vw - 2rem)); height: min(600px, calc(100dvh - 2rem)); flex-direction: column; overflow: hidden; padding: 1.35rem; border: 1px solid var(--border); border-radius: 16px; color: var(--text); background: var(--surface); box-shadow: var(--shadow); }
+        .settings-panel > h2 { margin: 0 2.5rem .8rem 0; font-size: 1.1rem; }
+        .settings-close { position: absolute; top: .75rem; right: .75rem; width: 34px; min-height: 34px; padding: 0; border-radius: 50%; font-size: 1.1rem; }
+        .settings-layout { display: grid; width: 100%; min-height: 0; flex: 1; grid-template-columns: 190px minmax(0, 1fr); overflow: hidden; border: 1px solid var(--border); border-radius: 12px; }
+        .settings-nav { display: grid; align-content: start; gap: .3rem; overflow-y: auto; padding: .65rem; border-right: 1px solid var(--border); background: var(--soft); }
+        .settings-nav button { display: flex; min-height: 40px; align-items: center; padding: .55rem .65rem; border: 1px solid transparent; border-radius: 8px; color: var(--muted); background: transparent; font: inherit; font-size: .8rem; font-weight: 700; text-align: left; cursor: pointer; }
+        .settings-nav button:hover, .settings-nav button[aria-current="page"] { color: var(--text); border-color: var(--border); background: var(--surface); }
+        .settings-content { min-width: 0; overflow: auto; padding: 1rem; overscroll-behavior: contain; }
+        .settings-content h3 { margin: 0 0 .85rem; color: var(--text); font-size: 1rem; }
+        .profile-list { display: grid; gap: .55rem; margin: 0; }
+        .profile-list div { display: grid; gap: .15rem; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: 9px; background: var(--soft); }
+        .profile-list dt { color: var(--muted); font-size: .74rem; font-weight: 800; }
+        .profile-list dd { margin: 0; color: var(--text); font-size: .84rem; font-weight: 700; overflow-wrap: anywhere; }
+        .settings-message { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.55; }
+        .theme-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+        .theme-option { display: grid; gap: .35rem; min-height: 100px; justify-items: start; padding: .85rem; border: 1px solid var(--border); border-radius: 12px; color: var(--text); background: var(--soft); text-align: left; cursor: pointer; }
+        .theme-option[aria-pressed="true"] { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent); }
+        .theme-option strong { font-size: .9rem; }
+        .theme-option small { color: var(--muted); font-size: .74rem; line-height: 1.4; }
+        .theme-status { min-height: 1.1rem; margin: .65rem 0 0 !important; color: var(--muted); font-size: .76rem !important; }
+        .password-form { display: grid; gap: .7rem; }
+        .password-form label { display: grid; gap: .3rem; color: var(--muted); font-size: .76rem; font-weight: 700; }
+        .password-form input { width: 100%; min-height: 40px; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: 9px; color: var(--text); background: var(--bg); font: inherit; font-size: .84rem; }
+        .password-submit { width: 100%; }
+        .password-status { min-height: 1.1rem; margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.45; }
+        .password-status.is-error { color: #b42318; }
+        .password-status.is-success { color: #23734c; }
+        .sidebar-link[type="button"] { font-family: inherit; }
+        main { width: 100%; min-width: 0; margin: 0; padding: clamp(1rem, 3vw, 2rem); }
+        .heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+        .eyebrow { margin: 0 0 .35rem; color: var(--muted); font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+        h1 { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); }
+        .heading p:last-child { margin: .45rem 0 0; color: var(--muted); font-size: .85rem; }
+        .button { min-height: 42px; padding: .65rem 1rem; border: 1px solid var(--border); border-radius: 10px; color: var(--text); background: var(--surface); font-weight: 800; cursor: pointer; }
+        .button-primary { border-color: var(--accent); color: #fff; background: var(--accent); }
+        .button:hover { filter: brightness(.96); }
+        .workspace { display: grid; grid-template-columns: minmax(280px, .82fr) minmax(0, 1.18fr); align-items: start; gap: 1.15rem; }
+        .editor, .preview-shell { border: 1px solid rgba(88, 89, 85, .16); border-radius: 18px; background: rgba(255,255,255,.92); box-shadow: 0 18px 40px rgba(18, 18, 18, .05); }
+        .editor { padding: 1.25rem; }
+        .editor h2 { margin: 0; font-size: 1.02rem; letter-spacing: .06em; text-transform: uppercase; }
+        .editor-intro { margin: .35rem 0 1rem; color: var(--muted); font-size: .75rem; line-height: 1.55; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+        .form-section { display: contents; }
+        .form-section-label { grid-column: 1 / -1; margin: .65rem 0 .2rem; color: var(--accent); font-size: .67rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+        label { display: grid; gap: .38rem; color: #555b58; font-size: .7rem; font-weight: 800; }
+        label.wide { grid-column: 1 / -1; }
+        input, textarea { width: 100%; min-height: 42px; padding: .68rem .75rem; border: 1px solid rgba(105,110,106,.28); border-radius: 10px; color: var(--text); background: rgba(248,247,245,.96); font-size: .8rem; outline: none; }
+        textarea { min-height: 82px; resize: vertical; }
+        input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(63,80,69,.12); background: #fff; }
+        .money-field { position: relative; display: block; }
+        .money-field input { padding-right: 3rem; }
+        .money-field span { position: absolute; top: 50%; right: .7rem; color: var(--muted); font-size: .72rem; transform: translateY(-50%); }
+        .attachment-panel { margin-top: 1rem; border: 1px solid var(--border); border-radius: 12px; background: var(--soft); padding: .85rem; }
+        .attachment-panel label { margin-bottom: .5rem; }
+        .attachment-list { display: grid; gap: .55rem; margin-top: .7rem; }
+        .attachment-item { display: flex; align-items: center; gap: .7rem; min-height: 58px; padding: .55rem .65rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+        .attachment-thumb { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; overflow: hidden; border-radius: 9px; background: rgba(63,80,69,.08); color: var(--accent); font-size: .62rem; font-weight: 800; text-transform: uppercase; }
+        .attachment-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .attachment-copy { display: grid; min-width: 0; }
+        .attachment-copy strong { overflow: hidden; font-size: .74rem; white-space: nowrap; text-overflow: ellipsis; }
+        .attachment-copy small { color: var(--muted); font-size: .67rem; }
+        .attachment-empty { margin: 0; color: var(--muted); font-size: .72rem; }
+        .payment-summary { margin-top: 1rem; border: 1px solid var(--border); border-radius: 12px; background: var(--soft); overflow: hidden; }
+        .summary-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .7rem .85rem; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.14); }
+        .summary-header h3 { margin: 0; font-size: .82rem; }
+        .summary-header span { color: var(--muted); font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+        .payment-summary table { width: 100%; border-collapse: collapse; }
+        .payment-summary th, .payment-summary td { padding: .68rem .75rem; border-bottom: 1px solid var(--border); text-align: left; font-size: .78rem; }
+        .payment-summary thead th { background: rgba(0,0,0,.02); color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+        .payment-summary tbody tr:last-child th, .payment-summary tbody tr:last-child td { border-bottom: none; }
+        .payment-summary th { width: 28%; font-weight: 800; }
+        .payment-summary td:nth-child(2) { font-weight: 800; white-space: nowrap; }
+        .payment-summary td:nth-child(3) { color: var(--muted); }
+        .header-actions { display: flex; align-items: center; gap: .6rem; }
+        .form-actions { display: flex; gap: .6rem; margin-top: 1rem; }
+        .form-actions .button-primary { flex: 1; }
+        .export-dialog { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; padding: 1rem; background: rgba(9, 14, 18, .52); }
+        .export-dialog.is-open { display: flex; }
+        .export-panel { width: min(420px, calc(100vw - 2rem)); padding: 1.2rem; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+        .export-panel h3 { margin: 0 0 .35rem; font-size: 1.05rem; }
+        .export-panel p { margin: 0 0 .9rem; color: var(--muted); font-size: .75rem; line-height: 1.5; }
+        .export-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; }
+        .export-option { min-height: 46px; border: 1px solid var(--border); border-radius: 10px; background: var(--soft); color: var(--text); font: inherit; font-weight: 800; cursor: pointer; }
+        .export-option:hover { border-color: var(--accent); }
+        .preview-shell { padding: 1rem; }
+        .preview-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .75rem; }
+        .preview-toolbar h2 { margin: 0; font-size: .95rem; }
+        .preview-toolbar span { color: var(--muted); font-size: .7rem; }
+        .contract {
+            min-height: 850px;
+            padding: clamp(1.2rem, 3vw, 2.4rem);
+            border: 1px solid #d9d5ce;
+            color: #111;
+            background: #fff;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, .04);
+            font-family: 'Times New Roman', Times, serif;
+            font-size: .96rem;
+            line-height: 1.7;
+        }
+        .contract-topline { text-align: center; }
+        .contract-topline .gov-line {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .contract-topline .gov-slogan {
+            margin: .15rem 0 0;
+            font-size: .88rem;
+            font-style: italic;
+        }
+        .contract-separator {
+            width: 100%;
+            height: 1px;
+            margin: 1rem 0 .7rem;
+            background: #222;
+        }
+        .contract-title-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 1.2rem;
+            margin: .2rem 0 1.2rem;
+        }
+        .contract-title-row h2 {
+            margin: 0;
+            font-size: clamp(1.45rem, 2vw, 2rem);
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .contract-date-ink {
+            flex: 0 0 auto;
+            margin: 0;
+            white-space: nowrap;
+            font-size: .78rem;
+            font-style: italic;
+        }
+        .contract-meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: .75rem;
+            margin: .6rem 0 1.2rem;
+            padding: .4rem .65rem;
+            border-top: 1px solid #d8d1c7;
+            border-bottom: 1px solid #d8d1c7;
+            font-size: .74rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .contract-meta-row strong {
+            font-weight: 800;
+        }
+        .contract-meta-label {
+            display: inline-block;
+            margin-right: .3rem;
+            color: #3f3f3f;
+            font-weight: 700;
+        }
+        .contract-section { margin-top: .7rem; }
+        .contract-party-block { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 1rem 0 1.1rem; }
+        .contract-party-block p { margin: .18rem 0; }
+        .party-title { margin: 0 0 .4rem; font-size: .96rem; font-weight: 800; }
+        .contract-intro { margin: .7rem 0 1rem; }
+        .contract h3 {
+            margin: 1rem 0 .4rem;
+            font-size: 1.02rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .contract ul { margin: .35rem 0; padding-left: 1.2rem; }
+        .contract-payment-table {
+            margin: 1rem 0;
+            border: 1px solid #222;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: inset 0 0 0 1px rgba(17,17,17,.06);
+        }
+        .contract-payment-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .contract-payment-table th,
+        .contract-payment-table td {
+            padding: .56rem .6rem;
+            border: 1px solid #222;
+            text-align: center;
+            font-size: .76rem;
+            vertical-align: middle;
+        }
+        .contract-payment-table thead th {
+            background: linear-gradient(180deg, #f7f6f3 0%, #f0efeb 100%);
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .contract-payment-table tbody tr:nth-child(odd) td {
+            background: rgba(0,0,0,.012);
+        }
+        .contract-payment-table td:nth-child(2),
+        .contract-payment-table td:nth-child(4),
+        .contract-payment-table td:nth-child(5),
+        .contract-payment-table td:nth-child(6) {
+            white-space: nowrap;
+        }
+        .contract-payment-table .total-row td {
+            font-weight: 800;
+            background: #f5f3ee;
+        }
+        .contract-party-block {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+            margin: 1rem 0 1.1rem;
+            padding: .8rem .9rem;
+            border: 1px solid rgba(17,17,17,.18);
+            background: linear-gradient(180deg, rgba(245,243,238,.7), rgba(255,255,255,.25));
+        }
+        .signature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1.8rem;
+            text-align: center;
+        }
+        .signature-grid strong {
+            display: block;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+        .signature-space {
+            height: 86px;
+        }
+        .contract-footnote {
+            margin-top: 1.2rem !important;
+            font-size: .76rem;
+            font-style: italic;
+        }
+        .notice { margin: .8rem 0 0; color: var(--muted); font-size: .68rem; line-height: 1.5; }
+        @media (max-width: 900px) { .workspace { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) {
+            .dashboard-shell { grid-template-columns: minmax(0, 1fr); }
+            .dashboard-sidebar { position: static; height: auto; min-height: 0; padding: .75rem 1rem; border-right: 0; border-bottom: 1px solid var(--border); }
+            .sidebar-caption, .sidebar-divider, .sidebar-account { display: none; }
+            .sidebar-nav { display: flex; gap: .45rem; overflow-x: auto; padding-bottom: .1rem; scrollbar-width: thin; }
+            .sidebar-link { width: auto; min-width: max-content; min-height: 42px; padding: .55rem .75rem; }
+            .sidebar-link:hover { transform: translateY(-1px); }
+            main { padding: 1.5rem clamp(.75rem, 3vw, 1.5rem); }
+        }
+        @media (max-width: 560px) {
+            .heading { align-items: flex-start; flex-direction: column; }
+            .heading > .button { width: 100%; }
+            .form-grid { grid-template-columns: 1fr; }
+            label.wide { grid-column: auto; }
+            .contract { min-height: 0; padding: 1rem; font-size: .82rem; }
+            .contract-head { flex-direction: column; }
+            .contract-id { text-align: left; }
+            .signature-grid { gap: .8rem; }
+            .settings-panel { padding: 1rem; }
+            .settings-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+            .settings-nav { display: flex; gap: .4rem; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+            .settings-nav button { flex: 0 0 auto; min-height: 36px; }
+            .settings-content { padding: .85rem; }
+            .theme-options { grid-template-columns: 1fr; }
+        }
+        @media print {
+            @page { size: A4; margin: 16mm; }
+            body { min-height: auto; background: #fff; }
+            .topbar, .dashboard-sidebar, .heading, .editor, .preview-toolbar, .notice, .settings-dialog { display: none !important; }
+            .dashboard-shell { display: block; min-height: 0; }
+            main { width: auto; margin: 0; padding: 0; }
+            .workspace { display: block; }
+            .preview-shell { padding: 0; border: 0; border-radius: 0; box-shadow: none; }
+            .contract { min-height: 0; padding: 0; border: 0; box-shadow: none; font-size: 11pt; }
+            .contract h2 { margin-top: 0; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="./?home=1">
+            <img src="photowedding/logo/photo-select-logo-mark.png" alt="">
+            <span>PHOTO SELECT</span>
+        </a>
+        <a href="studio-photographers.html">← Quản lý thợ studio</a>
+    </header>
+    <div class="dashboard-shell">
+        <aside class="dashboard-sidebar" aria-label="Menu chính">
+            <p class="sidebar-caption">Không gian làm việc</p>
+            <nav class="sidebar-nav" aria-label="Điều hướng chính">
+                <a class="sidebar-link" href="./?home=1" data-sidebar-demo="Trang chủ">
+                    <span class="sidebar-icon" aria-hidden="true">home</span>
+                    <span>Trang chủ</span>
+                </a>
+                <a class="sidebar-link" href="albums.html" data-sidebar-demo="Album gần đây">
+                    <span class="sidebar-icon" aria-hidden="true">photo_library</span>
+                    <span>Album gần đây</span>
+                </a>
+                <a class="sidebar-link" href="studio-contracts.html" aria-current="page">
+                    <span class="sidebar-icon" aria-hidden="true">description</span>
+                    <span>Hợp đồng</span>
+                </a>
+                <a class="sidebar-link" href="studio-photographers.html" data-sidebar-demo="Quản lý thợ">
+                    <span class="sidebar-icon" aria-hidden="true">groups</span>
+                    <span>Quản lý thợ</span>
+                </a>
+                <a class="sidebar-link" href="studio-customers.html" data-sidebar-demo="Khách hàng">
+                    <span class="sidebar-icon" aria-hidden="true">group</span>
+                    <span>Khách hàng</span>
+                </a>
+                <a class="sidebar-link" href="studio-reports.html" data-sidebar-demo="Báo cáo">
+                    <span class="sidebar-icon" aria-hidden="true">insights</span>
+                    <span>Báo cáo</span>
+                </a>
+                <div class="sidebar-divider" aria-hidden="true"></div>
+                <button class="sidebar-link" type="button" id="openSettingsButton" aria-haspopup="dialog" aria-controls="settingsDialog">
+                    <span class="sidebar-icon" aria-hidden="true">settings</span>
+                    <span>Cài đặt</span>
+                </button>
+            </nav>
+            <div class="sidebar-account">
+                <span class="sidebar-account-mark" aria-hidden="true">PS</span>
+                <span class="sidebar-account-copy"><strong>PHOTO SELECT</strong><small>Không gian làm việc</small></span>
+            </div>
+        </aside>
+    <main>
+        <section class="heading">
+            <div>
+                <p class="eyebrow">Dashboard / Studio</p>
+                <h1>Soạn hợp đồng studio</h1>
+                <p>Điền thông tin hợp đồng, xem trước nội dung rồi in hoặc lưu thành PDF.</p>
+            </div>
+            <div class="header-actions">
+                <button class="button" type="button" id="saveContractTop">💾 Lưu hợp đồng</button>
+                <button class="button" type="button" id="downloadContractTop">Tải hợp đồng</button>
+                <button class="button button-primary" type="button" id="printContractTop">In / Lưu PDF</button>
+            </div>
+        </section>
+        <div class="workspace">
+            <section class="editor" aria-labelledby="editorTitle">
+                <h2 id="editorTitle">Thông tin hợp đồng</h2>
+                <p class="editor-intro">Bản xem trước cập nhật theo từng trường nhập. Bạn có thể tùy chỉnh tên studio, gói dịch vụ, điều khoản thanh toán và nội dung bàn giao theo thỏa thuận thực tế.</p>
+                <form id="contractForm">
+                    <div class="form-grid">
+                        <div class="form-section-label">Thông tin các bên</div>
+                        <label>Tên studio *
+                            <input id="studioName" value="LUNA FRAME STUDIO" required maxlength="120">
+                        </label>
+                        <label>Mã hợp đồng
+                            <input id="contractNumber" maxlength="40">
+                        </label>
+                        <label class="wide">Địa chỉ studio
+                            <input id="studioAddress" value="12 Nguyễn Huệ, Quận 1, TP.HCM" placeholder="Địa chỉ liên hệ">
+                        </label>
+                        <label>Điện thoại studio
+                            <input id="studioPhone" type="tel" value="0901 234 567" placeholder="Số điện thoại">
+                        </label>
+                        <label>Ngày ký
+                            <input id="contractDate" type="date" required>
+                        </label>
+                        <label class="wide">Họ tên khách hàng *
+                            <input id="clientName" required maxlength="120" value="Nguyễn Văn A" placeholder="Họ tên theo giấy tờ">
+                        </label>
+                        <label>Số điện thoại khách hàng
+                            <input id="clientPhone" type="tel" maxlength="30" value="0987 654 321">
+                        </label>
+                        <label>Email khách hàng
+                            <input id="clientEmail" type="email" maxlength="120" value="khachhang@gmail.com">
+                        </label>
+
+                        <div class="form-section-label">Thông tin dịch vụ</div>
+                        <label>Mẫu gói / loại dịch vụ *
+                            <select id="servicePreset">
+                                <option value="Gói chụp ảnh cưới trọn gói">Gói chụp ảnh cưới trọn gói</option>
+                                <option value="Gói đám hỏi">Gói đám hỏi</option>
+                                <option value="Gói chụp gia đình">Gói chụp gia đình</option>
+                                <option value="Gói chụp sự kiện">Gói chụp sự kiện</option>
+                                <option value="Gói chụp studio nghệ thuật">Gói chụp studio nghệ thuật</option>
+                                <option value="Gói chụp ngoại cảnh">Gói chụp ngoại cảnh</option>
+                                <option value="Gói portrait / chân dung">Gói portrait / chân dung</option>
+                                <option value="Gói tùy chỉnh">Gói tùy chỉnh</option>
+                            </select>
+                        </label>
+                        <label>Tên gói dịch vụ *
+                            <input id="serviceName" value="Gói chụp ảnh cưới trọn gói" required maxlength="150">
+                        </label>
+                        <label>Loại sự kiện chụp
+                            <select id="eventType">
+                                <option value="Chụp cưới">Chụp cưới</option>
+                                <option value="Đám hỏi">Đám hỏi</option>
+                                <option value="Chụp gia đình">Chụp gia đình</option>
+                                <option value="Chụp sự kiện">Chụp sự kiện</option>
+                                <option value="Chụp ngoại cảnh">Chụp ngoại cảnh</option>
+                                <option value="Chụp studio">Chụp studio</option>
+                                <option value="Portrait / chân dung">Portrait / chân dung</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </label>
+                        <label>Ngày chụp chính *
+                            <input id="shootDate" type="date" required>
+                        </label>
+                        <label>Ngày chụp phụ / sự kiện bổ sung
+                            <input id="shootDateSecondary" type="date">
+                        </label>
+                        <label class="wide">Địa điểm chụp *
+                            <input id="shootLocation" required maxlength="255" value="Studio LUNA FRAME, TP.HCM" placeholder="Địa chỉ hoặc địa điểm chụp">
+                        </label>
+                        <label class="wide">Lịch chụp chi tiết
+                            <textarea id="shootSchedule" placeholder="Ví dụ: Ngày cưới: 20/12/2026; Đám hỏi: 15/12/2026; Chụp ngoại cảnh: 18/12/2026">Ngày cưới: 20/12/2026; Chụp studio: 17/12/2026</textarea>
+                        </label>
+                        <label class="wide">Chi tiết gói studio / sản phẩm bàn giao
+                            <textarea id="deliverables" placeholder="Ví dụ: 01 buổi chụp studio, 30 ảnh lớn, 80 ảnh nhỏ, 200 ảnh đã chỉnh sửa...">01 buổi chụp trong studio; 02 concept / 02 trang phục; 30 ảnh lớn 30x45; 80 ảnh nhỏ 10x15; 200 ảnh đã chỉnh sửa; 01 bộ hình nền / 01 album online; 01 video teaser 15-30 giây.</textarea>
+                        </label>
+                        <label class="wide">Gói bổ sung nếu có thêm chụp ngày cưới / sự kiện khác
+                            <textarea id="weddingAddon" placeholder="Ví dụ: nếu bổ sung ngày cưới, thêm 01 buổi chụp cưới, 100 ảnh chỉnh sửa, 20 ảnh lớn...">Nếu khách hàng đồng ý bổ sung chụp ngày cưới, gói sẽ tăng thêm 01 buổi chụp cưới, 100 ảnh đã chỉnh sửa, 20 ảnh lớn 30x45, 40 ảnh nhỏ 10x15, 01 video highlight ngắn và 01 album online riêng theo phong cách studio.</textarea>
+                        </label>
+
+                        <div class="form-section-label">Thanh toán</div>
+                        <label>Tổng giá trị
+                            <span class="money-field"><input id="totalPrice" type="number" min="0" step="1000" value="25000000"><span>VNĐ</span></span>
+                        </label>
+                        <label>Tiền đặt cọc
+                            <span class="money-field"><input id="deposit" type="number" min="0" step="1000" value="12000000"><span>VNĐ</span></span>
+                        </label>
+                        <label class="wide">Thời hạn / hình thức thanh toán
+                            <input id="paymentTerms" value="Đặt cọc 50% ngay khi ký hợp đồng; thanh toán phần còn lại trước khi nhận sản phẩm hoàn thiện." maxlength="250">
+                        </label>
+                        <label class="wide">Thỏa thuận bổ sung
+                            <textarea id="extraTerms" placeholder="Điều khoản riêng hai bên thống nhất (nếu có)">Hai bên đồng ý ưu tiên trao đổi qua tin nhắn hoặc email đã ghi trên hợp đồng. Mọi thay đổi về lịch trình, địa điểm hoặc số lượng sản phẩm cần được xác nhận bằng văn bản trước khi thực hiện.</textarea>
+                        </label>
+                        <label class="wide">Tài liệu đính kèm (JPG / PDF)
+                            <input id="contractAttachments" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,application/pdf" multiple>
+                        </label>
+                    </div>
+                    <div class="attachment-panel" aria-label="Danh sách file đính kèm">
+                        <div class="attachment-list" id="attachmentList">
+                            <p class="attachment-empty">Chưa có file nào được chọn.</p>
+                        </div>
+                    </div>
+                    <div class="payment-summary" aria-label="Bảng tóm tắt thanh toán">
+                        <div class="summary-header">
+                            <h3>Tổng quan thanh toán</h3>
+                            <span>Excel-style</span>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Chi tiết</th>
+                                    <th>Số tiền</th>
+                                    <th>Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>Tổng giá trị</th>
+                                    <td id="summaryTotalValue">0 VNĐ</td>
+                                    <td>Giá trị hợp đồng</td>
+                                </tr>
+                                <tr>
+                                    <th>Đặt cọc</th>
+                                    <td id="summaryDepositValue">0 VNĐ</td>
+                                    <td>Đã thanh toán ban đầu</td>
+                                </tr>
+                                <tr>
+                                    <th>Còn lại</th>
+                                    <td id="summaryBalanceValue">0 VNĐ</td>
+                                    <td>Cần thanh toán tiếp</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="form-actions">
+                        <button class="button" type="reset">Xóa thông tin</button>
+                        <button class="button" type="button" id="saveContractBtn">💾 Lưu hợp đồng</button>
+                        <button class="button" type="button" id="downloadContract">Tải hợp đồng</button>
+                        <button class="button button-primary" type="button" id="printContract">In / Lưu PDF</button>
+                    </div>
+                    <p id="contractSaveStatus" style="margin:.6rem 0 0;color:var(--muted);font-size:.76rem;" role="status"></p>
+                    <div class="payment-summary" id="savedContractsPanel" style="margin-top:1rem;">
+                        <div class="summary-header">
+                            <h3>Hợp đồng đã lưu</h3>
+                            <span id="savedContractsCount">0 hợp đồng</span>
+                        </div>
+                        <div id="savedContractsList" style="padding:.7rem;display:grid;gap:.45rem;"></div>
+                    </div>
+                </form>
+                <p class="notice">Mẫu hợp đồng này được viết lại theo cách riêng, không sao chép nguyên văn từ bất kỳ tài liệu nào. Vui lòng rà soát lại để đảm bảo phù hợp với thỏa thuận thực tế trước khi ký.</p>
+            </section>
+            <section class="preview-shell" aria-labelledby="previewTitle">
+                <div class="preview-toolbar">
+                    <h2 id="previewTitle">Bản xem trước hợp đồng</h2>
+                    <span>Khổ A4 khi in</span>
+                </div>
+                <article class="contract" id="contractPreview">
+                    <div class="contract-topline">
+                        <p class="gov-line">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                        <p class="gov-slogan">Độc lập - Tự do - Hạnh phúc</p>
+                    </div>
+                    <div class="contract-separator"></div>
+
+                    <div class="contract-title-row">
+                        <h2>HỢP ĐỒNG DỊCH VỤ</h2>
+                        <p class="contract-date-ink">Ngày <span id="previewDateText">Chưa xác định</span></p>
+                    </div>
+
+                    <div class="contract-meta-row">
+                        <div><span class="contract-meta-label">Mã HĐ:</span><strong id="previewNumber">Chưa cấp</strong></div>
+                        <div><span class="contract-meta-label">Đơn vị:</span><strong id="previewStudioName">PHOTO SELECT</strong></div>
+                        <div><span class="contract-meta-label">Ngày ký:</span><span id="previewContractDate">Chưa xác định</span></div>
+                    </div>
+
+                    <div class="contract-section">
+                        <div class="contract-party-block">
+                            <div>
+                                <p class="party-title">BÊN A - BÊN CUNG CẤP DỊCH VỤ</p>
+                                <p>Đơn vị: <strong id="previewStudioNameParty">PHOTO SELECT</strong></p>
+                                <p>SĐT: <span id="previewStudioPhoneParty">Chưa cập nhật</span></p>
+                                <p>Địa chỉ: <span id="previewStudioAddressParty">Chưa cập nhật</span></p>
+                            </div>
+                            <div>
+                                <p class="party-title">BÊN B - BÊN SỬ DỤNG DỊCH VỤ</p>
+                                <p>Họ và tên: <strong id="previewClientName">Chưa nhập</strong></p>
+                                <p>SĐT: <span id="previewClientPhone">Chưa cập nhật</span></p>
+                                <p>Email: <span id="previewClientEmail">Chưa cập nhật</span></p>
+                            </div>
+                        </div>
+
+                        <p class="contract-intro">Căn cứ vào thỏa thuận của hai bên; ngày hôm nay, Bên A và Bên B thống nhất ký kết Hợp đồng dịch vụ chụp ảnh theo các điều khoản dưới đây.</p>
+
+                        <h3>Điều 1. Nội dung dịch vụ</h3>
+                        <p>Bên A đồng ý cung cấp cho Bên B gói <strong id="previewServiceName">Chưa nhập</strong> theo đúng lịch trình, nội dung, thời lượng, chất lượng hình ảnh, video và mức hoàn thiện đã thống nhất.</p>
+                        <p>Ngày chụp dự kiến: <strong id="previewShootDate">Chưa xác định</strong>. Địa điểm chụp: <strong id="previewShootLocation">Chưa nhập</strong>.</p>
+                        <p>Phạm vi sản phẩm, định dạng bàn giao, số lượng ảnh, video và tiêu chí chỉnh sửa: <span id="previewDeliverables">Theo nội dung hai bên thống nhất.</span></p>
+                        <p>Nội dung bổ sung nếu có thêm chụp ngày cưới, sự kiện hoặc khung hình phụ: <span id="previewWeddingAddon">Không có gói bổ sung thêm ngày cưới hoặc sự kiện khác.</span></p>
+
+                        <div class="contract-payment-table" aria-label="Bảng thanh toán hợp đồng">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Nội dung</th>
+                                        <th>Đơn giá</th>
+                                        <th>Số lượng</th>
+                                        <th>Đặt cọc</th>
+                                        <th>Còn lại</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><strong id="previewServiceNameTable">Chưa nhập</strong></td>
+                                        <td id="previewTotal">0 VNĐ</td>
+                                        <td>1</td>
+                                        <td id="previewDeposit">0 VNĐ</td>
+                                        <td id="previewBalance">0 VNĐ</td>
+                                    </tr>
+                                    <tr class="total-row">
+                                        <td colspan="5">Tổng giá trị hợp đồng</td>
+                                        <td id="previewTotalTotal">0 VNĐ</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Điều 2. Thời gian thực hiện</h3>
+                        <p>Bên A cam kết thực hiện đúng lịch chụp, quy trình làm việc và thời hạn bàn giao sản phẩm đã thống nhất. Trong trường hợp có sự thay đổi về lịch, địa điểm hoặc thời lượng thực hiện, hai bên sẽ trao đổi và xác nhận bằng văn bản để điều chỉnh phù hợp.</p>
+
+                        <h3>Điều 3. Thanh toán</h3>
+                        <p>Bên B xác nhận thanh toán theo thỏa thuận: <span id="previewPaymentTerms">Theo thỏa thuận hai bên.</span></p>
+                        <p>Hình thức thanh toán có thể là chuyển khoản hoặc tiền mặt theo thông tin do Bên A cung cấp, kèm theo hóa đơn hoặc xác nhận giao dịch đầy đủ. Tiền đặt cọc được xác định là khoản thanh toán trước và sẽ được khấu trừ vào tổng giá trị hợp đồng.</p>
+
+                        <h3>Điều 4. Quyền và nghĩa vụ</h3>
+                        <ul>
+                            <li>Bên A có trách nhiệm thực hiện đúng nội dung dịch vụ, đúng tiến độ, đúng tiêu chuẩn kỹ thuật và chất lượng đã thỏa thuận.</li>
+                            <li>Bên B có trách nhiệm cung cấp đầy đủ thông tin, lịch trình, địa điểm, tư liệu liên quan và thanh toán đúng hạn theo hợp đồng.</li>
+                            <li>Hai bên cam kết vận hành trên tinh thần thiện chí, tôn trọng quyền lợi hợp pháp của nhau và không làm sai lệch các điều kiện ký kết.</li>
+                        </ul>
+
+                        <p><strong>Thỏa thuận bổ sung:</strong> <span id="previewExtraTerms">Không có.</span></p>
+
+                        <div class="signature-grid">
+                            <div>
+                                <strong>ĐẠI DIỆN BÊN A</strong>
+                                <p>(Ký, ghi rõ họ tên)</p>
+                                <div class="signature-space"></div>
+                                <span id="previewSignStudio">PHOTO SELECT</span>
+                            </div>
+                            <div>
+                                <strong>ĐẠI DIỆN BÊN B</strong>
+                                <p>(Ký, ghi rõ họ tên)</p>
+                                <div class="signature-space"></div>
+                                <span id="previewSignClient">Khách hàng</span>
+                            </div>
+                        </div>
+
+                        <p class="contract-footnote">Hợp đồng này được lập thành 02 bản có giá trị pháp lý ngang nhau, mỗi bên giữ 01 bản để thực hiện và giám sát việc thực hiện dịch vụ theo thỏa thuận.</p>
+                    </div>
+                </article>
+            </section>
+        </div>
+    </main>
+    </div>
+    <div class="settings-dialog" id="settingsDialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <section class="settings-panel">
+            <button class="button settings-close" id="closeSettingsButton" type="button" aria-label="Đóng cài đặt">×</button>
+            <h2 id="settingsTitle">Cài đặt</h2>
+            <div class="settings-layout">
+                <nav class="settings-nav" aria-label="Danh mục cài đặt">
+                    <button type="button" data-settings-section="settings">Cài đặt giao diện</button>
+                    <button type="button" data-settings-section="profile">Thông tin cá nhân</button>
+                    <button type="button" data-settings-section="account">Tài khoản</button>
+                    <button type="button" data-settings-section="security">Bảo mật</button>
+                    <button type="button" data-settings-section="activity">Lịch sử hoạt động</button>
+                </nav>
+                <section class="settings-content" id="settingsContent" aria-live="polite"></section>
+            </div>
+        </section>
+    </div>
+    <div class="export-dialog" id="exportDialog" aria-hidden="true">
+        <div class="export-panel" role="dialog" aria-modal="true" aria-labelledby="exportDialogTitle">
+            <h3 id="exportDialogTitle">Chọn định dạng tải xuống</h3>
+            <p>Hợp đồng sẽ được xuất dưới định dạng bạn chọn. Nếu nội dung dài, file PDF sẽ tự chia thành nhiều trang để dễ xem trên điện thoại.</p>
+            <div class="export-options">
+                <button class="export-option" type="button" data-export-format="pdf">PDF</button>
+                <button class="export-option" type="button" data-export-format="jpg">JPG</button>
+                <button class="export-option" type="button" data-export-format="png">PNG</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/api.js"></script>
+    <script>
+        (() => {
+            const form = document.getElementById('contractForm');
+            const fields = {
+                studioName: 'PHOTO SELECT',
+                contractNumber: '',
+                studioAddress: 'Chưa cập nhật',
+                studioPhone: 'Chưa cập nhật',
+                contractDate: '',
+                clientName: 'Chưa nhập',
+                clientPhone: 'Chưa cập nhật',
+                clientEmail: 'Chưa cập nhật',
+                servicePreset: 'Gói chụp ảnh cưới trọn gói',
+                serviceName: 'Chưa nhập',
+                eventType: 'Chụp cưới',
+                shootDate: '',
+                shootDateSecondary: '',
+                shootLocation: 'Chưa nhập',
+                shootSchedule: 'Ngày cưới: 20/12/2026; Chụp studio: 17/12/2026',
+                deliverables: 'Theo nội dung hai bên thống nhất.',
+                weddingAddon: 'Nếu khách hàng đồng ý bổ sung chụp ngày cưới, gói sẽ tăng thêm 01 buổi chụp cưới, 100 ảnh đã chỉnh sửa, 20 ảnh lớn 30x45, 40 ảnh nhỏ 10x15, 01 video highlight ngắn và 01 album online riêng theo phong cách studio.',
+                totalPrice: '0',
+                deposit: '0',
+                paymentTerms: 'Thanh toán phần còn lại sau khi hoàn tất buổi chụp.',
+                extraTerms: 'Không có.'
+            };
+            const byId = id => document.getElementById(id);
+            const settingsDialog = byId('settingsDialog');
+            let dashboardUser = null;
+            let dashboardUserLoadError = '';
+            function escapeHtml(value) {
+                return String(value || '').replace(/[&<>"']/g, character => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                })[character]);
+            }
+            function syncThemeOptions() {
+                const activeTheme = document.documentElement.dataset.dashboardTheme === 'dark' ? 'dark' : 'sage';
+                document.querySelectorAll('[data-theme-option]').forEach(button => {
+                    button.setAttribute('aria-pressed', String(button.dataset.themeOption === activeTheme));
+                });
+            }
+            function setTheme(theme) {
+                if (theme !== 'sage' && theme !== 'dark') return;
+                document.documentElement.dataset.dashboardTheme = theme === 'dark' ? 'dark' : 'light';
+                syncThemeOptions();
+                try {
+                    const savedSettings = JSON.parse(localStorage.getItem('photoSelectInterfaceSettings') || '{}');
+                    savedSettings.theme = theme;
+                    localStorage.setItem('photoSelectInterfaceSettings', JSON.stringify(savedSettings));
+                    localStorage.setItem('photoSelectTheme', theme);
+                    localStorage.setItem('photoSelectDashboardTheme', theme === 'dark' ? 'dark' : 'light');
+                    const status = byId('themeStatus');
+                    if (status) status.textContent = `Đã áp dụng giao diện ${theme === 'dark' ? 'tối' : 'sáng'} cho các trang.`;
+                } catch (error) {
+                    const status = byId('themeStatus');
+                    if (status) status.textContent = 'Không thể lưu lựa chọn giao diện trên trình duyệt này.';
+                    console.error('Không thể lưu giao diện Dashboard.', error);
+                }
+            }
+            function getSettingsContent(type) {
+                const user = dashboardUser || {};
+                const content = {
+                    settings: {
+                        title: 'Cài đặt giao diện',
+                        html: `<div class="theme-options" role="group" aria-label="Chọn giao diện">
+                            <button class="theme-option" type="button" data-theme-option="sage" aria-pressed="false">
+                                <strong>Giao diện sáng</strong>
+                                <small>Sáng rõ, tinh tế và dễ quan sát.</small>
+                            </button>
+                            <button class="theme-option" type="button" data-theme-option="dark" aria-pressed="false">
+                                <strong>Giao diện tối</strong>
+                                <small>Nền trầm, chữ sáng, dịu mắt.</small>
+                            </button>
+                        </div><p class="theme-status" id="themeStatus" role="status" aria-live="polite"></p>`
+                    },
+                    profile: {
+                        title: 'Thông tin cá nhân',
+                        html: `<dl class="profile-list"><div><dt>Họ và tên</dt><dd>${escapeHtml(user.name || 'Người dùng')}</dd></div><div><dt>Email</dt><dd>${escapeHtml(user.email || 'Chưa cập nhật')}</dd></div><div><dt>Số điện thoại</dt><dd>${escapeHtml(user.phone || 'Chưa cập nhật')}</dd></div><div><dt>Trạng thái</dt><dd>${escapeHtml(user.status === 'active' ? 'Đang hoạt động' : (user.status || 'Đang hoạt động'))}</dd></div></dl>${dashboardUserLoadError ? `<p class="settings-message">${escapeHtml(dashboardUserLoadError)}</p>` : ''}`
+                    },
+                    account: {
+                        title: 'Tài khoản',
+                        message: 'Tài khoản của bạn đang được bảo vệ bằng email và mật khẩu đã đăng ký.'
+                    },
+                    security: {
+                        title: 'Bảo mật',
+                        html: `<form class="password-form" id="dashboardPasswordForm">
+                            <label>Mật khẩu hiện tại
+                                <input name="old_password" type="password" autocomplete="current-password" required>
+                            </label>
+                            <label>Mật khẩu mới
+                                <input name="new_password" type="password" autocomplete="new-password" minlength="6" required>
+                            </label>
+                            <label>Xác nhận mật khẩu mới
+                                <input name="confirm_password" type="password" autocomplete="new-password" minlength="6" required>
+                            </label>
+                            <button class="button button-primary password-submit" type="submit">Đổi mật khẩu</button>
+                            <p class="password-status" id="dashboardPasswordStatus" role="status" aria-live="polite"></p>
+                        </form>`
+                    },
+                    activity: {
+                        title: 'Lịch sử hoạt động',
+                        message: 'Lịch sử hoạt động chi tiết hiện chưa có dữ liệu hiển thị.'
+                    }
+                }[type];
+                return content || null;
+            }
+            function renderSettingsSection(type) {
+                const content = getSettingsContent(type);
+                if (!content) return;
+                byId('settingsContent').innerHTML = `<h3>${content.title}</h3>${content.html || `<p class="settings-message">${content.message}</p>`}`;
+                document.querySelectorAll('[data-settings-section]').forEach(button => {
+                    if (button.dataset.settingsSection === type) button.setAttribute('aria-current', 'page');
+                    else button.removeAttribute('aria-current');
+                });
+                if (type === 'settings') syncThemeOptions();
+            }
+            async function loadDashboardUser() {
+                if (window.location.protocol === 'file:') {
+                    dashboardUserLoadError = 'Thông tin tài khoản sẽ tải khi trang được mở từ máy chủ Photo Select.';
+                    return;
+                }
+                try {
+                    const response = await fetch('photowedding/app.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'session_state' })
+                    });
+                    const session = await response.json();
+                    if (!response.ok) throw new Error(session.message || 'Không thể tải thông tin tài khoản.');
+                    if (!session.user) {
+                        dashboardUserLoadError = 'Không tìm thấy thông tin phiên đăng nhập.';
+                        return;
+                    }
+                    dashboardUser = session.user;
+                } catch (error) {
+                    dashboardUserLoadError = error.message || 'Không thể tải thông tin tài khoản.';
+                    console.error('Không thể tải thông tin tài khoản Dashboard.', error);
+                }
+            }
+            const formatDate = value => {
+                if (!value) return 'Chưa xác định';
+                const [year, month, day] = value.split('-').map(Number);
+                return new Intl.DateTimeFormat('vi-VN').format(new Date(year, month - 1, day));
+            };
+            const formatMoney = value => `${new Intl.NumberFormat('vi-VN').format(Math.max(0, Number(value) || 0))} VNĐ`;
+            const setText = (id, value, fallback) => {
+                const element = byId(id);
+                if (!element) return;
+                const text = typeof value === 'string' ? value.trim() : String(value ?? '');
+                element.textContent = text || fallback || '';
+            };
+            const formatFileSize = bytes => {
+                if (!Number.isFinite(bytes) || bytes <= 0) return '0 KB';
+                const units = ['B', 'KB', 'MB', 'GB'];
+                const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+                const size = bytes / (1024 ** index);
+                return `${size >= 10 || index === 0 ? size.toFixed(0) : size.toFixed(1)} ${units[index]}`;
+            };
+            const renderAttachments = files => {
+                const attachmentList = byId('attachmentList');
+                if (!files || !files.length) {
+                    attachmentList.innerHTML = '<p class="attachment-empty">Chưa có file nào được chọn.</p>';
+                    return;
+                }
+                attachmentList.innerHTML = files.map(file => {
+                    const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+                    const isImage = file.type.startsWith('image/') || /\.(jpe?g|png)$/i.test(file.name);
+                    const safeName = escapeHtml(file.name);
+                    const thumbMarkup = isImage
+                        ? `<img src="${URL.createObjectURL(file)}" alt="${safeName}">`
+                        : `<span>PDF</span>`;
+                    return `
+                        <div class="attachment-item">
+                            <div class="attachment-thumb">${thumbMarkup}</div>
+                            <div class="attachment-copy">
+                                <strong>${safeName}</strong>
+                                <small>${isPdf ? 'PDF' : 'Hình ảnh'} • ${formatFileSize(file.size)}</small>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            };
+            function applyServicePreset() {
+                const preset = byId('servicePreset').value;
+                const presets = {
+                    'Gói chụp ảnh cưới trọn gói': {
+                        serviceName: 'Gói chụp ảnh cưới trọn gói',
+                        eventType: 'Chụp cưới',
+                        deliverables: '01 buổi chụp cưới trong studio và ngoại cảnh; 02 concept / 02 trang phục; 30 ảnh lớn 30x45; 80 ảnh nhỏ 10x15; 200 ảnh đã chỉnh sửa; 01 bộ hình nền / 01 album online; 01 video teaser 15-30 giây.',
+                        weddingAddon: 'Nếu khách hàng đồng ý bổ sung chụp ngày cưới, gói sẽ tăng thêm 01 buổi chụp cưới, 100 ảnh đã chỉnh sửa, 20 ảnh lớn 30x45, 40 ảnh nhỏ 10x15, 01 video highlight ngắn và 01 album online riêng theo phong cách studio.'
+                    },
+                    'Gói đám hỏi': {
+                        serviceName: 'Gói đám hỏi',
+                        eventType: 'Đám hỏi',
+                        deliverables: '01 buổi chụp đám hỏi; 15 ảnh lớn 30x45; 40 ảnh nhỏ 10x15; 80 ảnh đã chỉnh sửa; 01 album online; 01 video tease ngắn.',
+                        weddingAddon: 'Nếu có thêm chụp ngày cưới hoặc truyền thống gia đình, sẽ áp dụng gói bổ sung theo thỏa thuận tay đôi giữa hai bên.'
+                    },
+                    'Gói chụp gia đình': {
+                        serviceName: 'Gói chụp gia đình',
+                        eventType: 'Chụp gia đình',
+                        deliverables: '01 buổi chụp gia đình trong studio hoặc ngoại cảnh; 12 ảnh lớn 30x45; 30 ảnh nhỏ 10x15; 60 ảnh đã chỉnh sửa; 01 album online.',
+                        weddingAddon: 'Nếu có thêm buổi chụp bổ sung ở dịp lễ, sự kiện gia đình hoặc người thân, sẽ theo gói phụ thêm đã ký kết.'
+                    },
+                    'Gói chụp sự kiện': {
+                        serviceName: 'Gói chụp sự kiện',
+                        eventType: 'Chụp sự kiện',
+                        deliverables: '01 buổi chụp sự kiện theo thời lượng thỏa thuận; 30 ảnh lớn 30x45; 80 ảnh nhỏ 10x15; 120 ảnh đã chỉnh sửa; 01 video highlight ngắn.',
+                        weddingAddon: 'Nếu có thêm phim dài, nội dung highlight, hoặc chụp sự kiện ngày thứ hai, sẽ áp dụng phụ phí theo hợp đồng.'
+                    },
+                    'Gói chụp studio nghệ thuật': {
+                        serviceName: 'Gói chụp studio nghệ thuật',
+                        eventType: 'Chụp studio',
+                        deliverables: '01 buổi chụp trong studio; 02 concept; 20 ảnh lớn 30x45; 60 ảnh nhỏ 10x15; 150 ảnh đã chỉnh sửa; 01 album online.',
+                        weddingAddon: 'Nếu có thêm concept, outfit hoặc phong cách mới, sẽ tính thêm theo từng concept mới được xác nhận bằng văn bản.'
+                    },
+                    'Gói chụp ngoại cảnh': {
+                        serviceName: 'Gói chụp ngoại cảnh',
+                        eventType: 'Chụp ngoại cảnh',
+                        deliverables: '01 buổi chụp ngoại cảnh; 20 ảnh lớn 30x45; 50 ảnh nhỏ 10x15; 120 ảnh đã chỉnh sửa; 01 video teaser ngắn.',
+                        weddingAddon: 'Nếu có thêm buổi chụp thứ hai hoặc địa điểm khác, hai bên sẽ xác nhận phụ phí và lịch chụp mới.'
+                    },
+                    'Gói portrait / chân dung': {
+                        serviceName: 'Gói portrait / chân dung',
+                        eventType: 'Portrait / chân dung',
+                        deliverables: '01 buổi chụp chân dung; 10 ảnh lớn 30x45; 25 ảnh nhỏ 10x15; 40 ảnh đã chỉnh sửa; 01 album online.',
+                        weddingAddon: 'Nếu có bọc thêm concept, time-lapse, hoặc set hình khác, sẽ tính phụ phí theo từng gói phụ.'
+                    },
+                    'Gói tùy chỉnh': {
+                        serviceName: 'Gói tùy chỉnh',
+                        eventType: 'Khác',
+                        deliverables: 'Theo nội dung, số lượng ảnh, thời lượng và định dạng bàn giao được hai bên ghi rõ trong hợp đồng.',
+                        weddingAddon: 'Các nội dung phụ thêm được thực hiện theo thỏa thuận bằng văn bản và phụ phí tương ứng.'
+                    }
+                };
+                const selected = presets[preset] || presets['Gói chụp ảnh cưới trọn gói'];
+                byId('serviceName').value = selected.serviceName;
+                byId('eventType').value = selected.eventType;
+                byId('deliverables').value = selected.deliverables;
+                byId('weddingAddon').value = selected.weddingAddon;
+            }
+            function updatePreview() {
+                const values = Object.fromEntries(Object.keys(fields).map(id => [id, byId(id).value]));
+                const total = Math.max(0, Number(values.totalPrice) || 0);
+                const deposit = Math.max(0, Number(values.deposit) || 0);
+                const primaryShootDate = values.shootDate ? formatDate(values.shootDate) : 'Chưa xác định';
+                const secondaryShootDate = values.shootDateSecondary ? `; ngày phụ: ${formatDate(values.shootDateSecondary)}` : '';
+                const eventLabel = values.eventType ? values.eventType : 'Sự kiện chụp';
+                const scheduleText = (values.shootSchedule || '').trim();
+                const shootDateDisplay = scheduleText ? scheduleText : `${eventLabel}: ${primaryShootDate}${secondaryShootDate}`;
+                byId('deposit').setCustomValidity(deposit > total ? 'Tiền đặt cọc không thể lớn hơn tổng giá trị hợp đồng.' : '');
+                setText('previewStudioName', values.studioName, 'PHOTO SELECT');
+                setText('previewStudioAddress', values.studioAddress, '');
+                setText('previewStudioPhone', values.studioPhone, '');
+                setText('previewNumber', values.contractNumber, 'Chưa cấp');
+                setText('previewContractDate', formatDate(values.contractDate), 'Chưa xác định');
+                setText('previewDateText', formatDate(values.contractDate), 'Chưa xác định');
+                setText('previewStudioNameParty', values.studioName, 'PHOTO SELECT');
+                setText('previewStudioAddressParty', values.studioAddress, 'Chưa cập nhật');
+                setText('previewStudioPhoneParty', values.studioPhone, 'Chưa cập nhật');
+                setText('previewClientName', values.clientName, 'Chưa nhập');
+                setText('previewClientPhone', values.clientPhone, 'Chưa cập nhật');
+                setText('previewClientEmail', values.clientEmail, 'Chưa cập nhật');
+                setText('previewServiceName', values.serviceName, 'Chưa nhập');
+                setText('previewServiceNameTable', values.serviceName, 'Chưa nhập');
+                setText('previewShootDate', shootDateDisplay, 'Chưa xác định');
+                setText('previewShootLocation', values.shootLocation, 'Chưa nhập');
+                setText('previewDeliverables', values.deliverables, 'Theo nội dung hai bên thống nhất.');
+                setText('previewWeddingAddon', values.weddingAddon, 'Không có gói bổ sung thêm ngày cưới hoặc sự kiện khác.');
+                setText('previewTotal', formatMoney(total), '');
+                setText('previewDeposit', formatMoney(deposit), '');
+                setText('previewBalance', formatMoney(Math.max(0, total - deposit)), '');
+                byId('previewTotalTotal').textContent = formatMoney(total);
+                byId('summaryTotalValue').textContent = formatMoney(total);
+                byId('summaryDepositValue').textContent = formatMoney(deposit);
+                byId('summaryBalanceValue').textContent = formatMoney(Math.max(0, total - deposit));
+                setText('previewPaymentTerms', values.paymentTerms, 'Theo thỏa thuận hai bên.');
+                setText('previewExtraTerms', values.extraTerms, 'Không có.');
+                setText('previewSignStudio', values.studioName, 'Đại diện Bên A');
+                setText('previewSignClient', values.clientName, 'Khách hàng');
+            }
+            function printContract() {
+                if (!form.reportValidity()) return;
+                updatePreview();
+                window.print();
+            }
+            const exportDialog = byId('exportDialog');
+            function openExportDialog() {
+                exportDialog.classList.add('is-open');
+                exportDialog.setAttribute('aria-hidden', 'false');
+            }
+            function closeExportDialog() {
+                exportDialog.classList.remove('is-open');
+                exportDialog.setAttribute('aria-hidden', 'true');
+            }
+            function normalizeExportFormat(value) {
+                const format = String(value || '').trim().toLowerCase();
+                if (format === 'jpg' || format === 'jpeg') return 'jpg';
+                if (format === 'png') return 'png';
+                if (format === 'pdf') return 'pdf';
+                return null;
+            }
+            async function downloadContractFile(format) {
+                const exportFormat = normalizeExportFormat(format);
+                if (!exportFormat) return;
+                if (!form.reportValidity()) return;
+                updatePreview();
+                if (!window.html2canvas) {
+                    window.alert('Thư viện xuất ảnh chưa sẵn sàng. Hãy thử lại sau vài giây.');
+                    return;
+                }
+                const source = byId('contractPreview');
+                try {
+                    const canvas = await window.html2canvas(source, {
+                        backgroundColor: '#ffffff',
+                        scale: 2,
+                        useCORS: true,
+                        scrollX: 0,
+                        scrollY: 0
+                    });
+                    if (exportFormat === 'pdf') {
+                        if (!window.jspdf || !window.jspdf.jsPDF) {
+                            window.alert('Thư viện xuất PDF chưa sẵn sàng. Hãy thử lại sau vài giây.');
+                            return;
+                        }
+                        const { jsPDF } = window.jspdf;
+                        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                        const pageWidth = pdf.internal.pageSize.getWidth();
+                        const pageHeight = pdf.internal.pageSize.getHeight();
+                        const margin = 12;
+                        const usableWidth = pageWidth - margin * 2;
+                        const usableHeight = pageHeight - margin * 2;
+                        const scale = usableWidth / canvas.width;
+                        const pageSliceHeightPx = Math.max(1, Math.round((usableHeight / scale)));
+                        let offsetY = 0;
+                        let pageIndex = 0;
+                        while (offsetY < canvas.height) {
+                            const remaining = canvas.height - offsetY;
+                            const sliceHeight = Math.min(pageSliceHeightPx, remaining);
+                            const pageCanvas = document.createElement('canvas');
+                            pageCanvas.width = canvas.width;
+                            pageCanvas.height = sliceHeight;
+                            const context = pageCanvas.getContext('2d');
+                            context.drawImage(canvas, 0, offsetY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+                            const imageData = pageCanvas.toDataURL('image/png');
+                            const scaledHeight = (sliceHeight * usableWidth) / canvas.width;
+                            if (pageIndex > 0) pdf.addPage();
+                            pdf.addImage(imageData, 'PNG', margin, margin, usableWidth, scaledHeight, undefined, 'FAST');
+                            offsetY += sliceHeight;
+                            pageIndex += 1;
+                        }
+                        pdf.save('hop-dong-studio.pdf');
+                        closeExportDialog();
+                        return;
+                    }
+                    const mimeType = exportFormat === 'png' ? 'image/png' : 'image/jpeg';
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL(mimeType, 0.92);
+                    link.download = `hop-dong-studio.${exportFormat}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    closeExportDialog();
+                } catch (error) {
+                    console.error('Không thể xuất hợp đồng.', error);
+                    window.alert('Không thể tải file hợp đồng. Vui lòng thử lại sau hoặc chọn In / Lưu PDF từ trình duyệt.');
+                }
+            }
+            const today = new Date();
+            const isoDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const initialContractNumber = `PS-${isoDate.replace(/-/g, '')}-${String(today.getHours()).padStart(2, '0')}${String(today.getMinutes()).padStart(2, '0')}${String(today.getSeconds()).padStart(2, '0')}`;
+            byId('contractDate').value = isoDate;
+            byId('contractNumber').value = initialContractNumber;
+            const attachmentInput = byId('contractAttachments');
+            attachmentInput.addEventListener('change', event => {
+                const selectedFiles = Array.from(event.target.files || []);
+                const files = selectedFiles.filter(file => {
+                    const name = file.name || '';
+                    return /\.(jpe?g|png|pdf)$/i.test(name) || ['image/jpeg', 'image/png', 'application/pdf'].includes(file.type);
+                });
+                if (files.length === 0) {
+                    renderAttachments([]);
+                    attachmentInput.value = '';
+                    window.alert('Chỉ hỗ trợ file JPG, PNG hoặc PDF.');
+                    return;
+                }
+                if (files.length !== selectedFiles.length) {
+                    window.alert('Một số file không được hỗ trợ và đã bị bỏ qua. Chỉ chấp nhận JPG, PNG hoặc PDF.');
+                }
+                renderAttachments(files);
+            });
+            byId('servicePreset').addEventListener('change', applyServicePreset);
+            form.addEventListener('input', updatePreview);
+            form.addEventListener('change', updatePreview);
+            form.addEventListener('reset', () => setTimeout(() => {
+                byId('studioName').value = 'LUNA FRAME STUDIO';
+                byId('studioAddress').value = '12 Nguyễn Huệ, Quận 1, TP.HCM';
+                byId('studioPhone').value = '0901 234 567';
+                byId('clientName').value = 'Nguyễn Văn A';
+                byId('clientPhone').value = '0987 654 321';
+                byId('clientEmail').value = 'khachhang@gmail.com';
+                byId('servicePreset').value = 'Gói chụp ảnh cưới trọn gói';
+                byId('serviceName').value = 'Gói chụp ảnh cưới trọn gói';
+                byId('eventType').value = 'Chụp cưới';
+                byId('shootDate').value = '';
+                byId('shootDateSecondary').value = '';
+                byId('shootLocation').value = 'Studio LUNA FRAME, TP.HCM';
+                byId('shootSchedule').value = 'Ngày cưới: 20/12/2026; Chụp studio: 17/12/2026';
+                byId('deliverables').value = '01 buổi chụp trong studio; 02 concept / 02 trang phục; 30 ảnh lớn 30x45; 80 ảnh nhỏ 10x15; 200 ảnh đã chỉnh sửa; 01 bộ hình nền / 01 album online; 01 video teaser 15-30 giây.';
+                byId('weddingAddon').value = 'Nếu khách hàng đồng ý bổ sung chụp ngày cưới, gói sẽ tăng thêm 01 buổi chụp cưới, 100 ảnh đã chỉnh sửa, 20 ảnh lớn 30x45, 40 ảnh nhỏ 10x15, 01 video highlight ngắn và 01 album online riêng theo phong cách studio.';
+                byId('totalPrice').value = '25000000';
+                byId('deposit').value = '12000000';
+                byId('paymentTerms').value = 'Đặt cọc 50% ngay khi ký hợp đồng; thanh toán phần còn lại trước khi nhận sản phẩm hoàn thiện.';
+                byId('extraTerms').value = 'Hai bên đồng ý ưu tiên trao đổi qua tin nhắn hoặc email đã ghi trên hợp đồng. Mọi thay đổi về lịch trình, địa điểm hoặc số lượng sản phẩm cần được xác nhận bằng văn bản trước khi thực hiện.';
+                attachmentInput.value = '';
+                renderAttachments([]);
+                byId('contractDate').value = isoDate;
+                byId('contractNumber').value = initialContractNumber;
+                updatePreview();
+            }, 0));
+            applyServicePreset();
+            byId('downloadContract').addEventListener('click', () => openExportDialog());
+            byId('downloadContractTop').addEventListener('click', () => openExportDialog());
+            exportDialog.addEventListener('click', event => {
+                if (event.target === exportDialog) closeExportDialog();
+            });
+            document.querySelectorAll('[data-export-format]').forEach(button => {
+                button.addEventListener('click', () => {
+                    downloadContractFile(button.dataset.exportFormat);
+                });
+            });
+            byId('printContract').addEventListener('click', printContract);
+            byId('printContractTop').addEventListener('click', printContract);
+            byId('openSettingsButton').addEventListener('click', () => {
+                renderSettingsSection('settings');
+                settingsDialog.classList.add('is-open');
+                settingsDialog.setAttribute('aria-hidden', 'false');
+                byId('closeSettingsButton').focus();
+            });
+            settingsDialog.addEventListener('click', event => {
+                const sectionButton = event.target.closest('[data-settings-section]');
+                if (sectionButton) {
+                    renderSettingsSection(sectionButton.dataset.settingsSection);
+                    return;
+                }
+                const themeButton = event.target.closest('[data-theme-option]');
+                if (themeButton) {
+                    setTheme(themeButton.dataset.themeOption);
+                    return;
+                }
+                if (event.target === settingsDialog) {
+                    settingsDialog.classList.remove('is-open');
+                    settingsDialog.setAttribute('aria-hidden', 'true');
+                }
+            });
+            byId('settingsContent').addEventListener('submit', async event => {
+                const passwordForm = event.target.closest('#dashboardPasswordForm');
+                if (!passwordForm) return;
+                event.preventDefault();
+                const formData = new FormData(passwordForm);
+                const newPassword = String(formData.get('new_password') || '');
+                const confirmPassword = String(formData.get('confirm_password') || '');
+                const status = byId('dashboardPasswordStatus');
+                const submitButton = passwordForm.querySelector('[type="submit"]');
+                if (newPassword !== confirmPassword) {
+                    status.textContent = 'Xác nhận mật khẩu mới không khớp.';
+                    status.classList.add('is-error');
+                    status.classList.remove('is-success');
+                    return;
+                }
+                formData.set('action', 'change_password');
+                submitButton.disabled = true;
+                status.textContent = 'Đang cập nhật mật khẩu...';
+                status.classList.remove('is-error', 'is-success');
+                try {
+                    const response = await fetch('photowedding/app.php', { method: 'POST', body: formData });
+                    const result = (await response.text()).trim();
+                    if (!response.ok || result !== 'success') {
+                        throw new Error(result || 'Không thể đổi mật khẩu. Vui lòng thử lại.');
+                    }
+                    passwordForm.reset();
+                    status.textContent = 'Đổi mật khẩu thành công.';
+                    status.classList.add('is-success');
+                } catch (error) {
+                    status.textContent = error.message || 'Không thể kết nối máy chủ.';
+                    status.classList.add('is-error');
+                    console.error('Không thể đổi mật khẩu Dashboard.', error);
+                } finally {
+                    submitButton.disabled = false;
+                }
+            });
+            byId('closeSettingsButton').addEventListener('click', () => {
+                settingsDialog.classList.remove('is-open');
+                settingsDialog.setAttribute('aria-hidden', 'true');
+            });
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    settingsDialog.classList.remove('is-open');
+                    settingsDialog.setAttribute('aria-hidden', 'true');
+                    closeExportDialog();
+                }
+            });
+            window.addEventListener('storage', event => {
+                if (event.key !== 'photoSelectInterfaceSettings') return;
+                try {
+                    const savedSettings = JSON.parse(event.newValue || '{}');
+                    if (savedSettings.theme !== 'dark' && savedSettings.theme !== 'sage') return;
+                    document.documentElement.dataset.dashboardTheme = savedSettings.theme === 'dark' ? 'dark' : 'light';
+                    syncThemeOptions();
+                } catch (error) {
+                    console.error('Không thể đồng bộ giao diện Dashboard.', error);
+                }
+            });
+            syncThemeOptions();
+            const queryParams = new URLSearchParams(window.location.search);
+            if (queryParams.get('customerName')) byId('clientName').value = queryParams.get('customerName');
+            if (queryParams.get('customerPhone')) byId('clientPhone').value = queryParams.get('customerPhone');
+            if (queryParams.get('customerEmail')) byId('clientEmail').value = queryParams.get('customerEmail');
+            if (queryParams.get('package')) byId('serviceName').value = queryParams.get('package');
+            if (queryParams.get('budget')) byId('totalPrice').value = queryParams.get('budget');
+            if (queryParams.get('shootDate')) byId('shootDate').value = queryParams.get('shootDate');
+
+            let savedContracts = [];
+            let activeSavedContractId = null;
+
+            function renderSavedContracts() {
+                const container = byId('savedContractsList');
+                const countEl = byId('savedContractsCount');
+                if (countEl) countEl.textContent = `${savedContracts.length} hợp đồng`;
+                if (!container) return;
+                if (!savedContracts.length) {
+                    container.innerHTML = '<p style="margin:0;color:var(--muted);font-size:.74rem;">Chưa có hợp đồng nào được lưu trên máy chủ.</p>';
+                    return;
+                }
+                container.innerHTML = savedContracts.map(item => `
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.55rem .65rem;border:1px solid var(--border);border-radius:9px;background:var(--surface);">
+                        <div style="min-width:0;">
+                            <strong style="display:block;font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(item.contractNumber || 'Hợp đồng')} · ${escapeHtml(item.clientName || '')}</strong>
+                            <small style="color:var(--muted);font-size:.7rem;">${escapeHtml(item.serviceName || '')} · ${formatMoney(item.totalPrice)}</small>
+                        </div>
+                        <div style="display:flex;gap:.35rem;flex-shrink:0;">
+                            <button class="button" type="button" style="min-height:32px;padding:.3rem .55rem;font-size:.7rem;" data-load-contract="${escapeHtml(item.id)}">Mở</button>
+                            <button class="button" type="button" style="min-height:32px;padding:.3rem .55rem;font-size:.7rem;" data-delete-contract="${escapeHtml(item.id)}">Xóa</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async function loadSavedContracts() {
+                try {
+                    const res = await fetch('photowedding/app.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'contracts_list' })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success && Array.isArray(data.contracts)) {
+                        savedContracts = data.contracts;
+                        renderSavedContracts();
+                    }
+                } catch (err) {
+                    console.warn('Không thể tải danh sách hợp đồng đã lưu.', err);
+                }
+            }
+
+            async function saveCurrentContract() {
+                if (!form.reportValidity()) return;
+                const statusEl = byId('contractSaveStatus');
+                const contract = Object.fromEntries(Object.keys(fields).map(id => [id, byId(id).value]));
+                if (activeSavedContractId) contract.id = activeSavedContractId;
+                statusEl.textContent = 'Đang lưu hợp đồng...';
+                try {
+                    const res = await fetch('photowedding/app.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'contracts_save', contract })
+                    });
+                    const data = await res.json();
+                    if (!res.ok || !data.success) throw new Error(data.message || 'Không thể lưu hợp đồng.');
+                    activeSavedContractId = data.contract.id;
+                    const idx = savedContracts.findIndex(c => String(c.id) === String(data.contract.id));
+                    if (idx >= 0) savedContracts[idx] = data.contract;
+                    else savedContracts.unshift(data.contract);
+                    renderSavedContracts();
+                    statusEl.textContent = `✅ Đã lưu hợp đồng ${data.contract.contractNumber || ''} vào hệ thống.`;
+                } catch (err) {
+                    statusEl.textContent = `❌ ${err.message || 'Lỗi lưu hợp đồng.'}`;
+                }
+            }
+
+            byId('saveContractBtn').addEventListener('click', saveCurrentContract);
+            byId('saveContractTop').addEventListener('click', saveCurrentContract);
+            byId('savedContractsList').addEventListener('click', async event => {
+                const loadBtn = event.target.closest('[data-load-contract]');
+                if (loadBtn) {
+                    const item = savedContracts.find(c => String(c.id) === loadBtn.dataset.loadContract);
+                    if (!item) return;
+                    activeSavedContractId = item.id;
+                    Object.keys(fields).forEach(key => {
+                        if (key in item && byId(key)) byId(key).value = item[key];
+                    });
+                    updatePreview();
+                    byId('contractSaveStatus').textContent = `Đã nạp hợp đồng ${item.contractNumber || ''}.`;
+                    return;
+                }
+                const delBtn = event.target.closest('[data-delete-contract]');
+                if (delBtn && confirm('Xóa hợp đồng đã lưu này?')) {
+                    const res = await fetch('photowedding/app.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'contracts_delete', id: delBtn.dataset.deleteContract })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        savedContracts = savedContracts.filter(c => String(c.id) !== delBtn.dataset.deleteContract);
+                        if (String(activeSavedContractId) === delBtn.dataset.deleteContract) activeSavedContractId = null;
+                        renderSavedContracts();
+                    }
+                }
+            });
+
+            updatePreview();
+            loadDashboardUser();
+            loadSavedContracts();
+        })();
+    </script>
+</body>
+</html>
