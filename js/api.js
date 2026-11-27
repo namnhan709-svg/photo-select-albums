@@ -14,6 +14,10 @@
 
     const MOCK_STORAGE_KEY = 'photoSelectLocalMockState_v2';
     const CLOUD_CONFIG_KEY = 'photoSelectCloudConfig_v1';
+    const DEFAULT_CLOUD_CONFIG = {
+        googleApiKey: 'AIzaSyDDu8gjk3fzCMdiDo7TIQ4nLJsNWRaK35Q',
+        firebaseDbUrl: 'https://photo-select-albums-default-rtdb.asia-southeast1.firebasedatabase.app'
+    };
     const STATIC_SESSION_KEY = 'photoSelectStaticUserId';
     const nativeFetch = global.fetch.bind(global);
 
@@ -22,9 +26,13 @@
 
     function getCloudConfig() {
         try {
-            return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY) || '{}');
+            const stored = JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY) || '{}');
+            return {
+                googleApiKey: String(stored.googleApiKey || DEFAULT_CLOUD_CONFIG.googleApiKey || '').trim(),
+                firebaseDbUrl: String(stored.firebaseDbUrl || DEFAULT_CLOUD_CONFIG.firebaseDbUrl || '').trim().replace(/\/+$/, '')
+            };
         } catch {
-            return {};
+            return { ...DEFAULT_CLOUD_CONFIG };
         }
     }
 
@@ -773,7 +781,9 @@
                 const pt = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
                 const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=nextPageToken,files(id,name,mimeType,createdTime,modifiedTime)&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true${pt}&key=${encodeURIComponent(apiKey)}`;
                 const res = await nativeFetch(url);
-                if (res.ok) return { ok: true, result: await res.json() };
+                const data = await res.json().catch(() => ({}));
+                if (res.ok) return { ok: true, result: data };
+                return { ok: false, result: { error: { message: data?.error?.message || `Google Drive API lỗi (${res.status}). Hãy đảm bảo thư mục Drive đã bật quyền "Bất kỳ ai có đường liên kết đều có thể xem".` } } };
             }
             return { ok: false, result: { error: { message: 'Trên GitHub Pages, cần cấu hình Google Drive API Key trong Cài đặt để đọc thư mục Google Drive công khai.' } } };
         }
