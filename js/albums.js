@@ -286,10 +286,15 @@
             renderAlbums(albums);
             document.getElementById('totalAlbums').textContent = String(albums.length);
             document.getElementById('allowedAlbums').textContent = String(albums.filter(album => Number(album.allow_save) === 1).length);
-            document.getElementById('accountStatus').textContent = API.isMockMode() ? 'Demo cục bộ' : 'Đang hoạt động';
+            const cloudActive = Boolean(API.getActiveCloudUrl && API.getActiveCloudUrl());
+            document.getElementById('accountStatus').textContent = API.isMockMode()
+                ? (cloudActive ? 'Cloud Firebase' : 'Demo cục bộ')
+                : 'Đang hoạt động';
 
             const loginSucceeded = new URLSearchParams(global.location.search).get('login') === 'success';
-            const modeSuffix = API.isMockMode() ? ' (Chế độ Demo VS Code)' : '';
+            const modeSuffix = API.isMockMode()
+                ? (cloudActive ? ' (Đã bật đồng bộ Cloud & Drive API)' : ' (Chế độ Demo VS Code)')
+                : '';
             showMessage(loginSucceeded
                 ? `✅ Đăng nhập thành công · ${albums.length} album gần đây${modeSuffix}`
                 : `${albums.length} album gần đây${modeSuffix}`);

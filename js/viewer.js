@@ -6,11 +6,17 @@
     const API = global.PhotoSelectAPI;
 
     function getPhotoThumbUrl(file) {
-        return file.thumbnailUrl || `https://drive.google.com/thumbnail?id=${encodeURIComponent(String(file.id))}&sz=w640`;
+        if (API.getDriveImageCandidates) {
+            return API.getDriveImageCandidates(file, 'thumb')[0] || '';
+        }
+        return file.thumbnailUrl || `https://lh3.googleusercontent.com/d/${encodeURIComponent(String(file.id))}=w640`;
     }
 
     function getPhotoFullUrl(file) {
-        return file.fullUrl || `https://drive.google.com/thumbnail?id=${encodeURIComponent(String(file.id))}&sz=w1280`;
+        if (API.getDriveImageCandidates) {
+            return API.getDriveImageCandidates(file, 'full')[0] || '';
+        }
+        return file.fullUrl || `https://lh3.googleusercontent.com/d/${encodeURIComponent(String(file.id))}=w1600`;
     }
 
     async function loadAlbumImages(folderId, visitedFolders = new Set(), category = 'Album') {
@@ -210,23 +216,33 @@
             const selected = state.selectedViewerFiles.has(fileId);
             const altText = String(file.name || 'Ảnh album').replace(/"/g, '&quot;');
             return `<article class="viewer-photo ${selected ? 'is-selected' : ''}" data-file-id="${encodeURIComponent(fileId)}">
-                <img src="${getPhotoThumbUrl(file)}" alt="${altText}" loading="lazy" decoding="async">
+                <img alt="${altText}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
                 <span class="viewer-photo-name">${String(file.name || 'Ảnh album')}</span>
                 <button class="viewer-photo-heart" type="button" aria-label="${selected ? 'Bỏ chọn ảnh' : 'Chọn ảnh'}">${selected ? '❤️' : '🤍'}</button>
             </article>`;
         }).join('');
 
+        const fileById = new Map(filteredFiles.map(file => [String(file.id), file]));
         albumViewerGrid.querySelectorAll('.viewer-photo').forEach(photo => {
             const fileId = decodeURIComponent(photo.dataset.fileId);
+            const file = fileById.get(fileId);
+            const img = photo.querySelector('img');
+            if (img && file) {
+                if (API.bindDriveImage) {
+                    API.bindDriveImage(img, file, 'thumb');
+                } else {
+                    img.src = getPhotoThumbUrl(file);
+                }
+            }
             const toggle = () => {
                 if (state.selectedViewerFiles.has(fileId)) state.selectedViewerFiles.delete(fileId);
                 else state.selectedViewerFiles.add(fileId);
                 renderViewerPhotos();
                 saveViewerSelections();
             };
-            photo.querySelector('img').addEventListener('click', event => {
+            img?.addEventListener('click', event => {
                 event.stopPropagation();
-                openViewerLightbox(state.viewerFiles.find(file => String(file.id) === fileId));
+                openViewerLightbox(state.viewerFiles.find(item => String(item.id) === fileId));
             });
             photo.addEventListener('click', toggle);
             photo.querySelector('.viewer-photo-heart').addEventListener('click', event => {
@@ -308,6 +324,7 @@
             if (!file || file.preloaded) return;
             const image = new Image();
             image.decoding = 'async';
+            image.referrerPolicy = 'no-referrer';
             image.src = getPhotoFullUrl(file);
             file.preloaded = true;
         });
@@ -361,7 +378,12 @@
             void image.offsetWidth;
             image.classList.add(transitionDirection > 0 ? 'is-switching-next' : 'is-switching-prev');
         }
-        image.src = getPhotoFullUrl(file);
+        if (API.bindDriveImage) {
+            API.bindDriveImage(image, file, 'full');
+        } else {
+            image.referrerPolicy = 'no-referrer';
+            image.src = getPhotoFullUrl(file);
+        }
         image.alt = file.name || 'Ảnh album';
         document.getElementById('viewerLightboxNumber').textContent = `#${state.viewerLightboxIndex + 1}`;
         document.getElementById('viewerLightboxTitle').textContent = file.name || 'Ảnh album';

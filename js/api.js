@@ -294,6 +294,169 @@
         }
     }
 
+    const SEED_DEMO_FOLDER_IDS = new Set([
+        'demo-album-dalat-01',
+        'demo-album-tiectuoi-02',
+        'demo-album-studio-03'
+    ]);
+    let workspaceSyncPromise = null;
+    let lastWorkspaceSyncAt = 0;
+
+    function mergeWorkspaceArray(localArr, cloudArr, keyFn, isSeedFn) {
+        const safeLocal = Array.isArray(localArr) ? localArr : [];
+        if (!Array.isArray(cloudArr)) {
+            return { items: safeLocal, dirty: safeLocal.length > 0 };
+        }
+        const merged = [...cloudArr];
+        const existing = new Set(merged.map(keyFn));
+        let dirty = false;
+        safeLocal.forEach(item => {
+            const k = keyFn(item);
+            if (!existing.has(k) && (!isSeedFn || !isSeedFn(item))) {
+                merged.push(item);
+                existing.add(k);
+                dirty = true;
+            }
+        });
+        return { items: merged, dirty };
+    }
+
+    function mergeWorkspaceUsers(localUsers, cloudUsers) {
+        const seedDefault = buildSeedMockState().users[0];
+        const { items, dirty } = mergeWorkspaceArray(
+            localUsers,
+            cloudUsers,
+            u => String(u?.email || u?.id || '').trim().toLowerCase(),
+            u => String(u?.email || '').trim().toLowerCase() === 'studio@gmail.com'
+        );
+        let nextDirty = dirty;
+        if (!items.some(u => String(u?.email || '').trim().toLowerCase() === 'studio@gmail.com')) {
+            items.unshift(seedDefault);
+            nextDirty = true;
+        }
+        return { items, dirty: nextDirty };
+    }
+
+    async function ensureWorkspaceSynced(state, force = false) {
+        const base = getActiveCloudUrl();
+        if (!base) return state;
+        const now = Date.now();
+        if (!force && lastWorkspaceSyncAt > 0 && (now - lastWorkspaceSyncAt) < 2500) {
+            return state;
+        }
+        if (workspaceSyncPromise && !force) {
+            return workspaceSyncPromise;
+        }
+
+        workspaceSyncPromise = (async () => {
+            try {
+                const cloudWs = await cloudGet('workspace');
+                if (!cloudWs || typeof cloudWs !== 'object') {
+                    await cloudPut('workspace', {
+                        users: state.users || [],
+                        albums: state.albums || [],
+                        customers: state.customers || [],
+                        contracts: state.contracts || [],
+                        photographers: state.photographers || [],
+                        notifications: state.notifications || [],
+                        updated_at: new Date().toISOString()
+                    });
+                    lastWorkspaceSyncAt = Date.now();
+                    return state;
+                }
+
+                let shouldPush = false;
+                const usersMerge = mergeWorkspaceUsers(state.users, cloudWs.users);
+                state.users = usersMerge.items;
+                if (usersMerge.dirty) shouldPush = true;
+
+                const albumsMerge = mergeWorkspaceArray(
+                    state.albums,
+                    cloudWs.albums,
+                    a => String(a?.folder_id || a?.id || ''),
+                    a => SEED_DEMO_FOLDER_IDS.has(String(a?.folder_id || ''))
+                );
+                state.albums = albumsMerge.items;
+                if (albumsMerge.dirty) shouldPush = true;
+
+                const customersMerge = mergeWorkspaceArray(
+                    state.customers,
+                    cloudWs.customers,
+                    c => `${String(c?.phone || '').trim()}|${String(c?.email || '').trim()}|${String(c?.name || '').trim()}`.toLowerCase(),
+                    c => Number(c?.id || 0) <= 3
+                );
+                state.customers = customersMerge.items;
+                if (customersMerge.dirty) shouldPush = true;
+
+                const contractsMerge = mergeWorkspaceArray(
+                    state.contracts,
+                    cloudWs.contracts,
+                    c => String(c?.contractNumber || c?.id || '').trim().toLowerCase(),
+                    c => Number(c?.id || 0) <= 1
+                );
+                state.contracts = contractsMerge.items;
+                if (contractsMerge.dirty) shouldPush = true;
+
+                const photographersMerge = mergeWorkspaceArray(
+                    state.photographers,
+                    cloudWs.photographers,
+                    p => `${String(p?.email || '').trim()}|${String(p?.name || '').trim()}`.toLowerCase(),
+                    p => Number(p?.id || 0) <= 3
+                );
+                state.photographers = photographersMerge.items;
+                if (photographersMerge.dirty) shouldPush = true;
+
+                if (Array.isArray(cloudWs.notifications)) {
+                    const notifMerge = mergeWorkspaceArray(
+                        state.notifications,
+                        cloudWs.notifications,
+                        n => `${String(n?.title || '')}|${String(n?.created_at || '')}|${String(n?.message || '')}`,
+                        n => Number(n?.id || 0) <= 105
+                    );
+                    state.notifications = notifMerge.items;
+                    if (notifMerge.dirty) shouldPush = true;
+                }
+
+                const maxId = [
+                    ...(state.users || []),
+                    ...(state.albums || []),
+                    ...(state.customers || []),
+                    ...(state.contracts || []),
+                    ...(state.photographers || []),
+                    ...(state.notifications || [])
+                ].reduce((acc, item) => Math.max(acc, Number(item?.id || 0)), Number(state.nextId || 200));
+                state.nextId = maxId + 1;
+
+                saveMockState(state);
+                if (shouldPush) {
+                    await cloudPut('workspace', {
+                        users: state.users || [],
+                        albums: state.albums || [],
+                        customers: state.customers || [],
+                        contracts: state.contracts || [],
+                        photographers: state.photographers || [],
+                        notifications: state.notifications || [],
+                        updated_at: new Date().toISOString()
+                    });
+                }
+                lastWorkspaceSyncAt = Date.now();
+            } catch (err) {
+                console.warn('Không thể đồng bộ workspace Firebase:', err);
+            } finally {
+                workspaceSyncPromise = null;
+            }
+            return state;
+        })();
+
+        return workspaceSyncPromise;
+    }
+
+    async function pushWorkspaceSection(section, data) {
+        if (!getActiveCloudUrl()) return false;
+        lastWorkspaceSyncAt = Date.now();
+        return cloudPut(`workspace/${section}`, data);
+    }
+
     function syncMockPhotoSelections(state, folderId, selectedIds, guestName = 'Khách xem album', shareToken = '', photoMeta = []) {
         const cleanIds = [...new Set((selectedIds || []).map(String).filter(Boolean))];
         state.savedState[`photoSelectionsByAlbum:${folderId}`] = cleanIds;
@@ -324,6 +487,25 @@
     async function handleMockAction(payload) {
         const state = loadMockState();
         const action = payload?.action;
+        if ([
+            'session_state',
+            'login',
+            'register',
+            'forgot',
+            'load_albums',
+            'load_deleted_albums',
+            'save_album',
+            'update_album_permission',
+            'delete_album',
+            'restore_album',
+            'get_notifications',
+            'photographers_list',
+            'contracts_list',
+            'customers_list',
+            'reports_summary'
+        ].includes(action)) {
+            await ensureWorkspaceSynced(state, action === 'login' || action === 'load_albums');
+        }
         const user = getStaticSessionUser(state);
 
         switch (action) {
@@ -357,6 +539,7 @@
                 };
                 state.users.push(newUser);
                 saveMockState(state);
+                await pushWorkspaceSection('users', state.users);
                 localStorage.setItem(STATIC_SESSION_KEY, String(newUser.id));
                 return { success: true, message: 'Đăng ký thành công.', user: { id: newUser.id, name: newUser.name, email: newUser.email, phone: newUser.phone, status: 'active' } };
             }
@@ -373,6 +556,7 @@
                 const target = state.users.find(u => u.id === user.id);
                 if (target) target.phone = String(payload.phone || '').trim();
                 saveMockState(state);
+                await pushWorkspaceSection('users', state.users);
                 return { success: true, user: getStaticSessionUser(state), message: 'Đã cập nhật số điện thoại.' };
             }
 
@@ -412,6 +596,7 @@
                 };
                 state.albums.unshift(newAlbum);
                 saveMockState(state);
+                await pushWorkspaceSection('albums', state.albums);
                 return { success: true, data: newAlbum };
             }
 
@@ -420,6 +605,7 @@
                 if (!album) return { success: false, message: 'Không tìm thấy album.' };
                 album.allow_save = payload.allow_save ? 1 : 0;
                 saveMockState(state);
+                await pushWorkspaceSection('albums', state.albums);
                 return { success: true, allow_save: album.allow_save };
             }
 
@@ -427,6 +613,7 @@
                 const album = state.albums.find(item => String(item.id) === String(payload.album_id));
                 if (album) album.deleted_at = new Date().toISOString().replace('T', ' ').slice(0, 19);
                 saveMockState(state);
+                await pushWorkspaceSection('albums', state.albums);
                 return { success: true };
             }
 
@@ -434,6 +621,7 @@
                 const album = state.albums.find(item => String(item.id) === String(payload.album_id));
                 if (album) album.deleted_at = null;
                 saveMockState(state);
+                await pushWorkspaceSection('albums', state.albums);
                 return { success: true };
             }
 
@@ -583,6 +771,7 @@
                 const target = state.notifications.find(item => String(item.id) === String(payload.notification_id));
                 if (target) target.is_read = 1;
                 saveMockState(state);
+                await pushWorkspaceSection('notifications', state.notifications);
                 return { success: true };
             }
 
@@ -610,12 +799,14 @@
                     state.photographers.unshift(p);
                 }
                 saveMockState(state);
+                await pushWorkspaceSection('photographers', state.photographers);
                 return { success: true, photographer: p };
             }
 
             case 'photographers_delete':
                 state.photographers = (state.photographers || []).filter(x => String(x.id) !== String(payload.id));
                 saveMockState(state);
+                await pushWorkspaceSection('photographers', state.photographers);
                 return { success: true };
 
             case 'contracts_list':
@@ -631,12 +822,14 @@
                     state.contracts.unshift(c);
                 }
                 saveMockState(state);
+                await pushWorkspaceSection('contracts', state.contracts);
                 return { success: true, contract: c };
             }
 
             case 'contracts_delete':
                 state.contracts = (state.contracts || []).filter(x => String(x.id) !== String(payload.id));
                 saveMockState(state);
+                await pushWorkspaceSection('contracts', state.contracts);
                 return { success: true };
 
             case 'customers_list':
@@ -652,12 +845,14 @@
                     state.customers.unshift(c);
                 }
                 saveMockState(state);
+                await pushWorkspaceSection('customers', state.customers);
                 return { success: true, customer: c };
             }
 
             case 'customers_delete':
                 state.customers = (state.customers || []).filter(x => String(x.id) !== String(payload.id));
                 saveMockState(state);
+                await pushWorkspaceSection('customers', state.customers);
                 return { success: true };
 
             case 'reports_summary': {
@@ -743,6 +938,7 @@
                 if (target) {
                     target.password = newPw;
                     saveMockState(state);
+                    await pushWorkspaceSection('users', state.users);
                 }
                 return { ok: true, text: 'success' };
             }
@@ -750,6 +946,133 @@
         }
         const response = await nativeFetch(CONFIG.endpoint, { method: 'POST', body: formData });
         return { ok: response.ok, text: (await response.text()).trim() };
+    }
+
+    function enrichDriveFileUrls(file) {
+        if (!file || file.mimeType === 'application/vnd.google-apps.folder') return file;
+        const id = String(file.id || '');
+        if (!id || (typeof file.thumbnailUrl === 'string' && file.thumbnailUrl.startsWith('data:'))) return file;
+        const resizedThumb = file.thumbnailLink
+            ? String(file.thumbnailLink).replace(/=[sw]\d+.*$/, '=w640')
+            : '';
+        const resizedFull = file.thumbnailLink
+            ? String(file.thumbnailLink).replace(/=[sw]\d+.*$/, '=w1600')
+            : '';
+        return {
+            ...file,
+            thumbnailUrl: resizedThumb || `https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=w640`,
+            fullUrl: resizedFull || `https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=w1600`
+        };
+    }
+
+    function getDriveImageCandidates(fileOrId, size = 'thumb') {
+        const isObj = fileOrId && typeof fileOrId === 'object';
+        const file = isObj ? fileOrId : { id: fileOrId };
+        const directDataUrl = size === 'full' ? file.fullUrl : file.thumbnailUrl;
+        if (typeof directDataUrl === 'string' && directDataUrl.startsWith('data:')) {
+            return [directDataUrl];
+        }
+        const id = String(file.id || '');
+        if (!id) return directDataUrl ? [directDataUrl] : [];
+        const widthToken = size === 'full' ? 'w1600' : 'w640';
+        const candidates = [];
+        if (file.thumbnailLink) {
+            candidates.push(String(file.thumbnailLink).replace(/=[sw]\d+.*$/, `=${widthToken}`));
+            candidates.push(String(file.thumbnailLink));
+        }
+        if (directDataUrl && !directDataUrl.includes('drive.google.com/thumbnail')) {
+            candidates.push(directDataUrl);
+        }
+        candidates.push(`https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=${widthToken}`);
+        candidates.push(`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=${widthToken}`);
+        candidates.push(`https://drive.google.com/uc?export=view&id=${encodeURIComponent(id)}`);
+        return [...new Set(candidates.filter(Boolean))];
+    }
+
+    const driveBlobUrlCache = new Map();
+    const driveBlobQueue = [];
+    let driveBlobActiveCount = 0;
+
+    function runNextDriveBlobJob() {
+        if (driveBlobActiveCount >= 4 || !driveBlobQueue.length) return;
+        const job = driveBlobQueue.shift();
+        driveBlobActiveCount += 1;
+        Promise.resolve()
+            .then(job.task)
+            .then(job.resolve, job.reject)
+            .finally(() => {
+                driveBlobActiveCount = Math.max(0, driveBlobActiveCount - 1);
+                runNextDriveBlobJob();
+            });
+    }
+
+    function fetchDriveBlobUrl(fileId) {
+        const key = String(fileId || '');
+        if (!key) return Promise.reject(new Error('Missing file id'));
+        if (driveBlobUrlCache.has(key)) return driveBlobUrlCache.get(key);
+        const promise = new Promise((resolve, reject) => {
+            driveBlobQueue.push({
+                resolve,
+                reject,
+                task: async () => {
+                    const blob = await driveDownloadBlob(key);
+                    if (!blob || !blob.size || (blob.type && blob.type.includes('text/html'))) {
+                        throw new Error('Invalid image blob');
+                    }
+                    return URL.createObjectURL(blob);
+                }
+            });
+            runNextDriveBlobJob();
+        }).catch(err => {
+            driveBlobUrlCache.delete(key);
+            throw err;
+        });
+        driveBlobUrlCache.set(key, promise);
+        return promise;
+    }
+
+    let driveImageBindSeq = 0;
+    function bindDriveImage(imgEl, fileOrId, size = 'thumb', onFinalFail = null) {
+        if (!imgEl) return;
+        const token = String(++driveImageBindSeq);
+        imgEl.dataset.driveBindToken = token;
+        imgEl.referrerPolicy = 'no-referrer';
+        const candidates = getDriveImageCandidates(fileOrId, size);
+        const fileId = String((fileOrId && typeof fileOrId === 'object') ? (fileOrId.id || '') : (fileOrId || ''));
+        if (!candidates.length) {
+            onFinalFail?.();
+            return;
+        }
+        let idx = 0;
+        let triedBlobFallback = false;
+        imgEl.onerror = () => {
+            if (imgEl.dataset.driveBindToken !== token) return;
+            idx += 1;
+            if (idx < candidates.length) {
+                imgEl.src = candidates[idx];
+                return;
+            }
+            if (!triedBlobFallback && fileId && !candidates[0].startsWith('data:') && getActiveDriveApiKey()) {
+                triedBlobFallback = true;
+                fetchDriveBlobUrl(fileId).then(objectUrl => {
+                    if (imgEl.dataset.driveBindToken !== token) return;
+                    imgEl.onerror = () => {
+                        if (imgEl.dataset.driveBindToken !== token) return;
+                        imgEl.onerror = null;
+                        onFinalFail?.();
+                    };
+                    imgEl.src = objectUrl;
+                }).catch(() => {
+                    if (imgEl.dataset.driveBindToken !== token) return;
+                    imgEl.onerror = null;
+                    onFinalFail?.();
+                });
+                return;
+            }
+            imgEl.onerror = null;
+            onFinalFail?.();
+        };
+        imgEl.src = candidates[0];
     }
 
     async function driveMeta(folderId) {
@@ -779,10 +1102,18 @@
             if (apiKey) {
                 const q = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
                 const pt = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
-                const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=nextPageToken,files(id,name,mimeType,createdTime,modifiedTime)&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true${pt}&key=${encodeURIComponent(apiKey)}`;
+                const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,thumbnailLink,hasThumbnail,webContentLink)&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true${pt}&key=${encodeURIComponent(apiKey)}`;
                 const res = await nativeFetch(url);
                 const data = await res.json().catch(() => ({}));
-                if (res.ok) return { ok: true, result: data };
+                if (res.ok) {
+                    return {
+                        ok: true,
+                        result: {
+                            ...data,
+                            files: Array.isArray(data.files) ? data.files.map(enrichDriveFileUrls) : []
+                        }
+                    };
+                }
                 return { ok: false, result: { error: { message: data?.error?.message || `Google Drive API lỗi (${res.status}). Hãy đảm bảo thư mục Drive đã bật quyền "Bất kỳ ai có đường liên kết đều có thể xem".` } } };
             }
             return { ok: false, result: { error: { message: 'Trên GitHub Pages, cần cấu hình Google Drive API Key trong Cài đặt để đọc thư mục Google Drive công khai.' } } };
@@ -805,6 +1136,9 @@
                 ? `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media&key=${encodeURIComponent(apiKey)}`
                 : `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w1600`;
             const response = await nativeFetch(url, { signal });
+            if (!response.ok) {
+                throw new Error(`Không thể tải ảnh từ Drive (${response.status}).`);
+            }
             return response.blob();
         }
         const response = await nativeFetch(`${CONFIG.endpoint}?drive_proxy=download&file_id=${encodeURIComponent(fileId)}`, { cache: 'no-store', signal });
@@ -897,6 +1231,11 @@
         ensureBackendMode,
         getCloudConfig,
         saveCloudConfig,
+        getActiveCloudUrl,
+        getActiveDriveApiKey,
+        getDriveImageCandidates,
+        bindDriveImage,
+        syncWorkspaceNow: () => ensureWorkspaceSynced(loadMockState(), true),
         encodeBase64Url,
         decodeBase64Url,
         sha256Hex,
