@@ -55,7 +55,7 @@ function Initialize-Database {
         users = @(
             @{
                 id = 1
-                name = 'TeeMedia Studio'
+                name = 'selectphoto'
                 email = 'studio@gmail.com'
                 phone = '0386 038 930'
                 contactEmail = 'thongtrong10@gmail.com'
@@ -103,17 +103,17 @@ function Initialize-Database {
         )
         chats = @{
             'conv-default' = @(
-                @{ id = 1; sender_type = 'admin'; message = 'Xin chào! Hệ thống backend TeeMedia đang hoạt động. Bạn có thể gửi góp ý hoặc báo lỗi tại đây.'; created_at = (Get-NowIso) }
+                @{ id = 1; sender_type = 'admin'; message = 'Xin chào! Hệ thống backend selectphoto đang hoạt động. Bạn có thể gửi góp ý hoặc báo lỗi tại đây.'; created_at = (Get-NowIso) }
             )
         }
         photographers = @(
-            @{ id = 1; user_id = 1; name = 'Nguyễn Minh Anh'; role = 'Chụp ảnh cưới chính'; phone = '0903 111 222'; email = 'minhanh@teemedia.vn'; zalo = '0903111222'; facebook = 'minhanh.photo'; shootLocation = 'Đà Lạt / TP.HCM'; shootDates = @($soonDate, $laterDate); status = 'active' },
-            @{ id = 2; user_id = 1; name = 'Trần Quốc Thịnh'; role = 'Phóng sự cưới'; phone = '0908 333 444'; email = 'quocthinh@teemedia.vn'; zalo = '0908333444'; facebook = 'quocthinh.studio'; shootLocation = 'Quận 1, TP.HCM'; shootDates = @($laterDate); status = 'active' },
-            @{ id = 3; user_id = 1; name = 'Lê Hà Linh'; role = 'Chân dung & Studio'; phone = '0912 555 666'; email = 'halinh@teemedia.vn'; zalo = '0912555666'; facebook = 'halinh.portrait'; shootLocation = 'Studio Quận 3'; shootDates = @(); status = 'leave' }
+            @{ id = 1; user_id = 1; name = 'Nguyễn Minh Anh'; role = 'Chụp ảnh cưới chính'; phone = '0903 111 222'; email = 'minhanh@selectphoto.vn'; zalo = '0903111222'; facebook = 'minhanh.photo'; shootLocation = 'Đà Lạt / TP.HCM'; shootDates = @($soonDate, $laterDate); status = 'active' },
+            @{ id = 2; user_id = 1; name = 'Trần Quốc Thịnh'; role = 'Phóng sự cưới'; phone = '0908 333 444'; email = 'quocthinh@selectphoto.vn'; zalo = '0908333444'; facebook = 'quocthinh.studio'; shootLocation = 'Quận 1, TP.HCM'; shootDates = @($laterDate); status = 'active' },
+            @{ id = 3; user_id = 1; name = 'Lê Hà Linh'; role = 'Chân dung & Studio'; phone = '0912 555 666'; email = 'halinh@selectphoto.vn'; zalo = '0912555666'; facebook = 'halinh.portrait'; shootLocation = 'Studio Quận 3'; shootDates = @(); status = 'leave' }
         )
         contracts = @(
             @{
-                id = 1; user_id = 1; studioName = 'TeeMedia Studio'; contractNumber = 'PS-20261002-001'
+                id = 1; user_id = 1; studioName = 'selectphoto'; contractNumber = 'PS-20261002-001'
                 studioAddress = '12 Nguyễn Huệ, Quận 1, TP.HCM'; studioPhone = '0386 038 930'; contractDate = '2026-10-02'
                 clientName = 'Trần Minh & Ngọc Lan'; clientPhone = '0987 654 321'; clientEmail = 'minhlan@gmail.com'
                 servicePreset = 'Gói chụp ảnh cưới trọn gói'; serviceName = 'Gói chụp ảnh cưới trọn gói'; eventType = 'Chụp cưới'
@@ -129,7 +129,7 @@ function Initialize-Database {
         invoices = @(
             @{
                 id = 1; user_id = 1; invoiceNumber = 'HD-20261128-001'
-                issueDate = '2026-11-28'; studioName = 'TeeMedia'; studioAddress = '81/62 Ngô Mây, Quy Nhơn Nam'; studioPhone = '0386038930'
+                issueDate = '2026-11-28'; studioName = 'selectphoto'; studioAddress = '81/62 Ngô Mây, Quy Nhơn Nam'; studioPhone = '0386038930'
                 clientName = 'Trần Minh & Ngọc Lan'; clientPhone = '0987 654 321'; clientAddress = 'Quy Nhơn, Bình Định'
                 items = @(
                     @{ name = 'Album Photobook 25×35 cm (20 trang)'; qty = 1; price = 1800000; note = 'Bìa da cao cấp' },
@@ -570,7 +570,7 @@ function Render-HomeHtml($Db, $SessionCtx, [string]$ShareToken = '') {
 <html lang="vi">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nhập mã bảo mật - TeeMedia</title>
+<title>Nhập mã bảo mật - selectphoto</title>
 <style>
 body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:Manrope,system-ui,sans-serif;background:#141311;color:#f7f3ea;padding:1rem;}
 .card{width:min(100%,400px);padding:1.8rem;border-radius:18px;background:#1e1b17;border:1px solid rgba(212,175,55,.28);box-shadow:0 24px 50px rgba(0,0,0,.45);}
@@ -695,12 +695,12 @@ function Handle-ApiRequest($Context, $Db, $SessionCtx) {
         }
 
         'register' {
-            Send-Json $Context 403 @{ success = $false; message = 'Chức năng đăng ký tự do đã tắt. Chỉ quản trị viên TeeMedia Studio mới có quyền cấp tài khoản.' }
+            Send-Json $Context 403 @{ success = $false; message = 'Chức năng đăng ký tự do đã tắt. Chỉ quản trị viên selectphoto mới có quyền cấp tài khoản.' }
             return
         }
 
         'forgot' {
-            Send-Json $Context 403 @{ success = $false; message = 'Vui lòng liên hệ trực tiếp quản trị viên TeeMedia Studio để được cấp lại mật khẩu.' }
+            Send-Json $Context 403 @{ success = $false; message = 'Vui lòng liên hệ trực tiếp quản trị viên selectphoto để được cấp lại mật khẩu.' }
             return
         }
 
@@ -762,7 +762,7 @@ function Handle-ApiRequest($Context, $Db, $SessionCtx) {
         }
         'load_public_portfolio' {
             $primaryUser = @($Db['users'])[0]
-            $studioName = if ($primaryUser -and $primaryUser['name']) { [string]$primaryUser['name'] } else { 'TeeMedia Studio' }
+            $studioName = if ($primaryUser -and $primaryUser['name']) { [string]$primaryUser['name'] } else { 'selectphoto' }
             $portfolio = if ($Db.ContainsKey('portfolio') -and $Db['portfolio']) { $Db['portfolio'] } else { @{ updated_at = $null; albums = @(); photos = @() } }
             $allAlbums = if ($portfolio['albums']) { @($portfolio['albums']) } else { @() }
             $visibleAlbums = @($allAlbums | Where-Object {
@@ -1347,7 +1347,7 @@ $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add("http://127.0.0.1:$Port/")
 $listener.Prefixes.Add("http://localhost:$Port/")
 $listener.Start()
-Write-Host "TeeMedia Full-Stack Server running at http://127.0.0.1:$Port/ (DB: $DbPath)"
+Write-Host "selectphoto Full-Stack Server running at http://127.0.0.1:$Port/ (DB: $DbPath)"
 
 try {
     while ($listener.IsListening) {
