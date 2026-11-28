@@ -86,196 +86,117 @@
 
     <!-- MAIN CONTAINER -->
     <div class="container">
-        <div class="photo-select-staff-hero">
-        <section class="auth-welcome main-welcome">
-            <div class="main-welcome-copy">
-                <span class="brand-tag">TeeMedia <span aria-hidden="true">✦</span> PRO</span>
-                <h2>Chọn ảnh yêu thích<br><span>dễ dàng hơn.</span></h2>
-                <p>Giải pháp chọn ảnh thông minh tích hợp trực tiếp với Google Drive. Khách hàng thả tim, bạn dễ dàng tổng hợp danh sách ảnh yêu thích.</p>
-                <p>Ghi chú và lựa chọn được quản lý cùng album, giúp rút ngắn thời gian chốt ảnh với khách hàng.</p>
-                <div class="main-welcome-actions">
-                    <a class="hero-cta" href="albums.html">KHÁM PHÁ TeeMedia PRO <span aria-hidden="true">→</span></a>
-                    <span class="hero-note">Quản lý album · Đồng bộ Google Drive</span>
+        <main id="portfolioHomeRoot" class="portfolio-home">
+            <section class="auth-welcome main-welcome portfolio-hero" id="portfolioHero">
+                <div class="main-welcome-copy">
+                    <span class="brand-tag">TEEMEDIA STUDIO <span aria-hidden="true">✦</span> PORTFOLIO</span>
+                    <h2>Khoảnh khắc nghệ thuật<br><span>lưu giữ trọn đời.</span></h2>
+                    <p>Khám phá những bộ ảnh cưới, áo dài và concept chân dung thực tế do <strong>TeeMedia Studio</strong> thực hiện. Xem trọn từng album hoặc chạm ❤️ để lưu lại những khung hình bạn yêu thích.</p>
+                    <div class="main-welcome-actions">
+                        <a class="hero-cta" href="#portfolioAlbumsSection">🎞️ Xem Bộ Sưu Tập Album <span aria-hidden="true">→</span></a>
+                        <a class="portfolio-secondary-cta" href="#portfolioGallerySection">🖼️ Tác Phẩm Nổi Bật</a>
+                    </div>
+                    <div class="auth-features">
+                        <div class="auth-feature"><strong id="portfolioAlbumCountStat">—</strong><small>Album thực tế</small></div>
+                        <div class="auth-feature"><strong id="portfolioPhotoCountStat">—</strong><small>Khung hình chọn lọc</small></div>
+                        <div class="auth-feature"><strong id="portfolioSavedConceptBadge">0</strong><small>Ảnh mẫu đã thích</small></div>
+                    </div>
+                    <div class="photo-ad-proof">✨ Hình ảnh thực tế từ kho Google Drive của TeeMedia Studio</div>
                 </div>
-                <div class="auth-features">
-                    <div class="auth-feature"><span aria-hidden="true">☁</span><strong>Đồng bộ Google Drive</strong><small>Quản lý ảnh cùng album</small></div>
-                    <div class="auth-feature"><span aria-hidden="true">▤</span><strong>Xuất danh sách</strong><small>Gửi lựa chọn gọn gàng</small></div>
-                    <div class="auth-feature"><span aria-hidden="true">▯</span><strong>Tối ưu Mobile</strong><small>Chọn ảnh ở mọi nơi</small></div>
+                <div class="hero-visual" role="group" aria-label="Tác phẩm nổi bật TeeMedia Studio">
+                    <div class="wedding-carousel" id="weddingCarousel">
+                        <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=85" alt="TeeMedia Studio"><figcaption>TeeMedia Studio</figcaption></figure>
+                        <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=85" alt="Khoảnh khắc hạnh phúc"><figcaption>Khoảnh khắc hạnh phúc</figcaption></figure>
+                        <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=85" alt="Nghệ thuật ánh sáng"><figcaption>Nghệ thuật ánh sáng</figcaption></figure>
+                        <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=800&q=85" alt="Pre-Wedding"><figcaption>Pre-Wedding</figcaption></figure>
+                        <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=800&q=85" alt="Chân dung"><figcaption>Chân dung nghệ thuật</figcaption></figure>
+                        <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&q=85" alt="Áo dài"><figcaption>Áo dài truyền thống</figcaption></figure>
+                        <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=85" alt="Studio Concept"><figcaption>Studio Concept</figcaption></figure>
+                    </div>
+                    <button class="hero-carousel-control hero-carousel-prev" type="button" aria-label="Ảnh trước">‹</button>
+                    <button class="hero-carousel-control hero-carousel-next" type="button" aria-label="Ảnh tiếp theo">›</button>
+                    <span class="hero-floating-card hero-floating-heart" aria-hidden="true">♥</span>
+                    <span class="hero-floating-card hero-floating-selection" aria-hidden="true">Album thực tế <strong>TeeMedia</strong></span>
+                    <span class="hero-floating-card hero-floating-note" aria-hidden="true"><span>🎞️</span> Bấm xem từng<br>bộ ảnh gốc</span>
+                    <div class="wedding-carousel-dots" id="weddingCarouselDots" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                    </div>
+                    <span class="hero-floating-progress" aria-hidden="true"></span>
                 </div>
-                <div class="photo-ad-proof">Một album chung · Lựa chọn rõ ràng · Hậu kỳ nhanh hơn</div>
-            </div>
-            <div class="hero-visual" role="group" aria-label="Album ảnh cưới tự động chuyển cảnh">
-                <div class="wedding-carousel" id="weddingCarousel">
-                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Ngày mình gặp nhau</figcaption></figure>
-                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Khoảnh khắc hạnh phúc</figcaption></figure>
-                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Ngày vui trọn vẹn</figcaption></figure>
-                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Cùng nhau về chung một nhà</figcaption></figure>
-                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Ánh nhìn đầu tiên</figcaption></figure>
-                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Lời hẹn ước</figcaption></figure>
-                    <figure class="wedding-slide"><img src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=85" alt=""><figcaption>Một ngày thật đáng nhớ</figcaption></figure>
-                </div>
-                <button class="hero-carousel-control hero-carousel-prev" type="button" aria-label="Ảnh trước">‹</button>
-                <button class="hero-carousel-control hero-carousel-next" type="button" aria-label="Ảnh tiếp theo">›</button>
-                <span class="hero-floating-card hero-floating-heart" aria-hidden="true">♥</span>
-                <span class="hero-floating-card hero-floating-selection" aria-hidden="true">Khách đã chọn <strong>50/100 ảnh</strong></span>
-                <span class="hero-floating-card hero-floating-note" aria-hidden="true"><span>▤</span> Ghi chú:<br>“Làm mờ nền”</span>
-                <div class="wedding-carousel-dots" id="weddingCarouselDots" aria-hidden="true">
-                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                </div>
-                <span class="hero-floating-progress" aria-hidden="true"></span>
-            </div>
-        </section>
-        <section class="photo-ad-section" aria-labelledby="photoAdBenefitsTitle">
-            <div class="photo-ad-heading">
-                <span class="photo-ad-eyebrow">Chọn ảnh nhẹ nhàng hơn</span>
-                <h3 id="photoAdBenefitsTitle">Để khách chọn ảnh. Studio thảnh thơi hơn.</h3>
-                <p>Không còn phải dò từng tin nhắn để tổng hợp lựa chọn. Mọi yêu thích và ghi chú được gom ngay trong album để bạn tiện theo dõi.</p>
-            </div>
-            <div class="photo-ad-benefits">
-                <article class="photo-ad-benefit">
-                    <span class="photo-ad-benefit-icon" aria-hidden="true">♡</span>
-                    <h4>Khách chọn trực quan</h4>
-                    <p>Khách xem album và thả tim vào những bức ảnh muốn chọn, kể cả khi đang dùng điện thoại.</p>
-                </article>
-                <article class="photo-ad-benefit">
-                    <span class="photo-ad-benefit-icon" aria-hidden="true">▤</span>
-                    <h4>Ghi chú đúng ảnh</h4>
-                    <p>Trao đổi và ghi chú ngay trên ảnh để studio nắm rõ yêu cầu chỉnh sửa của khách.</p>
-                </article>
-                <article class="photo-ad-benefit">
-                    <span class="photo-ad-benefit-icon" aria-hidden="true">↗</span>
-                    <h4>Tổng hợp nhanh gọn</h4>
-                    <p>Lọc ảnh đã chọn, xuất danh sách mã ảnh hoặc tải ảnh yêu thích để tiếp tục xử lý.</p>
-                </article>
-            </div>
-        </section>
+            </section>
 
-        <section class="photo-ad-section" aria-labelledby="photoAdWorkflowTitle">
-            <div class="photo-ad-heading">
-                <span class="photo-ad-eyebrow">Quy trình thật đơn giản</span>
-                <h3 id="photoAdWorkflowTitle">Từ album Google Drive đến bộ ảnh khách yêu thích</h3>
-                <p>Thiết lập album, gửi khách đường dẫn và để TeeMedia giúp bạn theo sát từng lựa chọn.</p>
-            </div>
-            <div class="photo-ad-steps">
-                <article class="photo-ad-step">
-                    <span class="photo-ad-step-number">01</span>
-                    <h4>Kết nối album</h4>
-                    <p>Chọn thư mục ảnh trên Google Drive để hiển thị album cho khách.</p>
-                </article>
-                <article class="photo-ad-step">
-                    <span class="photo-ad-step-number">02</span>
-                    <h4>Chia sẻ với khách</h4>
-                    <p>Gửi liên kết album để khách xem, chọn ảnh yêu thích và để lại ghi chú.</p>
-                </article>
-                <article class="photo-ad-step">
-                    <span class="photo-ad-step-number">03</span>
-                    <h4>Sẵn sàng hậu kỳ</h4>
-                    <p>Xem lại lựa chọn đã tổng hợp, rồi xuất danh sách hoặc tải ảnh cần xử lý.</p>
-                </article>
-            </div>
-        </section>
+            <section class="portfolio-section" id="portfolioAlbumsSection" aria-labelledby="portfolioAlbumsTitle">
+                <div class="portfolio-section-head">
+                    <div>
+                        <span class="photo-ad-eyebrow">Bộ sưu tập đã thực hiện</span>
+                        <h3 id="portfolioAlbumsTitle">Album Ảnh Của TeeMedia Studio</h3>
+                        <p>Bấm vào từng album để xem trọn bộ ảnh gốc và chọn khung hình bạn yêu thích.</p>
+                    </div>
+                    <div class="portfolio-search-wrap">
+                        <input id="portfolioAlbumSearch" type="search" placeholder="Tìm tên album..." aria-label="Tìm tên album">
+                    </div>
+                </div>
+                <div class="portfolio-albums-grid" id="portfolioAlbumsGrid">
+                    <div class="portfolio-empty"><p>Đang tải danh sách album...</p></div>
+                </div>
+            </section>
 
+            <section class="portfolio-section" id="portfolioGallerySection" aria-labelledby="portfolioGalleryTitle">
+                <div class="portfolio-section-head">
+                    <div>
+                        <span class="photo-ad-eyebrow">Thư viện chọn lọc</span>
+                        <h3 id="portfolioGalleryTitle">Hình Ảnh Nổi Bật Đã Chụp</h3>
+                        <p>Chạm ❤️ để lưu những kiểu dáng hoặc tone màu bạn muốn tham khảo cho buổi chụp.</p>
+                    </div>
+                    <div class="portfolio-filter-tabs" id="portfolioFilterTabs" role="tablist" aria-label="Lọc ảnh theo album"></div>
+                </div>
+                <div class="portfolio-photo-grid" id="portfolioPhotoGrid">
+                    <div class="portfolio-empty"><p>Đang tải hình ảnh từ Google Drive...</p></div>
+                </div>
+            </section>
+
+            <section class="portfolio-contact-card" id="portfolioContactSection">
+                <div class="portfolio-contact-copy">
+                    <span class="photo-ad-eyebrow">Đặt lịch & Tư vấn Concept</span>
+                    <h3>Bạn đã chọn được phong cách yêu thích?</h3>
+                    <p>Liên hệ trực tiếp với <strong>TeeMedia Studio</strong> để được tư vấn gói chụp cưới, áo dài, chân dung ngoại cảnh và concept phù hợp nhất.</p>
+                    <div class="portfolio-contact-links">
+                        <a class="portfolio-contact-pill" id="portfolioContactPhone" href="tel:0901234567">0901 234 567</a>
+                        <a class="portfolio-contact-pill" id="portfolioContactEmail" href="mailto:studio@gmail.com">studio@gmail.com</a>
+                    </div>
+                </div>
+                <div class="portfolio-contact-actions">
+                    <button class="hero-cta" id="portfolioOpenChatBtn" type="button">💬 Nhắn tư vấn ngay</button>
+                    <a class="portfolio-secondary-cta" href="login.html?redirect=albums.html">🔐 Dành cho Studio</a>
+                </div>
+            </section>
+        </main>
+
+        <div class="portfolio-concept-dock" id="portfolioConceptDock" hidden>
+            <div class="portfolio-concept-dock-info">
+                <strong>❤️ Đã chọn <span id="portfolioBookmarkCount">0</span> ảnh mẫu</strong>
+                <small id="portfolioBookmarkPreview"></small>
+            </div>
+            <div class="portfolio-concept-dock-actions">
+                <button class="guest-confirm-btn" id="portfolioSendConceptsBtn" type="button">📩 Gửi ảnh mẫu cho Studio</button>
+                <button class="portfolio-dock-clear" id="portfolioClearConceptsBtn" type="button" title="Bỏ chọn tất cả">Xóa chọn</button>
+            </div>
         </div>
 
-        <div id="staffTeamPromo" aria-label="Giới thiệu công cụ quản lý thợ chụp">
-            <section class="staff-ad-hero">
-                <div class="staff-ad-wrap staff-ad-hero-grid">
-                    <div class="staff-ad-copy">
-                        <span class="staff-ad-eyebrow">Studio vận hành gọn hơn</span>
-                        <h2>Đội ngũ vững vàng, <span>mỗi buổi chụp</span> thêm an tâm.</h2>
-                        <p>Thông tin thợ chụp thường nằm rải rác trong tin nhắn và bảng tính? Gom hồ sơ đội ngũ về một nơi để studio dễ tìm người, nắm chuyên môn và theo dõi tình trạng làm việc.</p>
-                        <div class="staff-ad-actions">
-                            <a class="staff-ad-button" href="studio-photographers.html">Khám phá quản lý thợ <span aria-hidden="true">→</span></a>
-                            <a class="staff-ad-button staff-ad-button-light" href="#staffAdBenefits">Tìm hiểu tính năng</a>
-                        </div>
-                        <div class="staff-ad-trust"><span aria-hidden="true">✓</span> Dễ tra cứu · Rõ thông tin · Thuận tiện kết nối</div>
-                    </div>
-                    <div class="staff-ad-preview" aria-label="Minh họa bảng quản lý đội ngũ thợ chụp">
-                        <div class="staff-ad-preview-top">
-                            <div class="staff-ad-preview-title"><strong>Đội ngũ studio</strong><small>Danh sách thợ chụp của bạn</small></div>
-                            <span class="staff-ad-online">● Đang hoạt động</span>
-                        </div>
-                        <div class="staff-ad-stats">
-                            <div class="staff-ad-stat"><strong>12</strong><small>Tổng nhân sự</small></div>
-                            <div class="staff-ad-stat"><strong>09</strong><small>Đang hoạt động</small></div>
-                            <div class="staff-ad-stat"><strong>03</strong><small>Tạm nghỉ</small></div>
-                        </div>
-                        <div class="staff-ad-list">
-                            <div class="staff-ad-person">
-                                <span class="staff-ad-avatar">MA</span>
-                                <span class="staff-ad-person-name"><strong>Minh Anh</strong><small>Ảnh cưới · Hà Nội</small></span>
-                                <span class="staff-ad-status">Hoạt động</span>
-                            </div>
-                            <div class="staff-ad-person">
-                                <span class="staff-ad-avatar staff-ad-avatar-green">QT</span>
-                                <span class="staff-ad-person-name"><strong>Quốc Thịnh</strong><small>Phóng sự · Đà Nẵng</small></span>
-                                <span class="staff-ad-status">Hoạt động</span>
-                            </div>
-                            <div class="staff-ad-person">
-                                <span class="staff-ad-avatar staff-ad-avatar-blue">HL</span>
-                                <span class="staff-ad-person-name"><strong>Hà Linh</strong><small>Ảnh chân dung · TP.HCM</small></span>
-                                <span class="staff-ad-status staff-ad-status-leave">Tạm nghỉ</span>
-                            </div>
-                        </div>
-                        <p class="staff-ad-caption">Giao diện minh họa · Thông tin mẫu</p>
+        <div class="portfolio-lightbox" id="portfolioLightbox" role="dialog" aria-modal="true" aria-label="Xem ảnh Portfolio">
+            <div class="portfolio-lightbox-inner">
+                <button class="portfolio-lightbox-close" id="portfolioLightboxClose" type="button" aria-label="Đóng">✕</button>
+                <button class="portfolio-lightbox-nav is-prev" id="portfolioLightboxPrev" type="button" aria-label="Ảnh trước">←</button>
+                <img id="portfolioLightboxImg" src="" alt="" referrerpolicy="no-referrer">
+                <button class="portfolio-lightbox-nav is-next" id="portfolioLightboxNext" type="button" aria-label="Ảnh sau">→</button>
+                <div class="portfolio-lightbox-bar">
+                    <span id="portfolioLightboxTitle">TeeMedia Studio</span>
+                    <div class="portfolio-lightbox-actions">
+                        <button class="portfolio-lightbox-heart" id="portfolioLightboxHeart" type="button">🤍 Chọn mẫu</button>
+                        <a class="portfolio-lightbox-album-link" id="portfolioLightboxAlbumLink" href="#">🎞️ Xem trọn bộ album →</a>
                     </div>
                 </div>
-                </section>
-
-                <section class="staff-ad-section" id="staffAdBenefits">
-                <div class="staff-ad-wrap">
-                    <div class="staff-ad-heading">
-                        <span class="staff-ad-eyebrow">Quản lý tập trung</span>
-                        <h3>Ít mất thời gian tìm kiếm.<br>Nhiều thời gian chăm sóc khách hàng.</h3>
-                        <p>Hồ sơ đội ngũ rõ ràng giúp bạn nắm được ai phù hợp, ai sẵn sàng và cách liên hệ khi cần.</p>
-                    </div>
-                    <div class="staff-ad-benefits">
-                        <article class="staff-ad-benefit">
-                            <span class="staff-ad-benefit-icon" aria-hidden="true">◎</span>
-                            <h4>Nắm rõ đội ngũ</h4>
-                            <p>Lưu thông tin liên hệ, chuyên môn và địa điểm chụp trong hồ sơ từng thành viên.</p>
-                        </article>
-                        <article class="staff-ad-benefit">
-                            <span class="staff-ad-benefit-icon" aria-hidden="true">↗</span>
-                            <h4>Theo dõi trạng thái</h4>
-                            <p>Phân biệt nhân sự đang hoạt động, tạm nghỉ hoặc ngừng hợp tác để tra cứu thuận tiện.</p>
-                        </article>
-                        <article class="staff-ad-benefit">
-                            <span class="staff-ad-benefit-icon" aria-hidden="true">⌕</span>
-                            <h4>Tìm và kết nối nhanh</h4>
-                            <p>Tìm theo thông tin thành viên, lọc theo trạng thái và mở kênh liên hệ khi cần.</p>
-                        </article>
-                    </div>
-                </div>
-            </section>
-
-            <section class="staff-ad-section staff-ad-workflow">
-                <div class="staff-ad-wrap">
-                    <div class="staff-ad-heading">
-                        <span class="staff-ad-eyebrow">Bắt đầu thật đơn giản</span>
-                        <h3>Từ danh sách rời rạc đến đội ngũ rõ ràng</h3>
-                        <p>Thiết lập thông tin cơ bản một lần, cập nhật khi đội ngũ thay đổi.</p>
-                    </div>
-                    <div class="staff-ad-steps">
-                        <article class="staff-ad-step">
-                            <span class="staff-ad-step-number">01</span>
-                            <h4>Thêm thành viên</h4>
-                            <p>Tạo hồ sơ với tên, thông tin liên hệ và chuyên môn của thợ chụp.</p>
-                        </article>
-                        <article class="staff-ad-step">
-                            <span class="staff-ad-step-number">02</span>
-                            <h4>Bổ sung thông tin</h4>
-                            <p>Ghi địa điểm chụp, ngày chụp và kênh kết nối để cả nhóm dễ tra cứu.</p>
-                        </article>
-                        <article class="staff-ad-step">
-                            <span class="staff-ad-step-number">03</span>
-                            <h4>Cập nhật trạng thái</h4>
-                            <p>Chỉnh sửa hồ sơ khi lịch làm việc hoặc tình trạng hợp tác thay đổi.</p>
-                        </article>
-                    </div>
-                </div>
-            </section>
-
+            </div>
         </div>
 
         <section class="customer-album-title" id="customerAlbumHeaderSection" aria-live="polite">
@@ -283,7 +204,10 @@
                 <img class="guest-hero-main-img" id="guestHeroMainImg" src="" alt="" referrerpolicy="no-referrer" decoding="async">
                 <div class="guest-hero-scrim" aria-hidden="true"></div>
                 <div class="guest-hero-topbar">
-                    <span class="guest-hero-studio-pill" id="guestHeroStudioPill">✨ TeeMedia GALLERY</span>
+                    <div class="guest-hero-topbar-left">
+                        <a class="guest-back-portfolio-btn" id="guestBackPortfolioBtn" href="./" hidden>← Portfolio TeeMedia</a>
+                        <span class="guest-hero-studio-pill" id="guestHeroStudioPill">✨ TeeMedia GALLERY</span>
+                    </div>
                     <button class="guest-hero-zoom-btn" id="guestHeroOpenLightboxBtn" type="button">🔍 Xem ảnh lớn</button>
                 </div>
                 <div class="guest-hero-footer">
@@ -780,6 +704,7 @@
 
     <script src="js/api.js"></script>
     <script src="photowedding/index.js"></script>
+    <script src="js/portfolio.js"></script>
     <script>
         (() => {
             const slides = [...document.querySelectorAll('.wedding-slide')];
