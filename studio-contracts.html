@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Soạn hợp đồng dịch vụ studio và in hoặc lưu thành PDF.">
-    <link rel="icon" type="image/png" href="photowedding/logo/photo-select-logo-mark.png">
-    <title>Hợp đồng studio - PHOTO SELECT</title>
+    <link rel="icon" type="image/svg+xml" href="photowedding/logo/teemedia-logo-mark.svg">
+    <title>Hợp đồng studio - TeeMedia</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -363,8 +363,8 @@
 <body>
     <header class="topbar">
         <a class="brand" href="./?home=1">
-            <img src="photowedding/logo/photo-select-logo-mark.png" alt="">
-            <span>PHOTO SELECT</span>
+            <img src="photowedding/logo/teemedia-logo-mark.svg" alt="">
+            <span>TeeMedia</span>
         </a>
         <a href="studio-photographers.html">← Quản lý thợ studio</a>
     </header>
@@ -403,8 +403,8 @@
                 </button>
             </nav>
             <div class="sidebar-account">
-                <span class="sidebar-account-mark" aria-hidden="true">PS</span>
-                <span class="sidebar-account-copy"><strong>PHOTO SELECT</strong><small>Không gian làm việc</small></span>
+                <span class="sidebar-account-mark" aria-hidden="true">TM</span>
+                <span class="sidebar-account-copy"><strong>TeeMedia</strong><small>Không gian làm việc</small></span>
             </div>
         </aside>
     <main>
@@ -428,7 +428,7 @@
                     <div class="form-grid">
                         <div class="form-section-label">Thông tin các bên</div>
                         <label>Tên studio *
-                            <input id="studioName" value="LUNA FRAME STUDIO" required maxlength="120">
+                            <input id="studioName" value="TeeMedia Studio" required maxlength="120">
                         </label>
                         <label>Mã hợp đồng
                             <input id="contractNumber" maxlength="40">
@@ -487,7 +487,7 @@
                             <input id="shootDateSecondary" type="date">
                         </label>
                         <label class="wide">Địa điểm chụp *
-                            <input id="shootLocation" required maxlength="255" value="Studio LUNA FRAME, TP.HCM" placeholder="Địa chỉ hoặc địa điểm chụp">
+                            <input id="shootLocation" required maxlength="255" value="TeeMedia Studio, TP.HCM" placeholder="Địa chỉ hoặc địa điểm chụp">
                         </label>
                         <label class="wide">Lịch chụp chi tiết
                             <textarea id="shootSchedule" placeholder="Ví dụ: Ngày cưới: 20/12/2026; Đám hỏi: 15/12/2026; Chụp ngoại cảnh: 18/12/2026">Ngày cưới: 20/12/2026; Chụp studio: 17/12/2026</textarea>
@@ -589,7 +589,7 @@
 
                     <div class="contract-meta-row">
                         <div><span class="contract-meta-label">Mã HĐ:</span><strong id="previewNumber">Chưa cấp</strong></div>
-                        <div><span class="contract-meta-label">Đơn vị:</span><strong id="previewStudioName">PHOTO SELECT</strong></div>
+                        <div><span class="contract-meta-label">Đơn vị:</span><strong id="previewStudioName">TeeMedia</strong></div>
                         <div><span class="contract-meta-label">Ngày ký:</span><span id="previewContractDate">Chưa xác định</span></div>
                     </div>
 
@@ -597,7 +597,7 @@
                         <div class="contract-party-block">
                             <div>
                                 <p class="party-title">BÊN A - BÊN CUNG CẤP DỊCH VỤ</p>
-                                <p>Đơn vị: <strong id="previewStudioNameParty">PHOTO SELECT</strong></p>
+                                <p>Đơn vị: <strong id="previewStudioNameParty">TeeMedia</strong></p>
                                 <p>SĐT: <span id="previewStudioPhoneParty">Chưa cập nhật</span></p>
                                 <p>Địa chỉ: <span id="previewStudioAddressParty">Chưa cập nhật</span></p>
                             </div>
@@ -667,7 +667,7 @@
                                 <strong>ĐẠI DIỆN BÊN A</strong>
                                 <p>(Ký, ghi rõ họ tên)</p>
                                 <div class="signature-space"></div>
-                                <span id="previewSignStudio">PHOTO SELECT</span>
+                                <span id="previewSignStudio">TeeMedia</span>
                             </div>
                             <div>
                                 <strong>ĐẠI DIỆN BÊN B</strong>
@@ -716,7 +716,7 @@
         (() => {
             const form = document.getElementById('contractForm');
             const fields = {
-                studioName: 'PHOTO SELECT',
+                studioName: 'TeeMedia',
                 contractNumber: '',
                 studioAddress: 'Chưa cập nhật',
                 studioPhone: 'Chưa cập nhật',
@@ -834,7 +834,7 @@
             }
             async function loadDashboardUser() {
                 if (window.location.protocol === 'file:') {
-                    dashboardUserLoadError = 'Thông tin tài khoản sẽ tải khi trang được mở từ máy chủ Photo Select.';
+                    dashboardUserLoadError = 'Thông tin tài khoản sẽ tải khi trang được mở từ máy chủ TeeMedia.';
                     return;
                 }
                 try {
@@ -966,13 +966,13 @@
                 const scheduleText = (values.shootSchedule || '').trim();
                 const shootDateDisplay = scheduleText ? scheduleText : `${eventLabel}: ${primaryShootDate}${secondaryShootDate}`;
                 byId('deposit').setCustomValidity(deposit > total ? 'Tiền đặt cọc không thể lớn hơn tổng giá trị hợp đồng.' : '');
-                setText('previewStudioName', values.studioName, 'PHOTO SELECT');
+                setText('previewStudioName', values.studioName, 'TeeMedia');
                 setText('previewStudioAddress', values.studioAddress, '');
                 setText('previewStudioPhone', values.studioPhone, '');
                 setText('previewNumber', values.contractNumber, 'Chưa cấp');
                 setText('previewContractDate', formatDate(values.contractDate), 'Chưa xác định');
                 setText('previewDateText', formatDate(values.contractDate), 'Chưa xác định');
-                setText('previewStudioNameParty', values.studioName, 'PHOTO SELECT');
+                setText('previewStudioNameParty', values.studioName, 'TeeMedia');
                 setText('previewStudioAddressParty', values.studioAddress, 'Chưa cập nhật');
                 setText('previewStudioPhoneParty', values.studioPhone, 'Chưa cập nhật');
                 setText('previewClientName', values.clientName, 'Chưa nhập');
@@ -1110,7 +1110,7 @@
             form.addEventListener('input', updatePreview);
             form.addEventListener('change', updatePreview);
             form.addEventListener('reset', () => setTimeout(() => {
-                byId('studioName').value = 'LUNA FRAME STUDIO';
+                byId('studioName').value = 'TeeMedia Studio';
                 byId('studioAddress').value = '12 Nguyễn Huệ, Quận 1, TP.HCM';
                 byId('studioPhone').value = '0901 234 567';
                 byId('clientName').value = 'Nguyễn Văn A';
@@ -1121,7 +1121,7 @@
                 byId('eventType').value = 'Chụp cưới';
                 byId('shootDate').value = '';
                 byId('shootDateSecondary').value = '';
-                byId('shootLocation').value = 'Studio LUNA FRAME, TP.HCM';
+                byId('shootLocation').value = 'TeeMedia Studio, TP.HCM';
                 byId('shootSchedule').value = 'Ngày cưới: 20/12/2026; Chụp studio: 17/12/2026';
                 byId('deliverables').value = '01 buổi chụp trong studio; 02 concept / 02 trang phục; 30 ảnh lớn 30x45; 80 ảnh nhỏ 10x15; 200 ảnh đã chỉnh sửa; 01 bộ hình nền / 01 album online; 01 video teaser 15-30 giây.';
                 byId('weddingAddon').value = 'Nếu khách hàng đồng ý bổ sung chụp ngày cưới, gói sẽ tăng thêm 01 buổi chụp cưới, 100 ảnh đã chỉnh sửa, 20 ảnh lớn 30x45, 40 ảnh nhỏ 10x15, 01 video highlight ngắn và 01 album online riêng theo phong cách studio.';

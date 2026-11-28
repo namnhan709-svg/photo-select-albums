@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Quản lý đội ngũ thợ chụp studio của PHOTO SELECT.">
-    <link rel="icon" type="image/png" href="photowedding/logo/photo-select-logo-mark.png">
-    <title>Quản lý thợ studio - PHOTO SELECT</title>
+    <meta name="description" content="Quản lý đội ngũ thợ chụp studio của TeeMedia.">
+    <link rel="icon" type="image/svg+xml" href="photowedding/logo/teemedia-logo-mark.svg">
+    <title>Quản lý thợ studio - TeeMedia</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -641,7 +641,7 @@
 </head>
 <body>
 <header>
-        <a class="brand" href="./?home=1" aria-label="Về trang chủ"><img class="brand-logo" src="photowedding/logo/photo-select-logo-mark.png" alt="">PHOTO SELECT</a>
+        <a class="brand" href="./?home=1" aria-label="Về trang chủ"><img class="brand-logo" src="photowedding/logo/teemedia-logo-mark.svg" alt="">TeeMedia</a>
         <nav class="header-actions" aria-label="Điều hướng">
             <a class="button" href="./?home=1">Trang chủ</a>
             
@@ -713,8 +713,8 @@
             </button>
         </nav>
         <div class="sidebar-account">
-            <span class="sidebar-account-mark" aria-hidden="true">PS</span>
-            <span class="sidebar-account-copy"><strong>PHOTO SELECT</strong><small>Không gian làm việc</small></span>
+            <span class="sidebar-account-mark" aria-hidden="true">TM</span>
+            <span class="sidebar-account-copy"><strong>TeeMedia</strong><small>Không gian làm việc</small></span>
         </div>
     </aside>
 <main>
@@ -812,9 +812,9 @@
                 const name = String(user.name || 'Người dùng').trim();
                 const email = String(user.email || '').trim();
                 document.getElementById('userNameText').textContent = name;
-                document.getElementById('userEmailText').textContent = email || 'Tài khoản Photo Select';
+                document.getElementById('userEmailText').textContent = email || 'Tài khoản TeeMedia';
                 document.getElementById('greetingName').textContent = name;
-                document.getElementById('greetingEmail').textContent = email || 'Tài khoản Photo Select';
+                document.getElementById('greetingEmail').textContent = email || 'Tài khoản TeeMedia';
                 const initials = name.charAt(0).toUpperCase() || 'U';
                 ['userAvatar', 'accountAvatar'].forEach(id => {
                     const avatar = document.getElementById(id);
@@ -825,7 +825,7 @@
 
             async function loadDashboardUser() {
                 if (window.location.protocol === 'file:') {
-                    dashboardUserLoadError = 'Thông tin tài khoản sẽ tải khi trang được mở từ máy chủ Photo Select.';
+                    dashboardUserLoadError = 'Thông tin tài khoản sẽ tải khi trang được mở từ máy chủ TeeMedia.';
                     return;
                 }
                 try {
@@ -1061,7 +1061,7 @@
 
             async function requestPhotographerApi(action, data = {}) {
                 if (window.location.protocol === 'file:') {
-                    throw new Error('Mở trang qua website Photo Select để kết nối và lưu dữ liệu vào database.');
+                    throw new Error('Mở trang qua website TeeMedia để kết nối và lưu dữ liệu vào database.');
                 }
                 const response = await fetch('photowedding/app.php', {
                     method: 'POST',
