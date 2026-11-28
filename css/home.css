@@ -1,4 +1,4 @@
-﻿* {
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -3937,6 +3937,76 @@ body.customer-view .photo-ad-section { display: none !important; }
     color: #b42318;
 }
 
+.quick-filter-block {
+    margin-bottom: 0.75rem;
+}
+
+.quick-filter-textarea {
+    width: 100%;
+    min-height: 92px;
+    margin-top: 0.55rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    resize: vertical;
+}
+
+.quick-filter-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+    color: var(--primary);
+    font-size: 0.8rem;
+    line-height: 1.45;
+    cursor: pointer;
+}
+
+.quick-filter-option input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    accent-color: var(--primary);
+}
+
+.quick-filter-subfolder-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+}
+
+.quick-filter-subfolder-row[hidden],
+.quick-filter-folder-row[hidden] {
+    display: none;
+}
+
+.quick-filter-subfolder-row label {
+    color: var(--secondary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.quick-filter-subfolder-input {
+    flex: 1;
+    min-width: 0;
+    min-height: 36px;
+    padding: 0.4rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg);
+    color: var(--primary);
+    font: inherit;
+    font-size: 0.8rem;
+}
+
 @media (max-width: 600px) {
     .quick-filter-content {
         padding: 1.15rem;
@@ -4608,7 +4678,7 @@ body.customer-view #portfolioLightbox {
 }
 
 /* =====================================================
-   TEEMEDIA STUDIO PORTFOLIO HOMEPAGE
+   SELECTPHOTO PORTFOLIO HOMEPAGE
    ===================================================== */
 .portfolio-home {
     display: flex;
@@ -6199,7 +6269,7 @@ body.studio-home-view .container {
 }
 
 /* =====================================================
-   TEEMEDIA ATELIER — BESPOKE EDITORIAL BRAND SYSTEM
+   SELECTPHOTO — BESPOKE EDITORIAL BRAND SYSTEM
    ===================================================== */
 :root {
     --atelier-display: 'Cormorant Garamond', Georgia, serif;
