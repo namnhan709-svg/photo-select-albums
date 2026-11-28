@@ -126,24 +126,58 @@
 
         async function init() {
     await resolveStaticShareToken();
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('logout') === '1') {
+        try {
+            await fetch('photowedding/app.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'logout' })
+            });
+        } catch {}
+        window.__APP_USER__ = { id: 0, name: '', email: '', phone: '' };
+        window.location.replace('login.html?redirect=index.html');
+        return;
+    }
+
     const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
     const settings = getInterfaceSettings();
     const initialTheme = settings.theme || (storedTheme === 'dark' ? 'dark' : 'sage');
     applyTheme(initialTheme === 'dark' ? 'dark' : 'sage');
     applyInterfaceSettings();
 
+    await restoreUserSession();
+
+    const requestedFolderId = urlParams.get('folder') || '';
+    const isGuestOrFolderMode = CONFIG.IS_SHARED_ALBUM || Boolean(requestedFolderId);
+    const isLoggedIn = Boolean((window.__APP_USER__ || {}).id);
+
+    if (!isGuestOrFolderMode && !isLoggedIn) {
+        window.location.replace('login.html?redirect=index.html');
+        return;
+    }
+
+    if (requestedFolderId && !isLoggedIn && !CONFIG.IS_SHARED_ALBUM) {
+        window.location.replace(`login.html?redirect=${encodeURIComponent(`index.html${window.location.search}`)}`);
+        return;
+    }
+
+    document.body.classList.remove('studio-auth-pending');
     document.body.classList.toggle(
         'customer-view',
-        CONFIG.IS_SHARED_ALBUM
+        isGuestOrFolderMode
+    );
+    document.body.classList.toggle(
+        'studio-home-view',
+        !isGuestOrFolderMode
     );
 
     setupAuthEventListeners();
     setupEventListeners();
 
-    await restoreUserSession();
-
     const backPortfolioBtn = document.getElementById('guestBackPortfolioBtn');
-    if (backPortfolioBtn && new URLSearchParams(window.location.search).get('from') === 'portfolio') {
+    if (backPortfolioBtn && urlParams.get('from') === 'portfolio') {
+        backPortfolioBtn.href = 'portfolio.html';
         backPortfolioBtn.hidden = false;
     }
 
@@ -195,7 +229,6 @@
 
     renderSavedAlbums();
 
-    const requestedFolderId = new URLSearchParams(window.location.search).get('folder') || '';
     if (requestedFolderId && (window.__APP_USER__ || {}).id && /^[a-zA-Z0-9_-]+$/.test(requestedFolderId)) {
         CONFIG.DRIVE_FOLDER_ID = requestedFolderId;
         document.getElementById('folderId').value = requestedFolderId;
@@ -204,6 +237,10 @@
 
     if ((window.__APP_USER__ || {}).id) {
         loadUserAlbums();
+        if (!isGuestOrFolderMode) {
+            window.__TEEMEDIA_STUDIO_HOME_READY__ = window.__APP_USER__;
+            window.dispatchEvent(new CustomEvent('teemedia:studio-home-ready', { detail: window.__APP_USER__ }));
+        }
     }
 
     const googleLoginParams = new URLSearchParams(window.location.search);
@@ -1115,7 +1152,7 @@
                     document.getElementById('loginBtnHeader').style.display = 'none';
                     closeAuthModal();
                     if (!CONFIG.IS_SHARED_ALBUM) {
-                        window.location.replace('albums.html?login=success');
+                        window.location.replace('index.html');
                         return;
                     }
                     showToast('✅ Đăng nhập thành công');
