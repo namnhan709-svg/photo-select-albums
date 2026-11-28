@@ -261,6 +261,23 @@
             const redirectTarget = new URLSearchParams(window.location.search).get('redirect') || 'albums.html';
             const statusEl = document.getElementById('loginStatus');
 
+            async function checkExistingSession() {
+                try {
+                    const res = await fetch('photowedding/app.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'session_state' })
+                    });
+                    const data = await res.json();
+                    if (data?.user?.id) {
+                        document.getElementById('activeSessionName').textContent = `Đang đăng nhập: ${data.user.name}`;
+                        document.getElementById('activeSessionEmail').textContent = data.user.email || '';
+                        document.getElementById('continueDashboardBtn').href = redirectTarget;
+                        document.getElementById('activeSessionBox').classList.add('is-visible');
+                    }
+                } catch {}
+            }
+
             async function submitAuth(form) {
                 const payload = Object.fromEntries(new FormData(form));
                 payload.action = 'login';
