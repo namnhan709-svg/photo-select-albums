@@ -214,30 +214,28 @@
                 {
                     id: 1,
                     user_id: 1,
-                    docType: 'quote',
-                    invoiceNumber: 'BG-20261128-001',
+                    invoiceNumber: 'HD-20261128-001',
                     issueDate: '2026-11-28',
-                    dueDate: laterDate,
-                    status: 'quote',
-                    studioName: 'TeeMedia Atelier',
-                    studioPhone: '0386 038 930',
-                    studioEmail: 'thongtrong10@gmail.com',
-                    studioZalo: '0386038930',
+                    studioName: 'TeeMedia',
+                    studioAddress: '81/62 Ngô Mây, Quy Nhơn Nam',
+                    studioPhone: '0386038930',
                     clientName: 'Trần Minh & Ngọc Lan',
                     clientPhone: '0987 654 321',
-                    clientEmail: 'minhlan@gmail.com',
-                    albumName: 'Pre-Wedding Đà Lạt',
-                    discountValue: 0,
-                    discountType: 'vnd',
-                    vatPercent: 0,
-                    depositAmount: 1000000,
-                    notes: 'Báo giá in ấn hoàn thiện từ danh sách ảnh khách đã thả tim. Liên hệ Zalo 0386 038 930 khi cần điều chỉnh kích thước.',
+                    clientAddress: 'Quy Nhơn, Bình Định',
                     items: [
-                        { name: 'Album Photobook mở phẳng cao cấp', spec: '25×35 cm · 20 trang bìa da', unit: 'Cuốn', qty: 1, price: 1800000 },
-                        { name: 'Ảnh cổng Tráng gương Pha lê', spec: '60×90 cm kèm khung', unit: 'Tấm', qty: 1, price: 950000 },
-                        { name: 'Ảnh ép gỗ Laminate để bàn', spec: '20×30 cm', unit: 'Tấm', qty: 5, price: 80000 }
+                        { name: 'Album Photobook 25×35 cm (20 trang)', qty: 1, price: 1800000, note: 'Bìa da cao cấp' },
+                        { name: 'Ảnh cổng Pha lê 60×90 cm', qty: 1, price: 950000, note: 'Kèm khung' },
+                        { name: 'Ảnh ép gỗ 20×30 cm', qty: 5, price: 80000, note: '' }
                     ]
                 }
+            ],
+            invoiceCatalog: [
+                { id: 'cat-1318', name: 'In ảnh ép lụa 13×18 cm', price: 15000, note: 'Ép lụa mịn' },
+                { id: 'cat-1521', name: 'In ảnh ép lụa 15×21 cm', price: 25000, note: 'Ép lụa mịn' },
+                { id: 'cat-go-2030', name: 'Ảnh ép gỗ 20×30 cm', price: 80000, note: 'Gỗ Laminate' },
+                { id: 'cat-go-3045', name: 'Ảnh ép gỗ 30×45 cm', price: 180000, note: 'Gỗ Laminate' },
+                { id: 'cat-cong-6090', name: 'Ảnh cổng Pha lê 60×90 cm', price: 950000, note: 'Tráng gương kèm khung' },
+                { id: 'cat-pb-2535', name: 'Album Photobook 25×35 cm (20 trang)', price: 1800000, note: 'Mở phẳng bìa da' }
             ],
             portfolio: {
                 updated_at: null,
@@ -529,6 +527,7 @@
                         customers: state.customers || [],
                         contracts: state.contracts || [],
                         invoices: state.invoices || [],
+                        invoiceCatalog: state.invoiceCatalog || [],
                         photographers: state.photographers || [],
                         notifications: state.notifications || [],
                         portfolio: normalizePortfolioConfig(state.portfolio),
@@ -617,6 +616,12 @@
                     }
                 }
 
+                if (Array.isArray(cloudWs.invoiceCatalog) && cloudWs.invoiceCatalog.length) {
+                    state.invoiceCatalog = cloudWs.invoiceCatalog;
+                } else if (Array.isArray(state.invoiceCatalog) && state.invoiceCatalog.length && !cloudWs.invoiceCatalog) {
+                    shouldPush = true;
+                }
+
                 const maxId = [
                     ...(state.users || []),
                     ...(state.albums || []),
@@ -636,6 +641,7 @@
                         customers: state.customers || [],
                         contracts: state.contracts || [],
                         invoices: state.invoices || [],
+                        invoiceCatalog: state.invoiceCatalog || [],
                         photographers: state.photographers || [],
                         notifications: state.notifications || [],
                         portfolio: normalizePortfolioConfig(state.portfolio),
@@ -1256,6 +1262,21 @@
                 saveMockState(state);
                 await pushWorkspaceSection('invoices', state.invoices);
                 return { success: true };
+
+            case 'invoice_catalog_load': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
+                const fallback = buildSeedMockState().invoiceCatalog;
+                const catalog = Array.isArray(state.invoiceCatalog) && state.invoiceCatalog.length ? state.invoiceCatalog : fallback;
+                return { success: true, catalog };
+            }
+
+            case 'invoice_catalog_save': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
+                state.invoiceCatalog = Array.isArray(payload.catalog) ? payload.catalog : [];
+                saveMockState(state);
+                await pushWorkspaceSection('invoiceCatalog', state.invoiceCatalog);
+                return { success: true, catalog: state.invoiceCatalog };
+            }
 
             case 'customers_list':
                 if (!user) return { success: false, message: 'Chưa đăng nhập.' };
