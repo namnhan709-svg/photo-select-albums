@@ -286,6 +286,10 @@
                 <label for="guestNameInput" style="font-size:.78rem;color:var(--secondary);font-weight:700;">Tên của bạn:</label>
                 <input id="guestNameInput" type="text" maxlength="60" placeholder="VD: Cô dâu Lan / Chú rể Minh" style="min-height:34px;padding:.35rem .65rem;border-radius:9px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font:inherit;font-size:.8rem;width:min(240px,70vw);">
                 <button id="confirmGuestSelectionBtn" type="button" style="min-height:34px;padding:.38rem .85rem;border-radius:9px;border:0;background:var(--accent-gradient);color:#171510;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer;">✅ Gửi danh sách đã chọn cho Studio</button>
+                <div id="guestDownloadActions" class="guest-download-actions" style="display:none;gap:.45rem;flex-wrap:wrap;justify-content:center;align-items:center;">
+                    <button id="guestDownloadSelectedBtn" class="guest-download-btn" type="button">⬇️ Tải ảnh đã chọn (Chất lượng gốc)</button>
+                    <button id="guestDownloadAllBtn" class="guest-download-btn is-secondary" type="button">📦 Tải toàn bộ album (Gốc)</button>
+                </div>
             </div>
         </section>
 
@@ -430,8 +434,9 @@
                 <div class="lightbox-download-wrap" id="lightboxDownloadWrap">
                     <button class="lightbox-btn lightbox-download-toggle" id="lightboxDownloadToggle" type="button" title="Tải ảnh" aria-label="Tải ảnh" aria-haspopup="menu" aria-expanded="false"><svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m-5-5 5 5 5-5M4 15v4h16v-4"/></svg></button>
                     <div class="lightbox-download-menu" id="lightboxDownloadMenu" role="menu" aria-label="Tùy chọn tải ảnh">
-                        <button id="downloadCurrentLightboxPhoto" type="button" role="menuitem">Tải ảnh đang xem</button>
-                        <button id="downloadSharedAlbum" type="button" role="menuitem">Tải toàn bộ album</button>
+                        <button id="downloadCurrentLightboxPhoto" type="button" role="menuitem">⬇️ Tải ảnh gốc (Chất lượng cao nhất)</button>
+                        <button id="downloadCurrentPhotoDirectDrive" type="button" role="menuitem">↗️ Tải trực tiếp từ Google Drive</button>
+                        <button id="downloadSharedAlbum" type="button" role="menuitem">📦 Tải toàn bộ album (ZIP gốc)</button>
                         <p class="lightbox-download-status" id="lightboxDownloadStatus" role="status" aria-live="polite"></p>
                     </div>
                 </div>
