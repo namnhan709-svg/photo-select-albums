@@ -2311,7 +2311,6 @@ async function selectSavedAlbum(id) {
             const cacheKey = PHOTO_CACHE_PREFIX + folderId;
             const loadVersion = ++albumLoadVersion;
             updateLightboxDownloadAvailability();
-            window.TeeMediaFaceFilter?.resetForAlbumSwitch?.();
             state.photos = [];
             state.displayPhotos = [];
             state.selectedPhotos = new Set();
@@ -2385,14 +2384,6 @@ async function selectSavedAlbum(id) {
                 document.getElementById('statistics').style.display = 'grid';
                 updateLightboxDownloadAvailability();
                 showToast(`✅ Đã tải ${state.photos.length} ảnh`);
-                window.TeeMediaFaceFilter?.initForAlbum?.({
-                    albumKey: folderId,
-                    photos: state.photos,
-                    onFilterChange: () => {
-                        applyFilters();
-                        updateStats();
-                    }
-                });
                 
                 // Đồng bộ và đếm chính xác bình luận cho đúng album hiện tại
                 loadAllAlbumComments(loadVersion);
@@ -2570,21 +2561,13 @@ async function selectSavedAlbum(id) {
                 const titleEl = document.getElementById('emptyStateTitle');
                 const descEl = document.getElementById('emptyStateDesc');
                 const resetBtn = document.getElementById('resetAllFiltersBtn');
-                const faceSummary = window.TeeMediaFaceFilter?.getActiveFilterSummary?.();
                 const hasAnyFilter = Boolean(
                     state.searchQuery
                     || state.currentFilter !== 'all'
                     || state.currentCategory !== 'all'
-                    || (faceSummary && faceSummary.count > 0)
                 );
                 if (titleEl && descEl) {
-                    if (faceSummary && faceSummary.count > 1) {
-                        titleEl.textContent = 'Không tìm thấy ảnh chụp chung';
-                        descEl.textContent = `Không có ảnh nào trong bộ lọc hiện tại có đầy đủ ${faceSummary.labels.join(' & ')}. Bạn có thể bỏ chọn bớt khuôn mặt hoặc quay lại xem tất cả ảnh.`;
-                    } else if (faceSummary && faceSummary.count === 1) {
-                        titleEl.textContent = `Không có ảnh phù hợp cho ${faceSummary.labels[0]}`;
-                        descEl.textContent = 'Hãy chuyển về Tất cả hoặc chỉnh lại nhóm khuôn mặt.';
-                    } else if (state.searchQuery) {
+                    if (state.searchQuery) {
                         titleEl.textContent = `Không tìm thấy ảnh khớp “${state.searchQuery}”`;
                         descEl.textContent = 'Thử tìm số thứ tự khác (VD: 5 hoặc #12) hoặc xóa ô tìm kiếm.';
                     } else if (state.currentFilter === 'selected') {
@@ -2886,7 +2869,6 @@ function updateStats() {
                 btn.classList.toggle('active', isAll);
                 btn.setAttribute('aria-pressed', String(isAll));
             });
-            window.TeeMediaFaceFilter?.clearSelection?.();
             applyFilters();
             updateStats();
         }
@@ -2917,9 +2899,6 @@ function updateStats() {
                 list = list.filter(p => state.selectedPhotos.has(String(p.id)));
             } else if (state.currentFilter === 'unselected') {
                 list = list.filter(p => !state.selectedPhotos.has(String(p.id)));
-            }
-            if (window.TeeMediaFaceFilter?.matchesPhoto) {
-                list = list.filter(p => window.TeeMediaFaceFilter.matchesPhoto(p.id));
             }
             state.displayPhotos = list;
             renderPhotoGrid();
