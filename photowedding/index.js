@@ -445,6 +445,10 @@
             document.getElementById('mobileDownloadNoticeClose').addEventListener('click', () => {
                 document.getElementById('mobileDownloadNoticeModal').classList.remove('active');
             });
+            document.getElementById('mobileDownloadNoticeTopClose')?.addEventListener('click', () => {
+                document.getElementById('mobileDownloadNoticeModal').classList.remove('active');
+            });
+            document.getElementById('exportClose')?.addEventListener('click', () => document.getElementById('exportModal').classList.remove('active'));
             document.getElementById('exportCancel').addEventListener('click', () => document.getElementById('exportModal').classList.remove('active'));
             document.getElementById('exportCopyBtn').addEventListener('click', copyExport);
             document.getElementById('exportDownloadBtn').addEventListener('click', downloadExport);
@@ -466,10 +470,29 @@
             document.getElementById('quickFilterDestinationBtn').addEventListener('click', chooseQuickFilterDestination);
             document.getElementById('quickFilterCancel').addEventListener('click', closeQuickFilter);
             document.getElementById('quickFilterStart').addEventListener('click', startQuickFilter);
+            document.getElementById('zipSetupClose')?.addEventListener('click', closeZipSetup);
             document.getElementById('zipSetupCancel').addEventListener('click', closeZipSetup);
             document.getElementById('zipSetupStart').addEventListener('click', startZipDownload);
+            document.getElementById('albumFolderDownloadClose')?.addEventListener('click', closeAlbumFolderDownloadChooser);
             document.getElementById('albumFolderDownloadCancel').addEventListener('click', closeAlbumFolderDownloadChooser);
             document.getElementById('albumFolderDownloadStart').addEventListener('click', startAlbumFolderDownload);
+            document.getElementById('zipProgressClose')?.addEventListener('click', closeZipProgressModal);
+            document.getElementById('zipProgressCloseBtn')?.addEventListener('click', closeZipProgressModal);
+            document.getElementById('downloadConfirmClose')?.addEventListener('click', closeDownloadConfirmModal);
+            document.getElementById('downloadConfirmCancelBtn')?.addEventListener('click', closeDownloadConfirmModal);
+            document.getElementById('downloadConfirmProceedBtn')?.addEventListener('click', proceedConfirmedDownload);
+            document.getElementById('downloadConfirmModal')?.addEventListener('click', event => {
+                if (event.target.id === 'downloadConfirmModal') closeDownloadConfirmModal();
+            });
+            document.getElementById('zipSetupModal')?.addEventListener('click', event => {
+                if (event.target.id === 'zipSetupModal') closeZipSetup();
+            });
+            document.getElementById('albumFolderDownloadModal')?.addEventListener('click', event => {
+                if (event.target.id === 'albumFolderDownloadModal') closeAlbumFolderDownloadChooser();
+            });
+            document.getElementById('mobileDownloadNoticeModal')?.addEventListener('click', event => {
+                if (event.target.id === 'mobileDownloadNoticeModal') event.currentTarget.classList.remove('active');
+            });
             document.getElementById('albumFolderSelectAll').addEventListener('change', event => {
                 document.querySelectorAll('#albumFolderList input[type="checkbox"]').forEach(input => {
                     input.checked = event.currentTarget.checked;
@@ -2661,7 +2684,11 @@ async function selectSavedAlbum(id) {
                         downloadBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m-5-5 5 5 5-5M4 15v4h16v-4"/></svg>';
                         downloadBtn.addEventListener('click', (event) => {
                             event.stopPropagation();
-                            downloadOriginalPhotoFile(photo, { triggerButton: downloadBtn });
+                            requestDownloadConfirmation({
+                                title: 'Xác nhận tải ảnh gốc',
+                                message: `Bạn có chắc chắn muốn tải ảnh #${photo.orderNumber || (index + 1)} (${photo.name || 'ảnh'}) về máy?`,
+                                onConfirm: () => downloadOriginalPhotoFile(photo, { triggerButton: downloadBtn })
+                            });
                         });
                         item.append(image, badge, name, commentBadge, downloadBtn, heart, overlay);
                     } else {
@@ -3150,21 +3177,55 @@ function updateStats() {
             }
         }
 
+        let pendingDownloadAction = null;
+        let zipDownloadSessionId = 0;
+
+        function requestDownloadConfirmation({ title = 'Xác nhận tải ảnh', message = '', onConfirm = null } = {}) {
+            const modal = document.getElementById('downloadConfirmModal');
+            if (!modal) {
+                onConfirm?.();
+                return;
+            }
+            const titleEl = document.getElementById('downloadConfirmTitle');
+            const msgEl = document.getElementById('downloadConfirmMessage');
+            if (titleEl) titleEl.textContent = title;
+            if (msgEl) msgEl.textContent = message || 'Bạn có chắc chắn muốn tải ảnh chất lượng gốc về máy không?';
+            pendingDownloadAction = typeof onConfirm === 'function' ? onConfirm : null;
+            modal.classList.add('active');
+        }
+
+        function closeDownloadConfirmModal() {
+            pendingDownloadAction = null;
+            document.getElementById('downloadConfirmModal')?.classList.remove('active');
+        }
+
+        function proceedConfirmedDownload() {
+            const action = pendingDownloadAction;
+            closeDownloadConfirmModal();
+            action?.();
+        }
+
+        function closeZipProgressModal() {
+            zipDownloadSessionId += 1;
+            document.getElementById('zipProgressModal')?.classList.remove('active');
+            const btn = document.getElementById('toolbarZipBtn');
+            if (btn) btn.disabled = false;
+        }
+
         function downloadCurrentLightboxPhoto() {
             if (!ensureAlbumAllowsSave('tải ảnh')) return;
             const photo = state.displayPhotos[state.currentLightboxIndex];
             if (!photo) return;
             const button = document.getElementById('lightboxDownloadToggle');
-            downloadOriginalPhotoFile(photo, { triggerButton: button });
+            const numLabel = photo.orderNumber || (state.currentLightboxIndex + 1);
+            requestDownloadConfirmation({
+                title: 'Xác nhận tải ảnh gốc',
+                message: `Bạn có chắc chắn muốn tải ảnh #${numLabel} (${photo.name || 'ảnh'}) chất lượng gốc về máy?`,
+                onConfirm: () => downloadOriginalPhotoFile(photo, { triggerButton: button })
+            });
         }
 
-        async function downloadGuestSelectedPhotos() {
-            if (!ensureAlbumAllowsSave('tải ảnh')) return;
-            const selected = state.photos.filter(photo => state.selectedPhotos.has(String(photo.id)));
-            if (!selected.length) {
-                window.alert('Bạn chưa chọn (thả tim ❤️) ảnh nào. Hãy thả tim các ảnh muốn tải hoặc bấm "Tải toàn bộ album".');
-                return;
-            }
+        async function executeGuestSelectedDownload(selected) {
             if (selected.length === 1) {
                 const btn = document.getElementById('guestDownloadSelectedBtn');
                 await downloadOriginalPhotoFile(selected[0], { triggerButton: btn });
@@ -3185,6 +3246,20 @@ function updateStats() {
                 return;
             }
             await downloadSelectedPhotosAsZip(selected);
+        }
+
+        async function downloadGuestSelectedPhotos() {
+            if (!ensureAlbumAllowsSave('tải ảnh')) return;
+            const selected = state.photos.filter(photo => state.selectedPhotos.has(String(photo.id)));
+            if (!selected.length) {
+                window.alert('Bạn chưa chọn (thả tim ❤️) ảnh nào. Hãy thả tim các ảnh muốn tải hoặc bấm "Tải toàn bộ album".');
+                return;
+            }
+            requestDownloadConfirmation({
+                title: 'Xác nhận tải ảnh đã chọn',
+                message: `Bạn có chắc chắn muốn tải ${selected.length} ảnh đã chọn (chất lượng gốc) về máy không?`,
+                onConfirm: () => executeGuestSelectedDownload(selected)
+            });
         }
 
         function sanitizeZipEntrySegment(value, fallback = 'anh') {
@@ -3291,8 +3366,14 @@ function updateStats() {
                 showAlbumFolderDownloadChooser(folderPaths);
                 return;
             }
-            document.getElementById('zipProgressModal').classList.add('active');
-            await downloadSelectedPhotosAsZip(state.photos);
+            requestDownloadConfirmation({
+                title: 'Xác nhận tải toàn bộ album',
+                message: `Bạn có chắc chắn muốn đóng gói & tải toàn bộ ${state.photos.length} ảnh gốc trong album này về máy không?`,
+                onConfirm: () => {
+                    document.getElementById('zipProgressModal').classList.add('active');
+                    downloadSelectedPhotosAsZip(state.photos);
+                }
+            });
         }
 
         function preloadLightboxNeighbors(index, direction = 1) {
@@ -3898,7 +3979,7 @@ async function startQuickFilter() {
                 showToast('⚠️ Chưa có ảnh nào được chọn để tải');
                 return;
             }
-            startZipDownload();
+            document.getElementById('zipSetupModal').classList.add('active');
         }
 
         function closeZipSetup() {
@@ -3927,6 +4008,7 @@ async function startQuickFilter() {
         async function downloadSelectedPhotosAsZip(selected) {
             if (!selected.length) return;
 
+            const currentZipSession = ++zipDownloadSessionId;
             const button = document.getElementById('toolbarZipBtn');
             const progressModal = document.getElementById('zipProgressModal');
             const albumName = (document.getElementById('customerAlbumTitle')?.textContent || CONFIG.ALBUM_NAME || '').trim() || 'album';
@@ -3947,6 +4029,7 @@ async function startQuickFilter() {
                 const fetchZipPhoto = async photo => {
                     const downloadUrl = `photowedding/app.php?drive_proxy=download&file_id=${encodeURIComponent(photo.id)}${getSharedDownloadQuery()}`;
                     for (let attempt = 0; attempt < 3; attempt += 1) {
+                        if (currentZipSession !== zipDownloadSessionId) return null;
                         let response;
                         try {
                             response = await fetch(downloadUrl, { cache: 'no-store' });
@@ -3974,23 +4057,28 @@ async function startQuickFilter() {
                 };
                 const workers = Array.from({ length: concurrency }, async () => {
                     while (true) {
+                        if (currentZipSession !== zipDownloadSessionId) return;
                         const currentIndex = nextIndex++;
                         if (currentIndex >= selected.length) return;
                         const photo = selected[currentIndex];
+                        const blob = await fetchZipPhoto(photo);
+                        if (currentZipSession !== zipDownloadSessionId || !blob) return;
                         results[currentIndex] = {
                             filename: sanitizeZipEntrySegment(photo.name || `anh-${currentIndex + 1}`),
                             folderPath: Array.isArray(photo.folderPath) ? photo.folderPath : [],
-                            blob: await fetchZipPhoto(photo)
+                            blob
                         };
                         downloaded += 1;
                         updateZipProgress(Math.round(downloaded / selected.length * 70), `Đã tải ${downloaded}/${selected.length} ảnh gốc`);
                     }
                 });
                 await Promise.all(workers);
+                if (currentZipSession !== zipDownloadSessionId) return;
 
                 const zip = new JSZip();
                 const usedEntryNames = new Set();
                 results.forEach(item => {
+                    if (!item || !item.blob) return;
                     const folderSegments = item.folderPath.map(folder => sanitizeZipEntrySegment(folder, 'thu_muc'));
                     const extensionIndex = item.filename.lastIndexOf('.');
                     const stem = extensionIndex > 0 ? item.filename.slice(0, extensionIndex) : item.filename;

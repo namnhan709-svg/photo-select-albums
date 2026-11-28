@@ -537,6 +537,22 @@ switch ($action) {
         $pdo->prepare('DELETE FROM invoices WHERE id = ? AND user_id = ?')->execute([(int)($body['id'] ?? 0), $uid]);
         jsonOut(['success' => true]);
 
+    case 'invoice_catalog_load':
+        if ($uid <= 0) jsonOut(['success' => false], 401);
+        $stmt = $pdo->prepare('SELECT state_value FROM kv_state WHERE state_key = ?');
+        $stmt->execute(["invoiceCatalog:$uid"]);
+        $row = $stmt->fetch();
+        $cat = $row ? (json_decode($row['state_value'], true) ?: []) : [];
+        jsonOut(['success' => true, 'catalog' => $cat]);
+
+    case 'invoice_catalog_save':
+        if ($uid <= 0) jsonOut(['success' => false], 401);
+        $cat = $body['catalog'] ?? [];
+        $jsonCat = json_encode($cat, JSON_UNESCAPED_UNICODE);
+        $pdo->prepare('INSERT INTO kv_state (state_key, state_value) VALUES (?, ?) ON CONFLICT(state_key) DO UPDATE SET state_value = excluded.state_value')
+            ->execute(["invoiceCatalog:$uid", $jsonCat]);
+        jsonOut(['success' => true, 'catalog' => $cat]);
+
     case 'customers_list':
         if ($uid <= 0) jsonOut(['success' => false, 'message' => 'Vui lòng đăng nhập.'], 401);
         $stmt = $pdo->prepare('SELECT * FROM customers WHERE user_id = ? ORDER BY id DESC');
