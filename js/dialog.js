@@ -41,8 +41,27 @@
                 </dl>`
             },
             account: {
-                title: 'Tài khoản',
-                message: 'Tài khoản của bạn đang được bảo vệ bằng email và mật khẩu đã đăng ký.'
+                title: 'Tài khoản & Cấp quyền truy cập',
+                html: Number(user.id) === 1
+                    ? `<p class="dashboard-dialog-message" style="margin-bottom:.85rem;">Hệ thống đã khóa đăng ký tự do và đăng nhập Google công khai. Chỉ chủ Studio và các tài khoản được cấp bên dưới mới có thể đăng nhập quản trị.</p>
+                    <form class="dashboard-password-form" id="dashboardCreateStaffForm" style="margin-bottom:1rem;">
+                        <label>Tên nhân sự / cộng tác viên
+                            <input name="name" type="text" required placeholder="VD: Minh Anh Photographer">
+                        </label>
+                        <label>Email đăng nhập
+                            <input name="email" type="email" required placeholder="nhanvien@teemedia.vn">
+                        </label>
+                        <label>Số điện thoại
+                            <input name="phone" type="tel" placeholder="0901 234 567">
+                        </label>
+                        <label>Mật khẩu cấp (tối thiểu 6 ký tự)
+                            <input name="password" type="password" minlength="6" required placeholder="Nhập mật khẩu cấp">
+                        </label>
+                        <button class="button button-primary dashboard-password-submit" type="submit">Cấp tài khoản mới</button>
+                        <p class="dashboard-password-status" id="dashboardStaffStatus" role="status"></p>
+                    </form>
+                    <div id="dashboardStaffList" class="dashboard-staff-list" style="display:flex;flex-direction:column;gap:.5rem;">Đang tải danh sách tài khoản...</div>`
+                    : '<p class="dashboard-dialog-message">Tài khoản nội bộ do quản trị viên TeeMedia Studio cấp. Bạn có thể đổi mật khẩu tại mục Bảo mật.</p>'
             },
             settings: {
                 title: 'Cài đặt giao diện',
@@ -113,6 +132,53 @@
             }
         });
         if (type === 'settings') Theme.syncDashboardThemeButtons();
+        if (type === 'account') loadStaffAccountsIntoPanel();
+    }
+
+    async function loadStaffAccountsIntoPanel() {
+        const listEl = document.getElementById('dashboardStaffList');
+        if (!listEl || !API.callJson) return;
+        try {
+            const { ok, result } = await API.callJson({ action: 'list_staff_accounts' });
+            if (!ok || !result?.success) {
+                listEl.textContent = '';
+                return;
+            }
+            const accounts = Array.isArray(result.accounts) ? result.accounts : [];
+            listEl.replaceChildren();
+            accounts.forEach(acc => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.55rem .7rem;border:1px solid var(--border);border-radius:10px;font-size:.82rem;';
+                const info = document.createElement('div');
+                info.innerHTML = `<strong>${escapeHtml(acc.name)}</strong><br><small style="color:var(--muted);">${escapeHtml(acc.email)} · ${acc.status === 'disabled' ? 'Đang khóa' : 'Đang hoạt động'}</small>`;
+                row.appendChild(info);
+                if (Number(acc.id) !== 1) {
+                    const actions = document.createElement('div');
+                    actions.style.cssText = 'display:flex;gap:.35rem;';
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.type = 'button';
+                    toggleBtn.className = 'button';
+                    toggleBtn.textContent = acc.status === 'disabled' ? 'Mở khóa' : 'Khóa';
+                    toggleBtn.addEventListener('click', async () => {
+                        await API.callJson({ action: 'toggle_staff_account', user_id: acc.id });
+                        loadStaffAccountsIntoPanel();
+                    });
+                    const delBtn = document.createElement('button');
+                    delBtn.type = 'button';
+                    delBtn.className = 'button';
+                    delBtn.textContent = 'Xóa';
+                    delBtn.addEventListener('click', async () => {
+                        await API.callJson({ action: 'delete_staff_account', user_id: acc.id });
+                        loadStaffAccountsIntoPanel();
+                    });
+                    actions.append(toggleBtn, delBtn);
+                    row.appendChild(actions);
+                }
+                listEl.appendChild(row);
+            });
+        } catch {
+            listEl.textContent = 'Không thể tải danh sách tài khoản.';
+        }
     }
 
     function openDashboardDialog(type) {
@@ -142,6 +208,7 @@
             if (!content) return;
             title.textContent = content.title;
             body.innerHTML = content.html || `<p class="dashboard-dialog-message">${content.message}</p>`;
+            if (type === 'account') loadStaffAccountsIntoPanel();
         }
 
         document.getElementById('dashboardDialog').classList.add('is-open');
@@ -150,6 +217,38 @@
     }
 
     async function handlePasswordSubmit(event) {
+        const staffForm = event.target.closest('#dashboardCreateStaffForm');
+        if (staffForm) {
+            event.preventDefault();
+            const fd = new FormData(staffForm);
+            const st = document.getElementById('dashboardStaffStatus');
+            const btn = staffForm.querySelector('[type="submit"]');
+            if (btn) btn.disabled = true;
+            try {
+                const { ok, result } = await API.callJson({
+                    action: 'create_staff_account',
+                    name: fd.get('name'),
+                    email: fd.get('email'),
+                    phone: fd.get('phone'),
+                    password: fd.get('password')
+                });
+                if (!ok || !result?.success) throw new Error(result?.message || 'Không thể cấp tài khoản.');
+                staffForm.reset();
+                if (st) {
+                    st.textContent = result.message || 'Đã cấp tài khoản.';
+                    st.className = 'dashboard-password-status is-success';
+                }
+                loadStaffAccountsIntoPanel();
+            } catch (err) {
+                if (st) {
+                    st.textContent = err.message || 'Lỗi khi cấp tài khoản.';
+                    st.className = 'dashboard-password-status is-error';
+                }
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+            return;
+        }
         const cloudForm = event.target.closest('#dashboardCloudForm');
         if (cloudForm) {
             event.preventDefault();

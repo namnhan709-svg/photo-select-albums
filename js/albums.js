@@ -243,17 +243,16 @@
                 document.getElementById('allowedAlbums').textContent = '0';
                 showMessage('Vui lòng đăng nhập để xem danh sách album và ảnh khách đã chọn.', true);
                 albumsGrid.innerHTML = `<section class="inline-login-card">
-                    <h3>Đăng nhập tài khoản Studio</h3>
-                    <p>Đăng nhập để mở thư mục album và xem lại toàn bộ ảnh khách hàng đã thả tim trong database. (Mẫu: <strong>studio@gmail.com</strong> / <strong>123456</strong>)</p>
+                    <h3>Đăng nhập nội bộ TeeMedia</h3>
+                    <p>Cổng quản trị dành riêng cho chủ Studio và nhân sự được cấp tài khoản để quản lý album và xem ảnh khách đã chọn.</p>
                     <form class="inline-login-form" id="inlineLoginForm">
-                        <input name="login_id" type="text" required placeholder="Email hoặc ID (studio@gmail.com)" autocomplete="username">
+                        <input name="login_id" type="text" required placeholder="Email hoặc ID được cấp" autocomplete="username">
                         <input name="password" type="password" required placeholder="Mật khẩu" autocomplete="current-password">
                         <p class="add-album-message" id="inlineLoginStatus" role="status"></p>
                         <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
                             <button class="button button-primary" type="submit" style="flex:1;">Đăng nhập</button>
-                            <a class="button" href="login.html?redirect=albums.html">Đăng ký / Mở trang Login</a>
+                            <a class="button" href="./">Xem Portfolio</a>
                         </div>
-                        <a class="button" href="photowedding/app.php?google=login">Đăng nhập nhanh bằng Google</a>
                     </form>
                 </section>`;
                 document.getElementById('inlineLoginForm').addEventListener('submit', async event => {

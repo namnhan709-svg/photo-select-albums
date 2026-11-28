@@ -29,10 +29,12 @@
         const statusMsg = document.getElementById('reportStatusMsg');
         try {
             const { result: session } = await API.callJson({ action: 'session_state' });
-            if (session?.user) {
-                state.dashboardUser = session.user;
-                Dialog.updateDashboardUser(session.user);
+            if (!session?.user?.id) {
+                global.location.replace('login.html?redirect=studio-reports.html');
+                return;
             }
+            state.dashboardUser = session.user;
+            Dialog.updateDashboardUser(session.user);
             const { ok, result } = await API.callJson({ action: 'reports_summary' });
             if (!ok || !result.success) throw new Error(result.message || 'Không thể tải báo cáo.');
 

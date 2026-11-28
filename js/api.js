@@ -237,7 +237,7 @@
         const storedId = raw === null ? 0 : Number(raw);
         if (!storedId || storedId <= 0) return null;
         const user = (state.users || []).find(u => Number(u.id) === storedId);
-        if (!user) return null;
+        if (!user || user.status === 'disabled') return null;
         return { id: user.id, name: user.name, email: user.email, phone: user.phone, status: user.status || 'active', avatar: user.avatar || '' };
     }
 
@@ -510,9 +510,13 @@
             'photographers_list',
             'contracts_list',
             'customers_list',
-            'reports_summary'
+            'reports_summary',
+            'list_staff_accounts',
+            'create_staff_account',
+            'toggle_staff_account',
+            'delete_staff_account'
         ].includes(action)) {
-            await ensureWorkspaceSynced(state, action === 'login' || action === 'load_albums');
+            await ensureWorkspaceSynced(state, action === 'login' || action === 'load_albums' || action === 'list_staff_accounts');
         }
         const user = getStaticSessionUser(state);
 
@@ -526,34 +530,17 @@
                 const found = (state.users || []).find(u =>
                     (String(u.email).toLowerCase() === loginId || String(u.id) === loginId) && String(u.password) === pw
                 );
-                if (!found) return { success: false, message: 'Email hoặc mật khẩu không đúng. (Mẫu: studio@gmail.com / 123456)' };
+                if (!found) return { success: false, message: 'Email/ID hoặc mật khẩu không đúng. Chỉ tài khoản được cấp mới có thể đăng nhập.' };
+                if (found.status === 'disabled') return { success: false, message: 'Tài khoản này đang bị tạm khóa. Vui lòng liên hệ quản trị viên.' };
                 localStorage.setItem(STATIC_SESSION_KEY, String(found.id));
-                return { success: true, message: 'Đăng nhập thành công.', user: { id: found.id, name: found.name, email: found.email, phone: found.phone, status: 'active' } };
+                return { success: true, message: 'Đăng nhập thành công.', user: { id: found.id, name: found.name, email: found.email, phone: found.phone, status: found.status || 'active' } };
             }
 
-            case 'register': {
-                const email = String(payload.email || '').trim().toLowerCase();
-                if ((state.users || []).some(u => String(u.email).toLowerCase() === email)) {
-                    return { success: false, message: 'Email này đã được đăng ký.' };
-                }
-                const newUser = {
-                    id: ++state.nextId,
-                    name: String(payload.name || '').trim(),
-                    phone: String(payload.phone || '').trim(),
-                    email,
-                    password: String(payload.password || ''),
-                    status: 'active',
-                    avatar: ''
-                };
-                state.users.push(newUser);
-                saveMockState(state);
-                await pushWorkspaceSection('users', state.users);
-                localStorage.setItem(STATIC_SESSION_KEY, String(newUser.id));
-                return { success: true, message: 'Đăng ký thành công.', user: { id: newUser.id, name: newUser.name, email: newUser.email, phone: newUser.phone, status: 'active' } };
-            }
+            case 'register':
+                return { success: false, message: 'Chức năng đăng ký tự do đã tắt. Chỉ quản trị viên TeeMedia Studio mới có quyền cấp tài khoản.' };
 
             case 'forgot':
-                return { success: true, message: 'Trong chế độ Static/GitHub Pages, mật khẩu tài khoản mẫu là 123456.' };
+                return { success: false, message: 'Vui lòng liên hệ trực tiếp quản trị viên TeeMedia Studio để được cấp lại mật khẩu.' };
 
             case 'logout':
                 localStorage.setItem(STATIC_SESSION_KEY, '0');
@@ -626,9 +613,11 @@
             }
 
             case 'load_deleted_albums':
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 return { success: true, data: (state.albums || []).filter(a => a.deleted_at) };
 
             case 'save_album': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 const folderId = String(payload.folder_id || '').trim();
                 if (state.albums.some(item => String(item.folder_id) === folderId && !item.deleted_at)) {
                     return { success: false, message: 'Album này đã có trong danh sách.' };
@@ -649,6 +638,7 @@
             }
 
             case 'update_album_permission': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 const album = state.albums.find(item => String(item.id) === String(payload.album_id));
                 if (!album) return { success: false, message: 'Không tìm thấy album.' };
                 album.allow_save = payload.allow_save ? 1 : 0;
@@ -658,6 +648,7 @@
             }
 
             case 'delete_album': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 const album = state.albums.find(item => String(item.id) === String(payload.album_id));
                 if (album) album.deleted_at = new Date().toISOString().replace('T', ' ').slice(0, 19);
                 saveMockState(state);
@@ -666,6 +657,7 @@
             }
 
             case 'restore_album': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 const album = state.albums.find(item => String(item.id) === String(payload.album_id));
                 if (album) album.deleted_at = null;
                 saveMockState(state);
@@ -674,6 +666,7 @@
             }
 
             case 'create_share_link': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 const folderId = String(payload.folder_id || '').trim();
                 const album = state.albums.find(item => String(item.folder_id) === folderId && !item.deleted_at);
                 const code = String(payload.access_code || '').trim();
@@ -825,6 +818,7 @@
                 return { success: true, notifications: user ? state.notifications : [] };
 
             case 'mark_notification_read': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 const target = state.notifications.find(item => String(item.id) === String(payload.notification_id));
                 if (target) target.is_read = 1;
                 saveMockState(state);
@@ -844,9 +838,11 @@
                 return { success: true, conversation_id: payload.conversation_id || 'demo-conversation' };
 
             case 'photographers_list':
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 return { success: true, photographers: state.photographers || [] };
 
             case 'photographers_save': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 const p = { ...(payload.photographer || {}) };
                 if (p.id) {
                     const idx = state.photographers.findIndex(x => String(x.id) === String(p.id));
@@ -861,15 +857,18 @@
             }
 
             case 'photographers_delete':
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 state.photographers = (state.photographers || []).filter(x => String(x.id) !== String(payload.id));
                 saveMockState(state);
                 await pushWorkspaceSection('photographers', state.photographers);
                 return { success: true };
 
             case 'contracts_list':
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 return { success: true, contracts: state.contracts || [] };
 
             case 'contracts_save': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 const c = { ...(payload.contract || {}) };
                 if (c.id) {
                     const idx = state.contracts.findIndex(x => String(x.id) === String(c.id));
@@ -884,15 +883,18 @@
             }
 
             case 'contracts_delete':
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 state.contracts = (state.contracts || []).filter(x => String(x.id) !== String(payload.id));
                 saveMockState(state);
                 await pushWorkspaceSection('contracts', state.contracts);
                 return { success: true };
 
             case 'customers_list':
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 return { success: true, customers: state.customers || [] };
 
             case 'customers_save': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 const c = { ...(payload.customer || {}) };
                 if (c.id) {
                     const idx = state.customers.findIndex(x => String(x.id) === String(c.id));
@@ -907,12 +909,14 @@
             }
 
             case 'customers_delete':
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 state.customers = (state.customers || []).filter(x => String(x.id) !== String(payload.id));
                 saveMockState(state);
                 await pushWorkspaceSection('customers', state.customers);
                 return { success: true };
 
             case 'reports_summary': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
                 const albums = (state.albums || []).filter(a => !a.deleted_at);
                 const contracts = state.contracts || [];
                 const totalContractValue = contracts.reduce((s, c) => s + (Number(c.totalPrice) || 0), 0);
@@ -933,6 +937,59 @@
                         recentContracts: contracts.slice(0, 6)
                     }
                 };
+            }
+
+            case 'list_staff_accounts': {
+                if (!user || Number(user.id) !== 1) return { success: false, message: 'Chỉ chủ Studio mới có quyền quản lý tài khoản.' };
+                return {
+                    success: true,
+                    accounts: (state.users || []).map(u => ({
+                        id: u.id,
+                        name: u.name,
+                        email: u.email,
+                        phone: u.phone || '',
+                        status: u.status || 'active'
+                    }))
+                };
+            }
+
+            case 'create_staff_account': {
+                if (!user || Number(user.id) !== 1) return { success: false, message: 'Chỉ chủ Studio mới có quyền cấp tài khoản.' };
+                const name = String(payload.name || '').trim();
+                const email = String(payload.email || '').trim().toLowerCase();
+                const phone = String(payload.phone || '').trim();
+                const password = String(payload.password || '');
+                if (!name || !email || password.length < 6) {
+                    return { success: false, message: 'Vui lòng nhập đủ tên, email và mật khẩu từ 6 ký tự.' };
+                }
+                if ((state.users || []).some(u => String(u.email).toLowerCase() === email)) {
+                    return { success: false, message: 'Email này đã tồn tại trong hệ thống.' };
+                }
+                const newUser = { id: ++state.nextId, name, phone, email, password, status: 'active', avatar: '' };
+                state.users.push(newUser);
+                saveMockState(state);
+                await pushWorkspaceSection('users', state.users);
+                return { success: true, message: `Đã cấp tài khoản cho ${email}.` };
+            }
+
+            case 'toggle_staff_account': {
+                if (!user || Number(user.id) !== 1) return { success: false, message: 'Chỉ chủ Studio mới có quyền thao tác.' };
+                const target = (state.users || []).find(u => Number(u.id) === Number(payload.user_id) && Number(u.id) !== 1);
+                if (!target) return { success: false, message: 'Không tìm thấy tài khoản nhân sự.' };
+                target.status = target.status === 'disabled' ? 'active' : 'disabled';
+                saveMockState(state);
+                await pushWorkspaceSection('users', state.users);
+                return { success: true, status: target.status };
+            }
+
+            case 'delete_staff_account': {
+                if (!user || Number(user.id) !== 1) return { success: false, message: 'Chỉ chủ Studio mới có quyền xóa tài khoản.' };
+                const targetId = Number(payload.user_id);
+                if (targetId === 1) return { success: false, message: 'Không thể xóa tài khoản quản trị chính.' };
+                state.users = (state.users || []).filter(u => Number(u.id) !== targetId);
+                saveMockState(state);
+                await pushWorkspaceSection('users', state.users);
+                return { success: true };
             }
 
             default:
@@ -984,6 +1041,7 @@
         if (await ensureBackendMode()) {
             const action = formData.get('action');
             if (action === 'change_password') {
+                const oldPw = String(formData.get('old_password') || '');
                 const newPw = String(formData.get('new_password') || '');
                 const confirmPw = String(formData.get('confirm_password') || '');
                 if (newPw.length < 6 || newPw !== confirmPw) {
@@ -992,11 +1050,15 @@
                 const state = loadMockState();
                 const user = getStaticSessionUser(state);
                 const target = user ? state.users.find(u => u.id === user.id) : null;
-                if (target) {
-                    target.password = newPw;
-                    saveMockState(state);
-                    await pushWorkspaceSection('users', state.users);
+                if (!target) {
+                    return { ok: false, text: 'Vui lòng đăng nhập lại.' };
                 }
+                if (oldPw && String(target.password) !== oldPw) {
+                    return { ok: false, text: 'Mật khẩu hiện tại không đúng.' };
+                }
+                target.password = newPw;
+                saveMockState(state);
+                await pushWorkspaceSection('users', state.users);
                 return { ok: true, text: 'success' };
             }
             return { ok: false, text: 'Không hỗ trợ tác vụ này.' };
@@ -1283,12 +1345,6 @@
             const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
             if (!link) return;
             const href = link.getAttribute('href') || '';
-            if (href.includes('google=login') && (await ensureBackendMode())) {
-                event.preventDefault();
-                localStorage.setItem(STATIC_SESSION_KEY, '1');
-                global.location.href = 'albums.html?login=success';
-                return;
-            }
             if (href.includes('logout=1') && (await ensureBackendMode())) {
                 event.preventDefault();
                 localStorage.setItem(STATIC_SESSION_KEY, '0');
