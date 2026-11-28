@@ -70,13 +70,39 @@
         document.addEventListener('DOMContentLoaded', init);
 
         async function resolveStaticShareToken() {
-            const shareParam = new URLSearchParams(window.location.search).get('share') || '';
-            if (CONFIG.DRIVE_FOLDER_ID || !shareParam.startsWith('v1.') || !window.PhotoSelectAPI) return;
-            const payload = window.PhotoSelectAPI.decodeBase64Url(shareParam);
+            if (CONFIG.DRIVE_FOLDER_ID || !window.PhotoSelectAPI) return;
+            const searchParams = new URLSearchParams(window.location.search);
+            const slugParam = (searchParams.get('a') || searchParams.get('s') || '').trim();
+            const shareParam = searchParams.get('share') || '';
+            let payload = null;
+            let unlockSeed = '';
+
+            if (slugParam) {
+                try {
+                    const { ok, result } = await window.PhotoSelectAPI.callJson({
+                        action: 'resolve_share_slug',
+                        slug: slugParam
+                    });
+                    if (ok && result?.success && result.share?.folder_id) {
+                        payload = {
+                            f: result.share.folder_id,
+                            n: result.share.album_name || 'Album ảnh',
+                            a: result.share.allow_save,
+                            o: result.share.owner_name || 'TeeMedia Atelier',
+                            ch: result.share.access_code_hash || ''
+                        };
+                        unlockSeed = `slug:${slugParam}`;
+                    }
+                } catch {}
+            } else if (shareParam.startsWith('v1.')) {
+                payload = window.PhotoSelectAPI.decodeBase64Url(shareParam);
+                unlockSeed = shareParam.slice(0, 32);
+            }
+
             if (!payload || !payload.f) return;
 
             if (payload.ch) {
-                const unlockKey = `photoSelectShareUnlocked:${shareParam.slice(0, 32)}`;
+                const unlockKey = `photoSelectShareUnlocked:${unlockSeed}`;
                 if (sessionStorage.getItem(unlockKey) !== payload.ch) {
                     const gate = document.createElement('div');
                     gate.style.cssText = 'position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:1rem;background:rgba(15,15,15,.94);backdrop-filter:blur(8px);';
@@ -127,6 +153,8 @@
         async function init() {
     await resolveStaticShareToken();
     const urlParams = new URLSearchParams(window.location.search);
+    const loginPath = window.location.protocol === 'file:' ? 'login.html' : 'login';
+    const portfolioPath = window.location.protocol === 'file:' ? 'portfolio.html' : 'portfolio';
     if (urlParams.get('logout') === '1') {
         try {
             await fetch('photowedding/app.php', {
@@ -136,7 +164,7 @@
             });
         } catch {}
         window.__APP_USER__ = { id: 0, name: '', email: '', phone: '' };
-        window.location.replace('login.html?redirect=index.html');
+        window.location.replace(loginPath);
         return;
     }
 
@@ -153,12 +181,12 @@
     const isLoggedIn = Boolean((window.__APP_USER__ || {}).id);
 
     if (!isGuestOrFolderMode && !isLoggedIn) {
-        window.location.replace('login.html?redirect=index.html');
+        window.location.replace(loginPath);
         return;
     }
 
     if (requestedFolderId && !isLoggedIn && !CONFIG.IS_SHARED_ALBUM) {
-        window.location.replace(`login.html?redirect=${encodeURIComponent(`index.html${window.location.search}`)}`);
+        window.location.replace(`${loginPath}?to=${encodeURIComponent(`./${window.location.search}`)}`);
         return;
     }
 
@@ -177,7 +205,7 @@
 
     const backPortfolioBtn = document.getElementById('guestBackPortfolioBtn');
     if (backPortfolioBtn && urlParams.get('from') === 'portfolio') {
-        backPortfolioBtn.href = 'portfolio.html';
+        backPortfolioBtn.href = portfolioPath;
         backPortfolioBtn.hidden = false;
     }
 
@@ -1023,7 +1051,7 @@
             event.stopPropagation();
             if (window.PhotoSelectAPI?.isMockMode?.()) {
                 localStorage.setItem('photoSelectStaticUserId', '0');
-                window.location.href = './?home=1';
+                window.location.href = window.location.protocol === 'file:' ? 'login.html' : 'login';
                 return;
             }
             window.location.href = './?logout=1';
@@ -1152,7 +1180,7 @@
                     document.getElementById('loginBtnHeader').style.display = 'none';
                     closeAuthModal();
                     if (!CONFIG.IS_SHARED_ALBUM) {
-                        window.location.replace('index.html');
+                        window.location.replace('./');
                         return;
                     }
                     showToast('✅ Đăng nhập thành công');
@@ -1730,10 +1758,11 @@
        async function refreshSharedPermission() {
     if (!isGuestSharedView()) return;
 
-    const shareToken =
-        new URLSearchParams(window.location.search).get('share') || '';
+    const sp = new URLSearchParams(window.location.search);
+    const shareToken = sp.get('share') || '';
+    const shareSlug = sp.get('a') || sp.get('s') || '';
 
-    if (!shareToken) return;
+    if (!shareToken && !shareSlug) return;
 
     try {
         const response = await fetch('photowedding/app.php', {
@@ -1746,7 +1775,8 @@
             },
             body: JSON.stringify({
                 action: 'get_share_permission',
-                share_token: shareToken
+                share_token: shareToken,
+                share_slug: shareSlug
             })
         });
 
