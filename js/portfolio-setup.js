@@ -118,9 +118,10 @@
         return {
             updated_at: full.updated_at,
             studio: {
-                name: global.__APP_USER__?.name || 'TeeMedia Studio',
-                phone: global.__APP_USER__?.phone || '0901 234 567',
-                email: global.__APP_USER__?.email || 'studio@gmail.com'
+                name: global.__APP_USER__?.name || 'TeeMedia Atelier',
+                phone: (!global.__APP_USER__?.phone || global.__APP_USER__?.phone === '0901 234 567') ? '0386 038 930' : global.__APP_USER__.phone,
+                email: (!global.__APP_USER__?.email || global.__APP_USER__?.email === 'studio@gmail.com') ? 'thongtrong10@gmail.com' : global.__APP_USER__.email,
+                zalo: '0386038930'
             },
             albums: visibleAlbums.map(a => ({
                 ...a,

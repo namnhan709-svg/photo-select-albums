@@ -154,7 +154,9 @@
                     id: 1,
                     name: 'TeeMedia Studio',
                     email: 'studio@gmail.com',
-                    phone: '0901 234 567',
+                    phone: '0386 038 930',
+                    contactEmail: 'thongtrong10@gmail.com',
+                    zalo: '0386038930',
                     password: '123456',
                     status: 'active',
                     avatar: ''
@@ -193,7 +195,7 @@
             contracts: [
                 {
                     id: 1, user_id: 1, studioName: 'TeeMedia Studio', contractNumber: 'PS-20261002-001',
-                    studioAddress: '12 Nguyễn Huệ, Quận 1, TP.HCM', studioPhone: '0901 234 567', contractDate: '2026-10-02',
+                    studioAddress: '12 Nguyễn Huệ, Quận 1, TP.HCM', studioPhone: '0386 038 930', contractDate: '2026-10-02',
                     clientName: 'Trần Minh & Ngọc Lan', clientPhone: '0987 654 321', clientEmail: 'minhlan@gmail.com',
                     servicePreset: 'Gói chụp ảnh cưới trọn gói', serviceName: 'Gói chụp ảnh cưới trọn gói', eventType: 'Chụp cưới',
                     shootDate: soonDate, shootDateSecondary: '', shootLocation: 'Đồi thông Đà Lạt & Studio', shootSchedule: 'Chụp ngoại cảnh Đà Lạt',
@@ -207,6 +209,35 @@
                 { id: 1, user_id: 1, name: 'Trần Minh & Ngọc Lan', phone: '0987 654 321', email: 'minhlan@gmail.com', social: '0987654321', packageName: 'Gói chụp ảnh cưới trọn gói', shootDate: soonDate, budget: 25000000, status: 'confirmed', notes: 'Ưu tiên tone màu phim ấm Đà Lạt' },
                 { id: 2, user_id: 1, name: 'Phạm Hoàng Anh', phone: '0909 888 777', email: 'hoanganh@gmail.com', social: '0909888777', packageName: 'Gói đám hỏi & tiệc cưới', shootDate: laterDate, budget: 18500000, status: 'shooting', notes: 'Đang hậu kỳ ảnh lễ gia tiên' },
                 { id: 3, user_id: 1, name: 'Vũ Thảo Vy', phone: '0938 222 111', email: 'thaovy@gmail.com', social: 'thaovy.wedding', packageName: 'Gói chụp studio nghệ thuật', shootDate: '', budget: 9500000, status: 'lead', notes: 'Đang tư vấn concept Minimalist' }
+            ],
+            invoices: [
+                {
+                    id: 1,
+                    user_id: 1,
+                    docType: 'quote',
+                    invoiceNumber: 'BG-20261128-001',
+                    issueDate: '2026-11-28',
+                    dueDate: laterDate,
+                    status: 'quote',
+                    studioName: 'TeeMedia Atelier',
+                    studioPhone: '0386 038 930',
+                    studioEmail: 'thongtrong10@gmail.com',
+                    studioZalo: '0386038930',
+                    clientName: 'Trần Minh & Ngọc Lan',
+                    clientPhone: '0987 654 321',
+                    clientEmail: 'minhlan@gmail.com',
+                    albumName: 'Pre-Wedding Đà Lạt',
+                    discountValue: 0,
+                    discountType: 'vnd',
+                    vatPercent: 0,
+                    depositAmount: 1000000,
+                    notes: 'Báo giá in ấn hoàn thiện từ danh sách ảnh khách đã thả tim. Liên hệ Zalo 0386 038 930 khi cần điều chỉnh kích thước.',
+                    items: [
+                        { name: 'Album Photobook mở phẳng cao cấp', spec: '25×35 cm · 20 trang bìa da', unit: 'Cuốn', qty: 1, price: 1800000 },
+                        { name: 'Ảnh cổng Tráng gương Pha lê', spec: '60×90 cm kèm khung', unit: 'Tấm', qty: 1, price: 950000 },
+                        { name: 'Ảnh ép gỗ Laminate để bàn', spec: '20×30 cm', unit: 'Tấm', qty: 5, price: 80000 }
+                    ]
+                }
             ],
             portfolio: {
                 updated_at: null,
@@ -497,6 +528,7 @@
                         albums: state.albums || [],
                         customers: state.customers || [],
                         contracts: state.contracts || [],
+                        invoices: state.invoices || [],
                         photographers: state.photographers || [],
                         notifications: state.notifications || [],
                         portfolio: normalizePortfolioConfig(state.portfolio),
@@ -537,6 +569,15 @@
                 );
                 state.contracts = contractsMerge.items;
                 if (contractsMerge.dirty) shouldPush = true;
+
+                const invoicesMerge = mergeWorkspaceArray(
+                    state.invoices,
+                    cloudWs.invoices,
+                    inv => String(inv?.invoiceNumber || inv?.id || '').trim().toLowerCase(),
+                    inv => Number(inv?.id || 0) <= 1
+                );
+                state.invoices = invoicesMerge.items;
+                if (invoicesMerge.dirty) shouldPush = true;
 
                 const photographersMerge = mergeWorkspaceArray(
                     state.photographers,
@@ -581,6 +622,7 @@
                     ...(state.albums || []),
                     ...(state.customers || []),
                     ...(state.contracts || []),
+                    ...(state.invoices || []),
                     ...(state.photographers || []),
                     ...(state.notifications || [])
                 ].reduce((acc, item) => Math.max(acc, Number(item?.id || 0)), Number(state.nextId || 200));
@@ -593,6 +635,7 @@
                         albums: state.albums || [],
                         customers: state.customers || [],
                         contracts: state.contracts || [],
+                        invoices: state.invoices || [],
                         photographers: state.photographers || [],
                         notifications: state.notifications || [],
                         portfolio: normalizePortfolioConfig(state.portfolio),
@@ -762,10 +805,14 @@
 
             case 'load_public_portfolio': {
                 const portfolio = normalizePortfolioConfig(state.portfolio);
-                const primaryUser = (state.users || [])[0] || { name: 'TeeMedia Studio', phone: '0901 234 567', email: 'studio@gmail.com' };
+                const primaryUser = (state.users || [])[0] || { name: 'TeeMedia Studio', phone: '0386 038 930', contactEmail: 'thongtrong10@gmail.com' };
                 const studioName = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(String(primaryUser.name || ''))
                     ? 'TeeMedia Studio'
                     : (primaryUser.name || 'TeeMedia Studio');
+                const resolvedPhone = (!primaryUser.phone || primaryUser.phone === '0901 234 567') ? '0386 038 930' : primaryUser.phone;
+                const resolvedEmail = primaryUser.contactEmail
+                    || ((!primaryUser.email || primaryUser.email === 'studio@gmail.com') ? 'thongtrong10@gmail.com' : primaryUser.email);
+                const resolvedZalo = String(primaryUser.zalo || resolvedPhone || '0386038930').replace(/\D+/g, '') || '0386038930';
 
                 const visibleAlbums = portfolio.albums
                     .filter(a => a.visible !== false && Array.isArray(a.photos) && a.photos.length > 0)
@@ -805,8 +852,9 @@
                     subtitle: portfolio.subtitle || '',
                     studio: {
                         name: studioName,
-                        phone: primaryUser.phone || '0901 234 567',
-                        email: primaryUser.email || 'studio@gmail.com'
+                        phone: resolvedPhone,
+                        email: resolvedEmail,
+                        zalo: resolvedZalo
                     },
                     albums,
                     photos: finalPhotos
@@ -1175,6 +1223,38 @@
                 state.contracts = (state.contracts || []).filter(x => String(x.id) !== String(payload.id));
                 saveMockState(state);
                 await pushWorkspaceSection('contracts', state.contracts);
+                return { success: true };
+
+            case 'invoices_list':
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
+                return { success: true, invoices: state.invoices || [] };
+
+            case 'invoices_save': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
+                const inv = { ...(payload.invoice || {}), user_id: user.id || 1, updated_at: new Date().toISOString() };
+                state.invoices = Array.isArray(state.invoices) ? state.invoices : [];
+                if (inv.id) {
+                    const idx = state.invoices.findIndex(x => String(x.id) === String(inv.id));
+                    if (idx >= 0) {
+                        state.invoices[idx] = { ...state.invoices[idx], ...inv };
+                    } else {
+                        state.invoices.unshift(inv);
+                    }
+                } else {
+                    inv.id = ++state.nextId;
+                    inv.created_at = new Date().toISOString();
+                    state.invoices.unshift(inv);
+                }
+                saveMockState(state);
+                await pushWorkspaceSection('invoices', state.invoices);
+                return { success: true, invoice: inv };
+            }
+
+            case 'invoices_delete':
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
+                state.invoices = (state.invoices || []).filter(x => String(x.id) !== String(payload.id));
+                saveMockState(state);
+                await pushWorkspaceSection('invoices', state.invoices);
                 return { success: true };
 
             case 'customers_list':

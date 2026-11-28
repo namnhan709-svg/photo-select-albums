@@ -25,7 +25,7 @@
     }
 
     const state = {
-        studio: { name: 'TeeMedia Atelier', phone: '0901 234 567', email: 'studio@gmail.com' },
+        studio: { name: 'TeeMedia Atelier', phone: '0386 038 930', email: 'thongtrong10@gmail.com', zalo: '0386038930' },
         albums: [],
         photos: [],
         activeAlbumId: 'all',
@@ -95,16 +95,26 @@
         const photoStat = document.getElementById('portfolioPhotoCountStat');
         const phoneEl = document.getElementById('portfolioContactPhone');
         const emailEl = document.getElementById('portfolioContactEmail');
+        const zaloEl = document.getElementById('portfolioContactZalo');
         if (albumStat) albumStat.textContent = String(state.albums.length);
         if (photoStat) photoStat.textContent = String(state.photos.length);
-        if (phoneEl && state.studio.phone) {
-            phoneEl.textContent = state.studio.phone;
-            phoneEl.href = `tel:${state.studio.phone.replace(/\s+/g, '')}`;
+        const cleanPhone = (!state.studio.phone || state.studio.phone === '0901 234 567') ? '0386 038 930' : state.studio.phone;
+        const cleanEmail = (!state.studio.email || state.studio.email === 'studio@gmail.com') ? 'thongtrong10@gmail.com' : state.studio.email;
+        const cleanZalo = String(state.studio.zalo || cleanPhone || '0386038930').replace(/\D+/g, '') || '0386038930';
+        if (phoneEl) {
+            phoneEl.textContent = cleanPhone;
+            phoneEl.href = `tel:${cleanPhone.replace(/\s+/g, '')}`;
         }
-        if (emailEl && state.studio.email) {
-            emailEl.textContent = state.studio.email;
-            emailEl.href = `mailto:${state.studio.email}`;
+        if (emailEl) {
+            emailEl.textContent = cleanEmail;
+            emailEl.href = `mailto:${cleanEmail}`;
         }
+        if (zaloEl) {
+            zaloEl.href = `https://zalo.me/${cleanZalo}`;
+        }
+        document.querySelectorAll('[data-studio-zalo-link]').forEach(link => {
+            link.href = `https://zalo.me/${cleanZalo}`;
+        });
     }
 
     function syncAlbumQueryUrl() {

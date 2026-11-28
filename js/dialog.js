@@ -52,7 +52,7 @@
                             <input name="email" type="email" required placeholder="nhanvien@teemedia.vn">
                         </label>
                         <label>Số điện thoại
-                            <input name="phone" type="tel" placeholder="0901 234 567">
+                            <input name="phone" type="tel" placeholder="0386 038 930">
                         </label>
                         <label>Mật khẩu cấp (tối thiểu 6 ký tự)
                             <input name="password" type="password" minlength="6" required placeholder="Nhập mật khẩu cấp">
