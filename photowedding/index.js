@@ -88,7 +88,7 @@
                             f: result.share.folder_id,
                             n: result.share.album_name || 'Album ảnh',
                             a: result.share.allow_save,
-                            o: result.share.owner_name || 'TeeMedia Atelier',
+                            o: result.share.owner_name || 'selectphoto',
                             ch: result.share.access_code_hash || ''
                         };
                         unlockSeed = `slug:${slugParam}`;
@@ -133,9 +133,9 @@
 
             CONFIG.DRIVE_FOLDER_ID = String(payload.f);
             CONFIG.ALBUM_NAME = String(payload.n || 'Album ảnh');
-            const rawOwner = String(payload.o || 'TeeMedia Studio').trim();
-            CONFIG.OWNER_NAME = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(rawOwner)
-                ? 'TeeMedia Studio'
+            const rawOwner = String(payload.o || 'selectphoto').trim();
+            CONFIG.OWNER_NAME = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame|teemedia)/i.test(rawOwner)
+                ? 'selectphoto'
                 : rawOwner;
             CONFIG.IS_SHARED_ALBUM = true;
             CONFIG.SHARED_OWNER_USER_ID = 1;
@@ -266,8 +266,8 @@
     if ((window.__APP_USER__ || {}).id) {
         loadUserAlbums();
         if (!isGuestOrFolderMode) {
-            window.__TEEMEDIA_STUDIO_HOME_READY__ = window.__APP_USER__;
-            window.dispatchEvent(new CustomEvent('teemedia:studio-home-ready', { detail: window.__APP_USER__ }));
+            window.__SELECTPHOTO_STUDIO_HOME_READY__ = window.__APP_USER__;
+            window.dispatchEvent(new CustomEvent('selectphoto:studio-home-ready', { detail: window.__APP_USER__ }));
         }
     }
 
@@ -466,6 +466,24 @@
             document.getElementById('drivePermissionGuideClose').addEventListener('click', closeDrivePermissionGuide);
             document.getElementById('drivePermissionGuideDone').addEventListener('click', closeDrivePermissionGuide);
             document.getElementById('toolbarCopyBtn').addEventListener('click', openQuickFilter);
+            document.getElementById('quickFilterTxtBtn')?.addEventListener('click', () => document.getElementById('quickFilterTxtInput')?.click());
+            document.getElementById('quickFilterTxtInput')?.addEventListener('change', async event => {
+                const file = event.target.files?.[0];
+                if (file) {
+                    const text = await file.text();
+                    const area = document.getElementById('quickFilterTxtArea');
+                    const nameEl = document.getElementById('quickFilterTxtName');
+                    const subInput = document.getElementById('quickFilterSubfolderName');
+                    if (area) area.value = text;
+                    if (nameEl) nameEl.textContent = file.name;
+                    if (subInput && (!subInput.value.trim() || subInput.value.trim() === 'Anh_Da_Chon')) {
+                        const stem = String(file.name || '').replace(/\.[^.]+$/, '').replace(/-danh-sach-anh$/i, '');
+                        subInput.value = window.PhotoSelectLocalFilter?.sanitizeFolderName(`${stem}_Da_Chon`, 'Anh_Da_Chon') || 'Anh_Da_Chon';
+                    }
+                }
+                event.target.value = '';
+            });
+            document.getElementById('quickFilterAutoSubfolder')?.addEventListener('change', syncHomeQuickFilterSubfolderUI);
             document.getElementById('quickFilterSourceBtn').addEventListener('click', chooseQuickFilterSource);
             document.getElementById('quickFilterDestinationBtn').addEventListener('click', chooseQuickFilterDestination);
             document.getElementById('quickFilterCancel').addEventListener('click', closeQuickFilter);
@@ -1950,9 +1968,9 @@ if (!previousPermission && window.__SHARED_ALBUM_ALLOW_SAVE__) {
             if (!section || !strip || !CONFIG.IS_SHARED_ALBUM) return;
 
             if (studioPill) {
-                const ownerLabel = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(String(CONFIG.OWNER_NAME || ''))
-                    ? 'TeeMedia Studio'
-                    : (CONFIG.OWNER_NAME || 'TeeMedia Studio');
+                const ownerLabel = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame|teemedia)/i.test(String(CONFIG.OWNER_NAME || ''))
+                    ? 'selectphoto'
+                    : (CONFIG.OWNER_NAME || 'selectphoto');
                 studioPill.textContent = `✨ ${ownerLabel} · GALLERY`;
             }
 
@@ -3658,47 +3676,50 @@ function updateStats() {
                 .filter(Boolean);
         }
 
-        function normalizeQuickFilterName(fileName) {
-            const name = String(fileName || '').trim().normalize('NFC').toLocaleLowerCase();
-            const extensionIndex = name.lastIndexOf('.');
-            const stem = extensionIndex > 0 ? name.slice(0, extensionIndex) : name;
-            return stem.replace(/[\s._-]+/g, '');
-        }
-
-        function normalizeQuickFilterFullName(fileName) {
-            const name = String(fileName || '').trim().normalize('NFC').toLocaleLowerCase();
-            const extensionIndex = name.lastIndexOf('.');
-            const stem = extensionIndex > 0 ? name.slice(0, extensionIndex) : name;
-            return stem.replace(/[\s._-]+/g, '');
+        function syncHomeQuickFilterSubfolderUI() {
+            const autoChecked = Boolean(document.getElementById('quickFilterAutoSubfolder')?.checked);
+            const subRow = document.getElementById('quickFilterSubfolderRow');
+            const customRow = document.getElementById('quickFilterCustomDestRow');
+            if (subRow) subRow.hidden = !autoChecked;
+            if (customRow) customRow.hidden = autoChecked;
         }
 
         async function openQuickFilter() {
-    if (!ensureAlbumAllowsSave('lọc và lưu ảnh')) return;
-    quickFilterRunId += 1;
-    resetActionCounter();
-    
-    // Đảm bảo đồng bộ dữ liệu chọn mới nhất trước khi hiển thị số liệu lên bảng lọc
-    await sharedSelectionsReady;
+            if (!ensureAlbumAllowsSave('lọc và lưu ảnh')) return;
+            quickFilterRunId += 1;
+            resetActionCounter();
 
-    const favoriteFileNames = getFavoriteFileNames();
-    const selectedCount = favoriteFileNames.length;
-    
-    const summary = document.getElementById('quickFilterSummary');
-    const status = document.getElementById('quickFilterStatus');
-    
-    summary.textContent = selectedCount
-        ? `${selectedCount} tên file ảnh yêu thích hiện tại sẽ được so sánh chính xác với ảnh trong thư mục nguồn.`
-        : 'Chưa có ảnh yêu thích nào được chọn để so sánh tên file.';
-        
-    status.textContent = window.showDirectoryPicker
-        ? ''
-        : 'Trình duyệt hiện tại không hỗ trợ chọn thư mục. Hãy dùng Chrome hoặc Edge.';
-    status.classList.remove('error');
-    
-    document.getElementById('quickFilterStart').disabled = false;
-    status.classList.toggle('error', !window.showDirectoryPicker);
-    document.getElementById('quickFilterModal').classList.add('active');
-}
+            await sharedSelectionsReady;
+
+            const favoriteFileNames = getFavoriteFileNames();
+            const selectedCount = favoriteFileNames.length;
+            const summary = document.getElementById('quickFilterSummary');
+            const status = document.getElementById('quickFilterStatus');
+            const txtArea = document.getElementById('quickFilterTxtArea');
+            const txtNameEl = document.getElementById('quickFilterTxtName');
+            const subInput = document.getElementById('quickFilterSubfolderName');
+
+            if (txtArea && selectedCount && !txtArea.value.trim()) {
+                txtArea.value = favoriteFileNames.join('\n');
+                if (txtNameEl) txtNameEl.textContent = `Đang dùng ${selectedCount} ảnh yêu thích`;
+            }
+            const rawAlbumName = (document.getElementById('albumName')?.textContent || '').trim();
+            if (subInput && rawAlbumName && (!subInput.value.trim() || subInput.value.trim() === 'Anh_Da_Chon')) {
+                subInput.value = window.PhotoSelectLocalFilter?.sanitizeFolderName(`${rawAlbumName}_Da_Chon`, 'Anh_Da_Chon') || 'Anh_Da_Chon';
+            }
+
+            summary.textContent = selectedCount
+                ? `${selectedCount} ảnh yêu thích đã được điền sẵn. Bạn cũng có thể chọn file .txt khác để lọc và copy kèm RAW.`
+                : 'Chọn file .txt hoặc dán danh sách tên ảnh để lọc và copy kèm file RAW vào thư mục con.';
+
+            status.textContent = window.showDirectoryPicker
+                ? ''
+                : 'Trình duyệt hiện tại không hỗ trợ chọn thư mục. Hãy dùng Chrome hoặc Edge.';
+            status.classList.toggle('error', !window.showDirectoryPicker);
+            syncHomeQuickFilterSubfolderUI();
+            document.getElementById('quickFilterStart').disabled = false;
+            document.getElementById('quickFilterModal').classList.add('active');
+        }
 
         function closeQuickFilter() {
             document.getElementById('quickFilterModal').classList.remove('active');
@@ -3707,7 +3728,8 @@ function updateStats() {
         async function chooseQuickFilterSource() {
             if (!window.showDirectoryPicker) return;
             try {
-                quickFilterSourceHandle = await window.showDirectoryPicker({ mode: 'read' });
+                const autoSub = Boolean(document.getElementById('quickFilterAutoSubfolder')?.checked);
+                quickFilterSourceHandle = await window.showDirectoryPicker({ mode: autoSub ? 'readwrite' : 'read' });
                 const sourceName = document.getElementById('quickFilterSourceName');
                 sourceName.textContent = `Đã chọn thư mục: ${quickFilterSourceHandle.name}`;
                 sourceName.title = quickFilterSourceHandle.name;
@@ -3719,24 +3741,13 @@ function updateStats() {
         async function chooseQuickFilterDestination() {
             if (!window.showDirectoryPicker) return;
             try {
-                // Chỉ xin quyền đọc khi chọn; quyền ghi sẽ được xin đúng lúc bắt đầu copy.
-                quickFilterDestinationHandle = await window.showDirectoryPicker({ mode: 'read' });
+                quickFilterDestinationHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
                 const destinationName = document.getElementById('quickFilterDestinationName');
                 destinationName.textContent = `Đã chọn thư mục: ${quickFilterDestinationHandle.name}`;
                 destinationName.title = quickFilterDestinationHandle.name;
             } catch (error) {
                 quickFilterDestinationHandle = null;
             }
-        }
-
-        async function ensureQuickFilterPermission(directoryHandle, mode) {
-            if (!directoryHandle || typeof directoryHandle.queryPermission !== 'function') return true;
-            const options = { mode };
-            let permission = await directoryHandle.queryPermission(options);
-            if (permission === 'granted') return true;
-            if (typeof directoryHandle.requestPermission !== 'function') return false;
-            permission = await directoryHandle.requestPermission(options);
-            return permission === 'granted';
         }
 
         function showQuickFilterStatus(message, isError = false) {
@@ -3747,33 +3758,6 @@ function updateStats() {
 
         function resetActionCounter() {
             document.getElementById('copiedCount').textContent = '0';
-        }
-
-        function isImageFile(fileName) {
-            return /\.(3fr|arw|avif|bay|bmp|braw|cap|cin|cr2|cr3|crw|dcr|dib|dng|erf|exr|fff|gif|heic|heif|heifs|heix|hif|iiq|jpeg|jpg|jpe|jp2|j2k|k25|kdc|mef|mos|mrw|nef|nrw|orf|pbm|pcx|pef|png|psd|raf|raw|rle|rw2|rwl|sr2|srf|srw|svg|tga|tif|tiff|webp|x3f)$/i.test(fileName);
-        }
-
-        async function collectQuickFilterFiles(directoryHandle) {
-            const files = [];
-            for await (const entry of directoryHandle.values()) {
-                if (entry.kind === 'file') {
-                    files.push(entry);
-                } else if (entry.kind === 'directory') {
-                    files.push(...await collectQuickFilterFiles(entry));
-                }
-            }
-            return files;
-        }
-
-        async function copyQuickFilterFile(fileHandle, destinationHandle) {
-            const file = await fileHandle.getFile();
-            const targetHandle = await destinationHandle.getFileHandle(file.name, { create: true });
-            const writable = await targetHandle.createWritable();
-            try {
-                await writable.write(file);
-            } finally {
-                await writable.close();
-            }
         }
 
         function downloadQuickFilterErrorReport(missingNames = [], copyErrors = [], generalErrors = []) {
@@ -3810,147 +3794,78 @@ function updateStats() {
             }, 1200);
         }
 
-async function startQuickFilter() {
-    if (!ensureAlbumAllowsSave('lọc và lưu ảnh')) return;
-    resetActionCounter();
-    await sharedSelectionsReady;
-    
-    const favoriteFileNames = getFavoriteFileNames();
-    if (!favoriteFileNames.length) {
-        showQuickFilterStatus('Chưa có tên file từ ảnh yêu thích để lọc.', true);
-        return;
-    }
-    if (!quickFilterSourceHandle || !quickFilterDestinationHandle) {
-        showQuickFilterStatus('Vui lòng chọn cả thư mục nguồn và thư mục lưu.', true);
-        return;
-    }
+        async function startQuickFilter() {
+            if (!ensureAlbumAllowsSave('lọc và lưu ảnh')) return;
+            resetActionCounter();
+            await sharedSelectionsReady;
 
-    const startButton = document.getElementById('quickFilterStart');
-    const runId = ++quickFilterRunId;
-    let missingNames = [];
-    const copyErrors = [];
-    startButton.disabled = true;
-    
-    try {
-        const canReadSource = await ensureQuickFilterPermission(quickFilterSourceHandle, 'read');
-        const canWriteDestination = await ensureQuickFilterPermission(quickFilterDestinationHandle, 'readwrite');
-        if (!canReadSource || !canWriteDestination) {
-            throw new Error('Chưa được cấp quyền truy cập thư mục.');
-        }
+            const LocalFilter = window.PhotoSelectLocalFilter;
+            if (!LocalFilter) {
+                showQuickFilterStatus('Không tìm thấy module lọc ảnh cục bộ.', true);
+                return;
+            }
 
-        showQuickFilterStatus('Đang quét danh sách ảnh trong thư mục nguồn...');
-        const sourceFiles = await collectQuickFilterFiles(quickFilterSourceHandle);
-        if (runId !== quickFilterRunId) return;
-        
-        const sourceFilesByFullName = new Map();
-        const sourceFilesByName = new Map();
-        sourceFiles.forEach(fileHandle => {
-            const fullName = normalizeQuickFilterFullName(fileHandle.name);
-            const exactFiles = sourceFilesByFullName.get(fullName) || [];
-            exactFiles.push(fileHandle);
-            sourceFilesByFullName.set(fullName, exactFiles);
-            const normalizedName = normalizeQuickFilterName(fileHandle.name);
-            const matchingFiles = sourceFilesByName.get(normalizedName) || [];
-            matchingFiles.push(fileHandle);
-            sourceFilesByName.set(normalizedName, matchingFiles);
-        });
-        
-        const usedSourceFiles = new Set();
-        const successfulCopiedNames = []; // Mảng lưu tên các file đã copy thành công
-        
-        const matchedFiles = favoriteFileNames
-            .map(favoriteName => {
-                const exactFiles = sourceFilesByFullName.get(normalizeQuickFilterFullName(favoriteName)) || [];
-                const stemFiles = sourceFilesByName.get(normalizeQuickFilterName(favoriteName)) || [];
-                const fileHandle = [...exactFiles, ...stemFiles]
-                    .find(candidate => !usedSourceFiles.has(candidate)) || null;
-                if (fileHandle) usedSourceFiles.add(fileHandle);
-                return { favoriteName, fileHandle };
-            });
-            
-        missingNames = matchedFiles
-            .filter(item => !item.fileHandle)
-            .map(item => item.favoriteName);
-        const filesToCopy = matchedFiles
-            .map(item => item.fileHandle)
-            .filter(Boolean);
-            
-        const totalToProcess = favoriteFileNames.length;
+            const txtValue = document.getElementById('quickFilterTxtArea')?.value || '';
+            const entries = txtValue.trim()
+                ? LocalFilter.parseTargetList(txtValue)
+                : getFavoriteFileNames();
 
-        if (!filesToCopy.length) {
-            downloadQuickFilterErrorReport(missingNames);
-            document.getElementById('copiedCount').textContent = '0 / ' + totalToProcess;
-            showQuickFilterStatus('Đã lọc và tìm thấy 0 / ' + totalToProcess + ' ảnh trong thư mục nguồn. Đã tải báo cáo lỗi .txt.', true);
-            return;
-        }
-        
-        let copiedCount = 0;
-        for (let index = 0; index < filesToCopy.length; index += 1) {
-            if (runId !== quickFilterRunId) return;
-            
-            showQuickFilterStatus('Đang copy (' + (copiedCount + 1) + ' / ' + totalToProcess + '): ' + filesToCopy[index].name);
-            
+            if (!entries.length) {
+                showQuickFilterStatus('Vui lòng chọn file .txt hoặc chọn ít nhất 1 ảnh yêu thích để lọc.', true);
+                return;
+            }
+            if (!quickFilterSourceHandle) {
+                showQuickFilterStatus('Vui lòng chọn thư mục chứa ảnh trong máy.', true);
+                return;
+            }
+
+            const createSubfolderInsideSource = Boolean(document.getElementById('quickFilterAutoSubfolder')?.checked);
+            const subfolderName = document.getElementById('quickFilterSubfolderName')?.value || 'Anh_Da_Chon';
+            const includeRaw = Boolean(document.getElementById('quickFilterIncludeRaw')?.checked);
+
+            if (!createSubfolderInsideSource && !quickFilterDestinationHandle) {
+                showQuickFilterStatus('Vui lòng chọn thư mục lưu hoặc bật tự động tạo thư mục con.', true);
+                return;
+            }
+
+            const startButton = document.getElementById('quickFilterStart');
+            const runId = ++quickFilterRunId;
+            startButton.disabled = true;
+
             try {
-                await copyQuickFilterFile(filesToCopy[index], quickFilterDestinationHandle);
-                copiedCount += 1;
-                successfulCopiedNames.push(filesToCopy[index].name);
-                
-                document.getElementById('copiedCount').textContent = copiedCount + ' / ' + totalToProcess;
+                const summary = await LocalFilter.runFilterAndCopy({
+                    entries,
+                    sourceHandle: quickFilterSourceHandle,
+                    destinationHandle: quickFilterDestinationHandle,
+                    createSubfolderInsideSource,
+                    subfolderName,
+                    includeRaw,
+                    isCancelled: () => runId !== quickFilterRunId,
+                    onProgress: message => {
+                        if (runId === quickFilterRunId) showQuickFilterStatus(message);
+                    }
+                });
+                if (summary.cancelled || runId !== quickFilterRunId) return;
+
+                document.getElementById('copiedCount').textContent = `${summary.copiedCount} / ${summary.totalEntries}`;
+                if (summary.missingEntries.length || summary.copyErrors.length) {
+                    downloadQuickFilterErrorReport(summary.missingEntries, summary.copyErrors);
+                }
+
+                const rawLabel = includeRaw ? `, ${summary.rawCount} RAW` : '';
+                const missLabel = summary.missingEntries.length ? `, thiếu ${summary.missingEntries.length}` : '';
+                showQuickFilterStatus(`Hoàn tất! Khớp ${summary.matchedEntryCount}/${summary.totalEntries} mục → đã copy ${summary.copiedCount} file (${summary.primaryCount} ảnh${rawLabel}) vào "${summary.outputFolderLabel}"${missLabel}.`);
+                showToast(`✅ Đã copy ${summary.copiedCount} file vào ${summary.outputFolderLabel}`);
             } catch (error) {
-                copyErrors.push(filesToCopy[index].name + ': ' + (error.message || 'Không thể copy file'));
+                console.warn('Không thể lọc và copy ảnh.', error);
+                downloadQuickFilterErrorReport([], [], [error.message || 'Không thể lọc ảnh']);
+                showQuickFilterStatus(error.message || 'Lọc ảnh gặp lỗi. Đã tải báo cáo lỗi .txt.', true);
+            } finally {
+                if (runId === quickFilterRunId) {
+                    startButton.disabled = false;
+                }
             }
         }
-        
-        if (runId !== quickFilterRunId) return;
-        
-        // TỰ ĐỘNG TẠO FILE .TXT LẤY TÊN THEO TÊN HIỂN THỊ ALBUM VÀO THƯ MỤC LƯU
-        if (successfulCopiedNames.length > 0 && typeof quickFilterDestinationHandle.getFileHandle === 'function') {
-            try {
-                showQuickFilterStatus('Đang tạo file kết quả .txt trong thư mục lưu...');
-                
-                // Lấy tên album hiện tại và làm sạch ký tự đặc biệt để làm tên file an toàn
-                const rawAlbumName = (document.getElementById('albumName')?.textContent || '').trim() || 'danh-sach-anh';
-                const sanitizedAlbumName = rawAlbumName
-                    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_')
-                    .replace(/\s+/g, '_')
-                    .replace(/_+/g, '_')
-                    .replace(/^_+|_+$/g, '') || 'danh-sach-anh';
-                
-                const resultFileName = sanitizedAlbumName + '.txt';
-                const resultFileHandle = await quickFilterDestinationHandle.getFileHandle(resultFileName, { create: true });
-                const writable = await resultFileHandle.createWritable();
-                
-                const reportContent = [
-                    'DANH SÁCH ẢNH ĐÃ LỌC - ' + rawAlbumName,
-                    'Thời gian: ' + new Date().toLocaleString('vi-VN'),
-                    'Tổng số ảnh đã copy: ' + copiedCount + ' / ' + totalToProcess,
-                    '----------------------------------------',
-                    ...successfulCopiedNames
-                ].join('\n');
-                
-                await writable.write(reportContent);
-                await writable.close();
-            } catch (txtError) {
-                console.warn('Không thể tự động tạo file .txt vào thư mục đích.', txtError);
-            }
-        }
-
-        if (missingNames.length || copyErrors.length) {
-            downloadQuickFilterErrorReport(missingNames, copyErrors);
-        }
-        
-        showQuickFilterStatus('Hoàn tất! Đã lọc, copy thành công ' + copiedCount + ' / ' + totalToProcess + ' ảnh và tạo file .txt kết quả.');
-        showToast('✅ Đã lọc thành công ' + copiedCount + ' / ' + totalToProcess + ' ảnh');
-    } catch (error) {
-        console.warn('Không thể lọc và copy ảnh.', error);
-        downloadQuickFilterErrorReport(missingNames, copyErrors, [error.message || 'Không thể lọc ảnh']);
-        showQuickFilterStatus('Lọc ảnh gặp lỗi. Đã tải báo cáo lỗi .txt.', true);
-    } finally {
-        if (runId === quickFilterRunId) {
-            startButton.disabled = false;
-        }
-    }
-}
 
         function downloadExport() {
             const text = getExportText();

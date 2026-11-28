@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * TeeMedia - Full PHP 8+ Backend (SQLite PDO + Google Drive Proxy).
+ * selectphoto - Full PHP 8+ Backend (SQLite PDO + Google Drive Proxy).
  * Sử dụng khi triển khai trên Apache/LiteSpeed/PHP 8.2+.
  */
 session_start();
@@ -146,7 +146,7 @@ if (($_GET['google'] ?? '') === 'login') {
     if (!$first) {
         $hash = password_hash('123456', PASSWORD_DEFAULT);
         $pdo->prepare('INSERT INTO users (name, email, phone, password_hash) VALUES (?, ?, ?, ?)')
-            ->execute(['TeeMedia Studio', 'studio@gmail.com', '0386 038 930', $hash]);
+            ->execute(['selectphoto', 'studio@gmail.com', '0386 038 930', $hash]);
         $_SESSION['user_id'] = (int)$pdo->lastInsertId();
     } else {
         $_SESSION['user_id'] = (int)$first['id'];
@@ -240,7 +240,7 @@ switch ($action) {
         jsonOut(['success' => true, 'message' => 'Đăng nhập thành công.', 'user' => $row]);
 
     case 'register':
-        jsonOut(['success' => false, 'message' => 'Chức năng đăng ký tự do đã tắt. Chỉ quản trị viên TeeMedia Studio mới có quyền cấp tài khoản.'], 403);
+        jsonOut(['success' => false, 'message' => 'Chức năng đăng ký tự do đã tắt. Chỉ quản trị viên selectphoto mới có quyền cấp tài khoản.'], 403);
 
     case 'change_password':
         if ($uid <= 0) { http_response_code(401); echo 'Vui lòng đăng nhập.'; exit; }
