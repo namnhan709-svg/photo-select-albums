@@ -128,18 +128,23 @@ function Initialize-Database {
         )
         invoices = @(
             @{
-                id = 1; user_id = 1; docType = 'quote'; invoiceNumber = 'BG-20261128-001'
-                issueDate = '2026-11-28'; dueDate = $laterDate; status = 'quote'
-                studioName = 'TeeMedia Atelier'; studioPhone = '0386 038 930'; studioEmail = 'thongtrong10@gmail.com'; studioZalo = '0386038930'
-                clientName = 'Trần Minh & Ngọc Lan'; clientPhone = '0987 654 321'; clientEmail = 'minhlan@gmail.com'
-                albumName = 'Pre-Wedding Đà Lạt'; discountValue = 0; discountType = 'vnd'; vatPercent = 0; depositAmount = 1000000
-                notes = 'Báo giá in ấn hoàn thiện từ danh sách ảnh khách đã thả tim.'
+                id = 1; user_id = 1; invoiceNumber = 'HD-20261128-001'
+                issueDate = '2026-11-28'; studioName = 'TeeMedia'; studioAddress = '81/62 Ngô Mây, Quy Nhơn Nam'; studioPhone = '0386038930'
+                clientName = 'Trần Minh & Ngọc Lan'; clientPhone = '0987 654 321'; clientAddress = 'Quy Nhơn, Bình Định'
                 items = @(
-                    @{ name = 'Album Photobook mở phẳng cao cấp'; spec = '25x35 cm · 20 trang bìa da'; unit = 'Cuốn'; qty = 1; price = 1800000 },
-                    @{ name = 'Ảnh cổng Tráng gương Pha lê'; spec = '60x90 cm kèm khung'; unit = 'Tấm'; qty = 1; price = 950000 }
+                    @{ name = 'Album Photobook 25×35 cm (20 trang)'; qty = 1; price = 1800000; note = 'Bìa da cao cấp' },
+                    @{ name = 'Ảnh cổng Pha lê 60×90 cm'; qty = 1; price = 950000; note = 'Kèm khung' }
                 )
                 created_at = (Get-NowIso)
             }
+        )
+        invoiceCatalog = @(
+            @{ id = 'cat-1318'; name = 'In ảnh ép lụa 13×18 cm'; price = 15000; note = 'Ép lụa mịn' },
+            @{ id = 'cat-1521'; name = 'In ảnh ép lụa 15×21 cm'; price = 25000; note = 'Ép lụa mịn' },
+            @{ id = 'cat-go-2030'; name = 'Ảnh ép gỗ 20×30 cm'; price = 80000; note = 'Gỗ Laminate' },
+            @{ id = 'cat-go-3045'; name = 'Ảnh ép gỗ 30×45 cm'; price = 180000; note = 'Gỗ Laminate' },
+            @{ id = 'cat-cong-6090'; name = 'Ảnh cổng Pha lê 60×90 cm'; price = 950000; note = 'Tráng gương kèm khung' },
+            @{ id = 'cat-pb-2535'; name = 'Album Photobook 25×35 cm (20 trang)'; price = 1800000; note = 'Mở phẳng bìa da' }
         )
         customers = @(
             @{ id = 1; user_id = 1; name = 'Trần Minh & Ngọc Lan'; phone = '0987 654 321'; email = 'minhlan@gmail.com'; social = '0987654321'; packageName = 'Gói chụp ảnh cưới trọn gói'; shootDate = $soonDate; budget = 25000000; status = 'confirmed'; notes = 'Ưu tiên tone màu phim ấm Đà Lạt'; created_at = (Get-NowIso) },
@@ -1224,6 +1229,21 @@ function Handle-ApiRequest($Context, $Db, $SessionCtx) {
                 Save-Db $Db
             }
             Send-Json $Context 200 @{ success = $true }
+            return
+        }
+
+        'invoice_catalog_load' {
+            if ($uid -le 0) { Send-Json $Context 401 @{ success = $false; message = 'Vui lòng đăng nhập.' }; return }
+            $cat = if ($Db.ContainsKey('invoiceCatalog')) { @($Db['invoiceCatalog']) } else { @() }
+            Send-Json $Context 200 @{ success = $true; catalog = $cat }
+            return
+        }
+
+        'invoice_catalog_save' {
+            if ($uid -le 0) { Send-Json $Context 401 @{ success = $false; message = 'Vui lòng đăng nhập.' }; return }
+            $Db['invoiceCatalog'] = if ($body['catalog']) { @($body['catalog']) } else { @() }
+            Save-Db $Db
+            Send-Json $Context 200 @{ success = $true; catalog = @($Db['invoiceCatalog']) }
             return
         }
 
