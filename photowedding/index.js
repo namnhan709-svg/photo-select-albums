@@ -142,10 +142,9 @@
 
     await restoreUserSession();
 
-    const isExplicitHomeRequest = new URLSearchParams(window.location.search).get('home') === '1';
-    if (!CONFIG.IS_SHARED_ALBUM && !isExplicitHomeRequest && (window.__APP_USER__ || {}).id) {
-        window.location.replace('albums.html');
-        return;
+    const backPortfolioBtn = document.getElementById('guestBackPortfolioBtn');
+    if (backPortfolioBtn && new URLSearchParams(window.location.search).get('from') === 'portfolio') {
+        backPortfolioBtn.hidden = false;
     }
 
     document.body.classList.toggle(
