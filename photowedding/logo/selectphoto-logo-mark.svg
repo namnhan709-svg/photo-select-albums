@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="selectphoto Logo">
+  <defs>
+    <linearGradient id="spBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1D1916"/>
+      <stop offset="100%" stop-color="#0F0D0B"/>
+    </linearGradient>
+    <linearGradient id="spGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E7BD82"/>
+      <stop offset="55%" stop-color="#C88A4B"/>
+      <stop offset="100%" stop-color="#9E652E"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#spBg)"/>
+  <rect x="10" y="10" width="108" height="108" rx="22" fill="none" stroke="url(#spGold)" stroke-opacity="0.32" stroke-width="1.5"/>
+  <circle cx="64" cy="64" r="42" fill="none" stroke="url(#spGold)" stroke-width="2.4" stroke-dasharray="18 7"/>
+  <g fill="none" stroke="url(#spGold)" stroke-width="2.5" stroke-linecap="round">
+    <path d="M22 36V22h14"/>
+    <path d="M92 22h14v14"/>
+    <path d="M106 92v14H92"/>
+    <path d="M36 106H22V92"/>
+  </g>
+  <g fill="#F6F0E6" font-family="Georgia, 'Times New Roman', serif" font-weight="700" text-anchor="middle">
+    <text x="49" y="72" font-size="42">S</text>
+    <text x="78" y="88" font-size="38" fill="url(#spGold)">P</text>
+  </g>
+</svg>
