@@ -293,6 +293,21 @@
             ? inv.items.map(i => ({ ...i }))
             : [{ name: 'In ảnh ép lụa cao cấp', spec: '13×18 cm', unit: 'Tờ', qty: 20, price: 15000 }];
         byId('deleteCurrentInvoiceBtn').hidden = !pageState.activeId;
+        const albPicker = byId('invAlbumPicker');
+        const syncBtn = byId('fillFromAlbumSelectedBtn');
+        if (albPicker) {
+            const matchedAlbum = pageState.albums.find(a =>
+                String(a.album_name || '').trim().toLowerCase() === String(inv?.albumName || '').trim().toLowerCase()
+            );
+            albPicker.value = matchedAlbum ? String(matchedAlbum.folder_id || matchedAlbum.id) : '';
+            const selCount = Number(matchedAlbum?.selected_count || 0);
+            if (syncBtn) {
+                syncBtn.hidden = !(matchedAlbum && selCount > 0);
+                if (!syncBtn.hidden) {
+                    syncBtn.textContent = `❤️ Tạo dòng in cho ${selCount} ảnh đã chọn`;
+                }
+            }
+        }
         renderItemsTable();
         renderSavedInvoices();
     }
