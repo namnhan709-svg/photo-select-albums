@@ -278,14 +278,32 @@
 
         </div>
 
-        <section class="customer-album-title" aria-live="polite">
-            <span>Album ảnh</span>
-            <h1 id="customerAlbumTitle">Album ảnh</h1>
-            <p class="guest-permission-status" id="guestPermissionStatus" aria-live="polite"></p>
-            <div id="guestSelectionIdentityBar" style="margin-top:.6rem;display:none;justify-content:center;align-items:center;gap:.45rem;flex-wrap:wrap;">
-                <label for="guestNameInput" style="font-size:.78rem;color:var(--secondary);font-weight:700;">Tên của bạn:</label>
-                <input id="guestNameInput" type="text" maxlength="60" placeholder="VD: Cô dâu Lan / Chú rể Minh" style="min-height:34px;padding:.35rem .65rem;border-radius:9px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font:inherit;font-size:.8rem;width:min(240px,70vw);">
-                <button id="confirmGuestSelectionBtn" type="button" style="min-height:34px;padding:.38rem .85rem;border-radius:9px;border:0;background:var(--accent-gradient);color:#171510;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer;">✅ Gửi danh sách đã chọn cho Studio</button>
+        <section class="customer-album-title" id="customerAlbumHeaderSection" aria-live="polite">
+            <div class="guest-hero-showcase" id="guestHeroShowcase">
+                <img class="guest-hero-main-img" id="guestHeroMainImg" src="" alt="" referrerpolicy="no-referrer" decoding="async">
+                <div class="guest-hero-scrim" aria-hidden="true"></div>
+                <div class="guest-hero-topbar">
+                    <span class="guest-hero-studio-pill" id="guestHeroStudioPill">✨ PHOTO SELECT GALLERY</span>
+                    <button class="guest-hero-zoom-btn" id="guestHeroOpenLightboxBtn" type="button">🔍 Xem ảnh lớn</button>
+                </div>
+                <div class="guest-hero-footer">
+                    <div class="guest-hero-info">
+                        <span class="guest-hero-eyebrow">Bộ sưu tập ảnh</span>
+                        <h1 id="customerAlbumTitle">Album ảnh</h1>
+                        <p class="guest-hero-meta" id="guestHeroMeta">Đang tải những khoảnh khắc đẹp nhất...</p>
+                        <p class="guest-permission-status" id="guestPermissionStatus" aria-live="polite"></p>
+                    </div>
+                    <div class="guest-hero-strip-wrap" id="guestHeroStripWrap" hidden>
+                        <div class="guest-hero-strip" id="guestHeroStrip" role="list" aria-label="Ảnh nổi bật trong album"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="guestSelectionIdentityBar" class="guest-selection-dock" style="display:none;">
+                <div class="guest-dock-identity">
+                    <label for="guestNameInput">Tên của bạn:</label>
+                    <input id="guestNameInput" type="text" maxlength="60" placeholder="VD: Cô dâu Lan / Chú rể Minh">
+                    <button id="confirmGuestSelectionBtn" type="button" class="guest-confirm-btn">✅ Gửi danh sách đã chọn cho Studio</button>
+                </div>
                 <div id="guestDownloadActions" class="guest-download-actions" style="display:none;gap:.45rem;flex-wrap:wrap;justify-content:center;align-items:center;">
                     <button id="guestDownloadSelectedBtn" class="guest-download-btn" type="button">⬇️ Tải ảnh đã chọn (Chất lượng gốc)</button>
                     <button id="guestDownloadAllBtn" class="guest-download-btn is-secondary" type="button">📦 Tải toàn bộ album (Gốc)</button>
