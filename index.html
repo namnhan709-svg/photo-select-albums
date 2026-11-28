@@ -144,8 +144,8 @@
                 <section class="setup-page-heading">
                     <div>
                         <p class="setup-eyebrow">Trang chủ / Thiết lập Portfolio</p>
-                        <h1>Chọn Ảnh Hiển Thị Portfolio</h1>
-                        <p>Chọn từng album và chạm ❤️ những khung hình đẹp nhất để đưa lên trang Portfolio công khai gửi khách hàng.</p>
+                        <h1>Quản Lý Album &amp; Ảnh Portfolio</h1>
+                        <p>Tạo các bộ ảnh theo chủ đề (Phóng sự cưới, Truyền thống, Kỷ yếu, Concept...), đặt ảnh bìa, mô tả, thứ tự hiển thị và chọn ảnh từ kho Drive đã upload.</p>
                     </div>
                     <div class="setup-heading-actions">
                         <span id="setupStatusText" class="setup-status-pill">Đang tải cấu hình...</span>
@@ -159,11 +159,11 @@
 
                 <section class="setup-summary-row" aria-label="Thống kê Portfolio">
                     <article class="setup-summary-card">
-                        <span class="setup-summary-label">Album trên Portfolio</span>
+                        <span class="setup-summary-label">Album đang hiển thị</span>
                         <strong class="setup-summary-value" id="setupSelectedAlbumsCount">0</strong>
                     </article>
                     <article class="setup-summary-card">
-                        <span class="setup-summary-label">Ảnh ❤️ đã chọn</span>
+                        <span class="setup-summary-label">Tổng ảnh Portfolio</span>
                         <strong class="setup-summary-value" id="setupSelectedPhotosCount">0</strong>
                     </article>
                     <article class="setup-summary-card">
@@ -172,47 +172,83 @@
                     </article>
                 </section>
 
+                <section class="setup-panel">
+                    <div class="setup-section-head">
+                        <div>
+                            <h2>Bước 1: Tạo &amp; Sắp Xếp Album Portfolio</h2>
+                            <p>Quản trị danh sách bộ ảnh theo chủ đề hiển thị trên trang Portfolio. Bấm vào một album để chỉnh sửa thông tin và chọn ảnh bên dưới.</p>
+                        </div>
+                        <div class="setup-cta-row">
+                            <a class="setup-btn" href="albums.html">+ Kho Google Drive</a>
+                            <button id="setupCreateAlbumBtn" type="button" class="setup-btn is-primary">＋ Tạo album mới</button>
+                        </div>
+                    </div>
+
+                    <div id="setupAlbumsList" class="setup-albums-grid">
+                        <div class="setup-empty-card"><p>Đang tải danh sách album Portfolio...</p></div>
+                    </div>
+
+                    <form id="setupAlbumEditor" class="setup-album-editor" hidden>
+                        <div class="setup-editor-head">
+                            <h3 id="setupEditorHeading">Chỉnh sửa thông tin album</h3>
+                            <label class="setup-editor-switch">
+                                <input id="setupEditAlbumVisible" type="checkbox" checked>
+                                <span>Hiển thị trên Portfolio</span>
+                            </label>
+                        </div>
+                        <div class="setup-editor-grid">
+                            <label>
+                                Tên album / Chủ đề *
+                                <input id="setupEditAlbumName" type="text" required maxlength="80" placeholder="VD: Phóng sự cưới, Truyền thống, Kỷ yếu, Concept...">
+                            </label>
+                            <label>
+                                Thứ tự hiển thị
+                                <input id="setupEditAlbumOrder" type="number" min="1" max="999" value="1">
+                            </label>
+                            <label class="is-wide">
+                                Mô tả ngắn (tùy chọn)
+                                <input id="setupEditAlbumDesc" type="text" maxlength="180" placeholder="VD: Lưu giữ cảm xúc tự nhiên, ánh sáng tinh tế và những khoảnh khắc đắt giá...">
+                            </label>
+                        </div>
+                        <div class="setup-editor-actions">
+                            <button id="setupApplyAlbumMetaBtn" type="submit" class="setup-btn is-primary is-sm">✓ Cập nhật thông tin album</button>
+                            <button id="setupCancelCreateBtn" type="button" class="setup-btn is-sm" hidden>Hủy tạo mới</button>
+                            <button id="setupDeleteAlbumBtn" type="button" class="setup-btn is-sm is-danger">🗑️ Xóa album này</button>
+                        </div>
+                    </form>
+                </section>
+
                 <section id="setupSelectedTray" class="setup-tray-panel" hidden>
                     <div class="setup-section-head">
                         <div>
-                            <h2>Ảnh Đã Chọn Xuất Bản Portfolio</h2>
-                            <p>Những khung hình bên dưới sẽ xuất hiện trên trang <a href="portfolio.html" target="_blank" rel="noopener">Portfolio công khai</a> sau khi bạn bấm Lưu.</p>
+                            <h2 id="setupSelectedTrayTitle">Ảnh Trong Album Đang Chọn</h2>
+                            <p>Chọn <strong>★ Bìa</strong> để đặt làm ảnh bìa lớn cho album trên trang Portfolio, hoặc bấm <strong>✕</strong> để bỏ ảnh khỏi album.</p>
                         </div>
                     </div>
                     <div id="setupSelectedTrayStrip" class="setup-tray-strip"></div>
                 </section>
 
-                <section class="setup-panel">
-                    <div class="setup-section-head">
-                        <div>
-                            <h2>Bước 1: Chọn Album Đưa Lên Portfolio</h2>
-                            <p>Bật công tắc hoặc bấm vào từng album đã upload để duyệt ảnh bên trong.</p>
-                        </div>
-                        <a class="setup-btn" href="albums.html">+ Quản lý Album</a>
-                    </div>
-                    <div id="setupAlbumsList" class="setup-albums-grid">
-                        <div class="setup-empty-card"><p>Đang tải danh sách album...</p></div>
-                    </div>
-                </section>
-
                 <section class="setup-panel" id="setupCuratorPanel">
                     <div class="setup-curator-head">
                         <div>
-                            <h2 id="setupActiveAlbumTitle">Bước 2: Chạm ❤️ Chọn Ảnh</h2>
-                            <p id="setupActiveAlbumMeta">Chọn một album ở Bước 1 để hiển thị danh sách ảnh từ Google Drive.</p>
+                            <h2 id="setupActiveAlbumTitle">Bước 2: Chọn Ảnh Đưa Vào Album</h2>
+                            <p id="setupActiveAlbumMeta">Chọn một album Portfolio ở Bước 1, sau đó chọn thư mục nguồn Google Drive để thêm ảnh vào album.</p>
                         </div>
                         <div class="setup-curator-controls">
-                            <input id="setupPhotoSearch" type="search" placeholder="Tìm tên ảnh..." aria-label="Tìm tên ảnh">
+                            <select id="setupSourceFolderSelect" class="setup-source-select" aria-label="Chọn thư mục nguồn Google Drive">
+                                <option value="">Đang tải kho Drive...</option>
+                            </select>
+                            <input id="setupPhotoSearch" type="search" placeholder="Tìm ảnh trong kho..." aria-label="Tìm ảnh trong kho">
                             <button type="button" class="setup-filter-chip is-active" data-setup-filter="all">Tất cả</button>
-                            <button type="button" class="setup-filter-chip" data-setup-filter="selected">❤️ Đã chọn</button>
-                            <button type="button" class="setup-filter-chip" data-setup-filter="unselected">🤍 Chưa chọn</button>
-                            <button type="button" id="setupSelectTop6Btn" class="setup-btn is-sm">✨ Chọn 6 ảnh đầu</button>
-                            <button type="button" id="setupSelectAllBtn" class="setup-btn is-sm">❤️ Chọn hết</button>
-                            <button type="button" id="setupClearAlbumBtn" class="setup-btn is-sm">Bỏ chọn album</button>
+                            <button type="button" class="setup-filter-chip" data-setup-filter="selected">✓ Đã đưa vào album</button>
+                            <button type="button" class="setup-filter-chip" data-setup-filter="unselected">Chưa thêm</button>
+                            <button type="button" id="setupSelectTop6Btn" class="setup-btn is-sm">✨ Thêm 6 ảnh đầu</button>
+                            <button type="button" id="setupSelectAllBtn" class="setup-btn is-sm">＋ Thêm tất cả</button>
+                            <button type="button" id="setupClearAlbumBtn" class="setup-btn is-sm">Bỏ hết ảnh album</button>
                         </div>
                     </div>
                     <div id="setupPhotosGrid" class="setup-photos-grid">
-                        <div class="setup-empty-card"><p>Đang chuẩn bị lưới ảnh...</p></div>
+                        <div class="setup-empty-card"><p>Đang chuẩn bị lưới ảnh từ Google Drive...</p></div>
                     </div>
                 </section>
             </main>
