@@ -94,7 +94,7 @@ body[data-theme="sage"] {
 body {
     min-height: 100vh;
     min-height: 100dvh;
-    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+    font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
     background:
         radial-gradient(circle at top left, rgba(212, 175, 55, 0.12), transparent 28%),
         radial-gradient(circle at top right, rgba(240, 203, 95, 0.05), transparent 25%),
@@ -6195,5 +6195,487 @@ body.studio-home-view .container {
 
     .setup-cta-row .setup-btn {
         width: 100%;
+    }
+}
+
+/* =====================================================
+   TEEMEDIA ATELIER — BESPOKE EDITORIAL BRAND SYSTEM
+   ===================================================== */
+:root {
+    --atelier-display: 'Cormorant Garamond', Georgia, serif;
+    --atelier-sans: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+    --atelier-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --atelier-ivory: #F6F1EA;
+    --atelier-paper: #FFFDF9;
+    --atelier-linen: #EDE5D9;
+    --atelier-espresso: #1B1714;
+    --atelier-obsidian: #161310;
+    --atelier-taupe: #6F655A;
+    --atelier-copper: #B8763C;
+    --atelier-champagne: #DFAD74;
+    --atelier-line: rgba(111, 101, 90, 0.18);
+}
+
+/* Studio Home Setup View */
+body.studio-home-view {
+    background:
+        radial-gradient(circle at 12% 0%, rgba(184, 118, 60, 0.08), transparent 36%),
+        linear-gradient(180deg, #FBF8F3 0%, var(--atelier-ivory) 100%);
+    color: var(--atelier-espresso);
+    font-family: var(--atelier-sans);
+}
+
+body.studio-home-view header {
+    background: rgba(255, 253, 249, 0.90);
+    border-bottom: 1px solid var(--atelier-line);
+    box-shadow: 0 8px 28px rgba(27, 23, 20, 0.06);
+}
+
+body.studio-home-view .header-left {
+    font-family: var(--atelier-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--atelier-espresso);
+    gap: 0.65rem;
+}
+
+body.studio-home-view .header-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: var(--atelier-obsidian);
+    box-shadow: 0 4px 12px rgba(22, 19, 16, 0.16);
+}
+
+body.studio-home-view .header-btn,
+body.studio-home-view #manageAlbumsBtn {
+    border-radius: 999px;
+    border-color: var(--atelier-line);
+    color: var(--atelier-espresso);
+    background: var(--atelier-paper);
+}
+
+body.studio-home-view .header-btn:hover,
+body.studio-home-view #manageAlbumsBtn:hover {
+    border-color: var(--atelier-copper);
+    color: var(--atelier-copper);
+    background: #FFFFFF;
+}
+
+body.studio-home-view .header-btn.is-primary {
+    background: linear-gradient(135deg, #211B17 0%, #3A2C21 100%);
+    border-color: #9C612E;
+    color: #FFFDF9;
+    box-shadow: 0 8px 20px rgba(27, 23, 20, 0.16);
+}
+
+.studio-setup-shell {
+    background: transparent;
+}
+
+.studio-setup-sidebar {
+    background: linear-gradient(180deg, #181411 0%, var(--atelier-obsidian) 100%);
+    border-right: 1px solid rgba(223, 173, 116, 0.14);
+    color: #F4EDE2;
+}
+
+.studio-sidebar-caption {
+    color: #9D9183;
+    letter-spacing: 0.16em;
+    font-size: 0.68rem;
+}
+
+.studio-sidebar-link {
+    color: #9D9183;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font-size: 0.84rem;
+}
+
+.studio-sidebar-link:hover {
+    background: rgba(255, 250, 242, 0.06);
+    border-color: rgba(223, 173, 116, 0.18);
+    color: #F4EDE2;
+    transform: translateX(3px);
+}
+
+.studio-sidebar-link.is-active {
+    background: linear-gradient(135deg, #C88A4B 0%, #E3B67E 100%);
+    border-color: #E3B67E;
+    color: #161310;
+    font-weight: 700;
+    box-shadow: 0 10px 24px rgba(200, 138, 75, 0.25);
+}
+
+.studio-sidebar-divider {
+    background: rgba(223, 173, 116, 0.16);
+}
+
+.studio-sidebar-account {
+    background: rgba(255, 250, 242, 0.04);
+    border-color: rgba(223, 173, 116, 0.18);
+}
+
+.studio-sidebar-mark {
+    background: linear-gradient(135deg, #C88A4B, #E7BD82);
+    color: #161310;
+    font-family: var(--atelier-display);
+    font-size: 0.9rem;
+}
+
+.studio-sidebar-account-copy strong {
+    font-family: var(--atelier-display);
+    font-size: 0.95rem;
+    color: #F4EDE2;
+}
+
+.studio-sidebar-account-copy small {
+    color: #9D9183;
+}
+
+.setup-eyebrow {
+    color: var(--atelier-copper);
+    letter-spacing: 0.16em;
+}
+
+.setup-page-heading h1 {
+    font-family: var(--atelier-display);
+    font-size: clamp(1.95rem, 3.2vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--atelier-espresso);
+}
+
+.setup-page-heading p {
+    color: var(--atelier-taupe);
+}
+
+.setup-btn {
+    border-radius: 999px;
+    border-color: var(--atelier-line);
+    background: var(--atelier-paper);
+    color: var(--atelier-espresso);
+}
+
+.setup-btn:hover:not(:disabled) {
+    border-color: var(--atelier-copper);
+    color: var(--atelier-copper);
+    background: #FFFFFF;
+}
+
+.setup-btn.is-primary {
+    background: linear-gradient(135deg, #211B17 0%, #3A2C21 100%);
+    border-color: #9C612E;
+    color: #FFFDF9;
+    box-shadow: 0 10px 22px rgba(27, 23, 20, 0.16);
+}
+
+.setup-summary-card {
+    background: var(--atelier-paper);
+    border-color: var(--atelier-line);
+    border-top: 3px solid var(--atelier-copper);
+    border-radius: 18px;
+    box-shadow: 0 14px 34px -16px rgba(27, 23, 20, 0.12);
+}
+
+.setup-summary-label {
+    color: var(--atelier-taupe);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.setup-summary-value {
+    font-family: var(--atelier-display);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--atelier-espresso);
+}
+
+.setup-summary-value.is-small {
+    font-family: var(--atelier-mono);
+    font-size: 0.98rem;
+}
+
+.setup-panel,
+.setup-tray-panel {
+    background: var(--atelier-paper);
+    border-color: var(--atelier-line);
+    border-radius: 22px;
+    box-shadow: 0 16px 38px -18px rgba(27, 23, 20, 0.09);
+}
+
+.setup-section-head h2,
+.setup-curator-head h2 {
+    font-family: var(--atelier-display);
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--atelier-espresso);
+}
+
+.setup-album-card {
+    background: #F9F5EE;
+    border-color: var(--atelier-line);
+    border-radius: 16px;
+}
+
+.setup-album-card.is-active {
+    background: var(--atelier-obsidian);
+    border-color: var(--atelier-champagne);
+    color: #F4EDE2;
+    box-shadow: 0 14px 32px rgba(22, 19, 16, 0.24);
+}
+
+.setup-album-card.is-active h3,
+.setup-album-card.is-active .setup-album-toggle {
+    color: #F4EDE2;
+}
+
+.setup-album-card.is-active .setup-album-sub {
+    color: var(--atelier-champagne);
+}
+
+.setup-filter-chip.is-active {
+    background: var(--atelier-obsidian);
+    border-color: var(--atelier-obsidian);
+    color: #F4EDE2;
+}
+
+.setup-photo-card {
+    background: #1B1714;
+    border-radius: 16px;
+    border: 2px solid rgba(111, 101, 90, 0.16);
+}
+
+.setup-photo-card.is-selected {
+    border-color: var(--atelier-copper);
+    box-shadow: 0 0 0 2px #FFFDF9, 0 0 0 4px var(--atelier-copper), 0 14px 26px rgba(184, 118, 60, 0.25);
+}
+
+.setup-photo-bar span {
+    font-family: var(--atelier-mono);
+    font-size: 0.68rem;
+}
+
+.setup-sticky-dock {
+    background: linear-gradient(135deg, #191512 0%, #26201A 100%);
+    border: 1px solid rgba(223, 173, 116, 0.24);
+}
+
+.setup-sticky-actions .setup-btn.is-primary {
+    background: linear-gradient(135deg, #C88A4B, #E3B67E);
+    border-color: #E3B67E;
+    color: #161310;
+}
+
+/* Public Portfolio — Editorial Lookbook */
+body.portfolio-public-page {
+    background:
+        radial-gradient(circle at 8% 0%, rgba(184, 118, 60, 0.10), transparent 34%),
+        radial-gradient(circle at 92% 40%, rgba(223, 173, 116, 0.08), transparent 36%),
+        linear-gradient(180deg, #FCF9F3 0%, #F4EDE2 100%);
+    color: var(--atelier-espresso);
+    font-family: var(--atelier-sans);
+}
+
+body.portfolio-public-page header {
+    background: rgba(22, 19, 16, 0.94);
+    border-bottom: 1px solid rgba(223, 173, 116, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+}
+
+body.portfolio-public-page .header-left {
+    font-family: var(--atelier-display);
+    font-size: 1.48rem;
+    font-weight: 700;
+    color: #F6F0E6;
+}
+
+body.portfolio-public-page .header-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+}
+
+body.portfolio-public-page .header-btn {
+    border-radius: 999px;
+    border-color: rgba(223, 173, 116, 0.24);
+    background: rgba(255, 250, 242, 0.06);
+    color: #F4EDE2;
+}
+
+body.portfolio-public-page .header-btn:hover {
+    border-color: var(--atelier-champagne);
+    background: linear-gradient(135deg, #C88A4B, #E3B67E);
+    color: #161310;
+}
+
+body.portfolio-public-page .portfolio-hero.main-welcome {
+    background:
+        radial-gradient(ellipse at 0% 100%, rgba(184, 118, 60, 0.16), transparent 44%),
+        linear-gradient(125deg, #FFFDF9 0%, #F5EDE0 55%, #EBE0CE 100%);
+    border: 1px solid rgba(184, 118, 60, 0.22);
+    box-shadow: 0 28px 64px -32px rgba(27, 23, 20, 0.34);
+}
+
+body.portfolio-public-page .main-welcome .brand-tag {
+    color: var(--atelier-copper);
+    border-color: rgba(184, 118, 60, 0.3);
+    background: rgba(255, 253, 249, 0.85);
+    font-family: var(--atelier-mono);
+    font-size: 0.7rem;
+}
+
+body.portfolio-public-page .main-welcome h2 {
+    font-family: var(--atelier-display);
+    font-size: clamp(2.55rem, 4.4vw, 4.35rem);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--atelier-espresso);
+}
+
+body.portfolio-public-page .main-welcome h2 span {
+    color: var(--atelier-copper);
+    font-style: italic;
+}
+
+body.portfolio-public-page .main-welcome .hero-cta {
+    background: linear-gradient(135deg, #1E1915 0%, #3A2B1F 100%);
+    border: 1px solid rgba(223, 173, 116, 0.4);
+    color: #FFFDF9;
+}
+
+body.portfolio-public-page .portfolio-secondary-cta {
+    border-color: rgba(184, 118, 60, 0.28);
+    background: rgba(255, 253, 249, 0.84);
+    color: var(--atelier-espresso);
+}
+
+body.portfolio-public-page .portfolio-hero .auth-feature {
+    background: rgba(255, 253, 249, 0.84);
+    border-color: rgba(184, 118, 60, 0.2);
+}
+
+body.portfolio-public-page .portfolio-hero .auth-feature strong {
+    font-family: var(--atelier-display);
+    font-size: 1.75rem;
+    color: var(--atelier-espresso);
+}
+
+body.portfolio-public-page .photo-ad-proof {
+    color: var(--atelier-copper);
+    border-color: rgba(184, 118, 60, 0.22);
+    background: rgba(255, 253, 249, 0.7);
+}
+
+body.portfolio-public-page .hero-visual {
+    background:
+        radial-gradient(ellipse at 50% 45%, rgba(200, 138, 75, 0.24), transparent 58%),
+        linear-gradient(145deg, #211B16, #110E0B 78%);
+    border-color: rgba(223, 173, 116, 0.26);
+}
+
+body.portfolio-public-page .portfolio-section {
+    background: rgba(255, 253, 249, 0.92);
+    border: 1px solid rgba(111, 101, 90, 0.16);
+    box-shadow: 0 18px 42px -18px rgba(27, 23, 20, 0.1);
+}
+
+body.portfolio-public-page .photo-ad-eyebrow {
+    color: var(--atelier-copper);
+}
+
+body.portfolio-public-page .portfolio-section-head h3 {
+    font-family: var(--atelier-display);
+    font-size: clamp(1.65rem, 3vw, 2.3rem);
+    font-weight: 700;
+    color: var(--atelier-espresso);
+}
+
+body.portfolio-public-page .portfolio-album-card {
+    border-color: var(--atelier-line);
+    background: var(--atelier-paper);
+}
+
+body.portfolio-public-page .portfolio-album-card:hover {
+    border-color: var(--atelier-copper);
+    box-shadow: 0 22px 46px -14px rgba(184, 118, 60, 0.22);
+}
+
+body.portfolio-public-page .portfolio-album-body h3 {
+    font-family: var(--atelier-display);
+    font-size: 1.4rem;
+}
+
+body.portfolio-public-page .portfolio-album-cta {
+    background: linear-gradient(135deg, #1E1915, #3A2C21);
+    color: #FFFDF9;
+}
+
+body.portfolio-public-page .portfolio-filter-tab.is-active,
+body.portfolio-public-page .portfolio-filter-tab:hover {
+    border-color: var(--atelier-copper);
+    background: var(--atelier-obsidian);
+    color: var(--atelier-champagne);
+}
+
+body.portfolio-public-page .portfolio-photo-card {
+    padding: 6px;
+    background: var(--atelier-paper);
+    border: 1px solid var(--atelier-line);
+}
+
+body.portfolio-public-page .portfolio-photo-card img {
+    border-radius: 10px;
+}
+
+body.portfolio-public-page .portfolio-photo-card.is-selected {
+    border-color: var(--atelier-copper);
+    box-shadow: 0 0 0 2px #FFFDF9, 0 0 0 4px var(--atelier-copper);
+}
+
+body.portfolio-public-page .portfolio-photo-caption {
+    inset: auto 6px 6px 6px;
+    border-radius: 0 0 10px 10px;
+}
+
+body.portfolio-public-page .portfolio-contact-card {
+    background:
+        radial-gradient(circle at 90% 10%, rgba(200, 138, 75, 0.24), transparent 45%),
+        linear-gradient(135deg, #181411 0%, #261E17 100%);
+    border: 1px solid rgba(223, 173, 116, 0.26);
+}
+
+body.portfolio-public-page .portfolio-contact-card h3 {
+    font-family: var(--atelier-display);
+    font-size: clamp(1.65rem, 3vw, 2.3rem);
+}
+
+body.portfolio-public-page .portfolio-contact-card .photo-ad-eyebrow {
+    color: var(--atelier-champagne);
+}
+
+/* Guest Shared Album (?share=) Harmonization */
+body.customer-view .customer-album-title.has-hero-media h1#customerAlbumTitle {
+    font-family: var(--atelier-display);
+    font-size: clamp(2.1rem, 4.2vw, 3.2rem);
+}
+
+body.customer-view .guest-hero-thumb-btn.is-active {
+    border-color: #DFAD74;
+    box-shadow: 0 8px 22px rgba(223, 173, 116, 0.42);
+}
+
+body.customer-view .guest-confirm-btn {
+    background: linear-gradient(135deg, #DFAD74 0%, #C88A4B 100%);
+    color: #161310;
+}
+
+@media (max-width: 960px) {
+    .studio-setup-sidebar {
+        background: var(--atelier-obsidian);
+        border-bottom: 1px solid rgba(223, 173, 116, 0.16);
     }
 }
