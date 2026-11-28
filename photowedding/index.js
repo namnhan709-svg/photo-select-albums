@@ -107,12 +107,17 @@
 
             CONFIG.DRIVE_FOLDER_ID = String(payload.f);
             CONFIG.ALBUM_NAME = String(payload.n || 'Album ảnh');
+            CONFIG.OWNER_NAME = String(payload.o || 'PHOTO SELECT GALLERY');
             CONFIG.IS_SHARED_ALBUM = true;
             CONFIG.SHARED_OWNER_USER_ID = 1;
             CONFIG.SHARED_ALBUM_ALLOW_SAVE = Boolean(payload.a);
             window.__SHARED_FOLDER_ID__ = CONFIG.DRIVE_FOLDER_ID;
             window.__SHARED_OWNER_USER_ID__ = 1;
             window.__SHARED_ALBUM_ALLOW_SAVE__ = CONFIG.SHARED_ALBUM_ALLOW_SAVE;
+            const studioPill = document.getElementById('guestHeroStudioPill');
+            if (studioPill && CONFIG.OWNER_NAME) {
+                studioPill.textContent = `✨ ${CONFIG.OWNER_NAME} · GALLERY`;
+            }
             setActiveAlbumName(CONFIG.ALBUM_NAME);
         }
 
@@ -1756,6 +1761,152 @@ if (!previousPermission && window.__SHARED_ALBUM_ALLOW_SAVE__) {
             return result;
         }
 
+        let guestHeroSlideTimer = null;
+        let guestHeroItems = [];
+        let guestHeroActiveIdx = 0;
+
+        function pickHeroHighlightPhotos(photos, maxItems = 6) {
+            if (!Array.isArray(photos) || !photos.length) return [];
+            if (photos.length <= maxItems) return [...photos];
+            const picked = [];
+            const seenIds = new Set();
+            const step = (photos.length - 1) / (maxItems - 1);
+            for (let i = 0; i < maxItems; i += 1) {
+                const candidate = photos[Math.round(i * step)];
+                if (candidate && !seenIds.has(String(candidate.id))) {
+                    seenIds.add(String(candidate.id));
+                    picked.push(candidate);
+                }
+            }
+            return picked;
+        }
+
+        function openHeroPhotoInLightbox(photo) {
+            if (!photo) return;
+            let idx = state.displayPhotos.findIndex(item => String(item.id) === String(photo.id));
+            if (idx < 0) {
+                state.currentFilter = 'all';
+                state.currentCategory = 'all';
+                state.searchQuery = '';
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+                document.querySelectorAll('.stat-item').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+                applyFilters();
+                idx = state.displayPhotos.findIndex(item => String(item.id) === String(photo.id));
+            }
+            if (idx >= 0) openLightbox(idx);
+        }
+
+        function setActiveGuestHeroSlide(index) {
+            if (!guestHeroItems.length) return;
+            const safeIdx = ((index % guestHeroItems.length) + guestHeroItems.length) % guestHeroItems.length;
+            guestHeroActiveIdx = safeIdx;
+            const photo = guestHeroItems[safeIdx];
+            const mainImg = document.getElementById('guestHeroMainImg');
+            if (mainImg && photo) {
+                mainImg.classList.add('is-switching');
+                mainImg.alt = photo.name || 'Ảnh nổi bật album';
+                if (window.PhotoSelectAPI?.bindDriveImage) {
+                    window.PhotoSelectAPI.bindDriveImage(mainImg, photo, 'full');
+                } else {
+                    mainImg.referrerPolicy = 'no-referrer';
+                    mainImg.src = photo.url || photo.thumbnail;
+                }
+                window.setTimeout(() => mainImg.classList.remove('is-switching'), 260);
+            }
+            document.querySelectorAll('#guestHeroStrip .guest-hero-thumb-btn').forEach((btn, i) => {
+                btn.classList.toggle('is-active', i === safeIdx);
+                btn.setAttribute('aria-current', i === safeIdx ? 'true' : 'false');
+            });
+        }
+
+        function restartGuestHeroAutoPlay() {
+            if (guestHeroSlideTimer) {
+                window.clearInterval(guestHeroSlideTimer);
+                guestHeroSlideTimer = null;
+            }
+            if (guestHeroItems.length <= 1 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            guestHeroSlideTimer = window.setInterval(() => {
+                setActiveGuestHeroSlide(guestHeroActiveIdx + 1);
+            }, 5000);
+        }
+
+        function renderGuestHeroShowcase(photos) {
+            const section = document.getElementById('customerAlbumHeaderSection');
+            const strip = document.getElementById('guestHeroStrip');
+            const stripWrap = document.getElementById('guestHeroStripWrap');
+            const metaEl = document.getElementById('guestHeroMeta');
+            const mainImg = document.getElementById('guestHeroMainImg');
+            const openBtn = document.getElementById('guestHeroOpenLightboxBtn');
+            const showcase = document.getElementById('guestHeroShowcase');
+            if (!section || !strip || !CONFIG.IS_SHARED_ALBUM) return;
+
+            if (!Array.isArray(photos) || !photos.length) {
+                section.classList.remove('has-hero-media');
+                if (stripWrap) stripWrap.hidden = true;
+                return;
+            }
+
+            guestHeroItems = pickHeroHighlightPhotos(photos, 6);
+            section.classList.add('has-hero-media');
+            if (metaEl) {
+                metaEl.textContent = `${photos.length} khoảnh khắc · Chạm ❤️ để chọn ảnh hoặc bấm xem từng khung hình`;
+            }
+
+            strip.replaceChildren();
+            if (stripWrap) stripWrap.hidden = guestHeroItems.length <= 1;
+
+            guestHeroItems.forEach((photo, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `guest-hero-thumb-btn${idx === 0 ? ' is-active' : ''}`;
+                btn.setAttribute('role', 'listitem');
+                btn.title = photo.name || `Ảnh nổi bật #${idx + 1}`;
+                btn.setAttribute('aria-label', `Xem ảnh bìa ${photo.name || idx + 1}`);
+                const thumbImg = document.createElement('img');
+                thumbImg.referrerPolicy = 'no-referrer';
+                thumbImg.alt = photo.name || `Ảnh #${idx + 1}`;
+                thumbImg.loading = 'eager';
+                thumbImg.decoding = 'async';
+                if (window.PhotoSelectAPI?.bindDriveImage) {
+                    window.PhotoSelectAPI.bindDriveImage(thumbImg, photo, 'thumb');
+                } else {
+                    thumbImg.src = photo.thumbnail;
+                }
+                btn.appendChild(thumbImg);
+                btn.addEventListener('click', () => {
+                    if (guestHeroActiveIdx === idx) {
+                        openHeroPhotoInLightbox(photo);
+                    } else {
+                        setActiveGuestHeroSlide(idx);
+                        restartGuestHeroAutoPlay();
+                    }
+                });
+                strip.appendChild(btn);
+            });
+
+            if (mainImg && !mainImg.dataset.heroClickBound) {
+                mainImg.dataset.heroClickBound = '1';
+                mainImg.addEventListener('click', () => openHeroPhotoInLightbox(guestHeroItems[guestHeroActiveIdx]));
+            }
+            if (openBtn && !openBtn.dataset.heroClickBound) {
+                openBtn.dataset.heroClickBound = '1';
+                openBtn.addEventListener('click', () => openHeroPhotoInLightbox(guestHeroItems[guestHeroActiveIdx]));
+            }
+            if (showcase && !showcase.dataset.heroHoverBound) {
+                showcase.dataset.heroHoverBound = '1';
+                showcase.addEventListener('mouseenter', () => {
+                    if (guestHeroSlideTimer) {
+                        window.clearInterval(guestHeroSlideTimer);
+                        guestHeroSlideTimer = null;
+                    }
+                });
+                showcase.addEventListener('mouseleave', () => restartGuestHeroAutoPlay());
+            }
+
+            setActiveGuestHeroSlide(0);
+            restartGuestHeroAutoPlay();
+        }
+
         function setActiveAlbumName(name) {
             const customerAlbumTitle = document.getElementById('customerAlbumTitle');
             if (customerAlbumTitle) customerAlbumTitle.textContent = name;
@@ -2135,6 +2286,7 @@ async function selectSavedAlbum(id) {
                 populateCategorySelect();
                 applyFilters();
                 updateStats();
+                renderGuestHeroShowcase(state.photos);
                 document.getElementById('toolbar').style.display = 'flex';
                 document.getElementById('statistics').style.display = 'grid';
                 updateLightboxDownloadAvailability();
