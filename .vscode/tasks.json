@@ -1,1 +1,15 @@
-{}
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start TeeMedia Full-Stack Server",
+      "type": "shell",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}\\backend\\server.ps1\"",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}
