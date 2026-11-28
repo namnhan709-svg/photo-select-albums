@@ -1631,6 +1631,75 @@ select option {
     animation: heartBeat 0.38s ease;
 }
 
+.photo-download-btn {
+    position: absolute;
+    right: 54px;
+    bottom: 10px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(15, 23, 42, 0.65);
+    color: #ffffff;
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 4;
+    transition: transform 0.2s ease, background 0.2s;
+}
+
+.photo-download-btn:hover {
+    transform: scale(1.12);
+    background: rgba(15, 23, 42, 0.86);
+}
+
+.photo-download-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+body.guest-save-disabled .photo-download-btn,
+body.guest-save-disabled .guest-download-actions {
+    display: none !important;
+}
+
+.guest-download-btn {
+    min-height: 34px;
+    padding: 0.38rem 0.85rem;
+    border-radius: 9px;
+    border: 1px solid #1b1b1b;
+    background: #1b1b1b;
+    color: #ffffff;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.guest-download-btn.is-secondary {
+    background: #ffffff;
+    color: #1e1e1e;
+    border-color: #d4d4d0;
+}
+
+.guest-download-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    opacity: 0.92;
+}
+
+.guest-download-btn:disabled {
+    opacity: 0.55;
+    cursor: wait;
+}
+
 @keyframes heartBeat {
     0% { transform: scale(1); }
     40% { transform: scale(1.4); }
