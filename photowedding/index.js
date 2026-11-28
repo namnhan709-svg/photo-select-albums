@@ -420,6 +420,18 @@
                 }
             });
             document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('clearSearchBtn')?.addEventListener('click', () => {
+                const input = document.getElementById('searchInput');
+                if (input) input.value = '';
+                state.searchQuery = '';
+                const clearBtn = document.getElementById('clearSearchBtn');
+                if (clearBtn) clearBtn.hidden = true;
+                applyFilters();
+                input?.focus();
+            });
+            document.getElementById('resetAllFiltersBtn')?.addEventListener('click', () => {
+                resetAllPhotoFilters();
+            });
             document.getElementById('confirmGuestSelectionBtn')?.addEventListener('click', confirmGuestSelectionSubmission);
             document.getElementById('categorySelect').addEventListener('change', event => {
                 setCategoryFilter(event.target.value);
@@ -2299,6 +2311,7 @@ async function selectSavedAlbum(id) {
             const cacheKey = PHOTO_CACHE_PREFIX + folderId;
             const loadVersion = ++albumLoadVersion;
             updateLightboxDownloadAvailability();
+            window.TeeMediaFaceFilter?.resetForAlbumSwitch?.();
             state.photos = [];
             state.displayPhotos = [];
             state.selectedPhotos = new Set();
@@ -2328,9 +2341,10 @@ async function selectSavedAlbum(id) {
                 setActiveAlbumName(albumName);
                 const cached = JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
                 if (cached && cached.savedAt > Date.now() - PHOTO_CACHE_TTL) {
-                    state.photos = (cached.photos || []).map(photo => ({
+                    state.photos = (cached.photos || []).map((photo, idx) => ({
                         ...photo,
                         id: String(photo.id),
+                        orderNumber: Number(photo.orderNumber || (idx + 1)),
                         category: photo.category || albumName,
                         folderPath: Array.isArray(photo.folderPath) ? photo.folderPath : []
                     }));
@@ -2340,8 +2354,9 @@ async function selectSavedAlbum(id) {
                     const files = await loadDriveImagesRecursively(folderId, new Set(), albumName);
                     if (loadVersion !== albumLoadVersion) return;
 
-                    state.photos = files.map(f => ({
+                    state.photos = files.map((f, idx) => ({
                         id: f.id,
+                        orderNumber: idx + 1,
                         name: f.name,
                         category: f.category || albumName,
                         folderPath: f.folderPath || [],
@@ -2370,6 +2385,14 @@ async function selectSavedAlbum(id) {
                 document.getElementById('statistics').style.display = 'grid';
                 updateLightboxDownloadAvailability();
                 showToast(`✅ Đã tải ${state.photos.length} ảnh`);
+                window.TeeMediaFaceFilter?.initForAlbum?.({
+                    albumKey: folderId,
+                    photos: state.photos,
+                    onFilterChange: () => {
+                        applyFilters();
+                        updateStats();
+                    }
+                });
                 
                 // Đồng bộ và đếm chính xác bình luận cho đúng album hiện tại
                 loadAllAlbumComments(loadVersion);
@@ -2543,7 +2566,40 @@ async function selectSavedAlbum(id) {
             const renderVersion = ++photoRenderVersion;
             if (!state.displayPhotos.length) {
                 grid.style.display = 'none';
-                document.getElementById('emptyState').style.display = 'block';
+                const emptyEl = document.getElementById('emptyState');
+                const titleEl = document.getElementById('emptyStateTitle');
+                const descEl = document.getElementById('emptyStateDesc');
+                const resetBtn = document.getElementById('resetAllFiltersBtn');
+                const faceSummary = window.TeeMediaFaceFilter?.getActiveFilterSummary?.();
+                const hasAnyFilter = Boolean(
+                    state.searchQuery
+                    || state.currentFilter !== 'all'
+                    || state.currentCategory !== 'all'
+                    || (faceSummary && faceSummary.count > 0)
+                );
+                if (titleEl && descEl) {
+                    if (faceSummary && faceSummary.count > 1) {
+                        titleEl.textContent = 'Không tìm thấy ảnh chụp chung';
+                        descEl.textContent = `Không có ảnh nào trong bộ lọc hiện tại có đầy đủ ${faceSummary.labels.join(' & ')}. Bạn có thể bỏ chọn bớt khuôn mặt hoặc quay lại xem tất cả ảnh.`;
+                    } else if (faceSummary && faceSummary.count === 1) {
+                        titleEl.textContent = `Không có ảnh phù hợp cho ${faceSummary.labels[0]}`;
+                        descEl.textContent = 'Hãy chuyển về Tất cả hoặc chỉnh lại nhóm khuôn mặt.';
+                    } else if (state.searchQuery) {
+                        titleEl.textContent = `Không tìm thấy ảnh khớp “${state.searchQuery}”`;
+                        descEl.textContent = 'Thử tìm số thứ tự khác (VD: 5 hoặc #12) hoặc xóa ô tìm kiếm.';
+                    } else if (state.currentFilter === 'selected') {
+                        titleEl.textContent = 'Chưa có ảnh nào được chọn ❤️';
+                        descEl.textContent = 'Chạm biểu tượng trái tim trên ảnh để thêm vào danh sách yêu thích.';
+                    } else if (state.currentFilter === 'unselected') {
+                        titleEl.textContent = 'Bạn đã chọn hết ảnh trong mục này!';
+                        descEl.textContent = 'Bấm Tất cả hoặc Đã chọn để xem lại bộ ảnh.';
+                    } else {
+                        titleEl.textContent = 'Không có bức ảnh nào để hiển thị';
+                        descEl.textContent = 'Vui lòng kết nối thư mục hoặc chọn bộ lọc khác.';
+                    }
+                }
+                if (resetBtn) resetBtn.hidden = !hasAnyFilter;
+                emptyEl.style.display = 'block';
                 return;
             }
 
@@ -2610,7 +2666,7 @@ async function selectSavedAlbum(id) {
                     top.className = 'photo-top';
                     const number = document.createElement('span');
                     number.className = 'photo-number';
-                    number.textContent = '#' + (index + 1);
+                    number.textContent = '#' + (photo.orderNumber || (index + 1));
                     top.appendChild(number);
                     overlay.appendChild(top);
                     if (CONFIG.IS_SHARED_ALBUM) {
@@ -2788,7 +2844,11 @@ function updateStats() {
     document.getElementById('statUnselected').textContent = total - selected;
     
     // ĐỒNG BỘ HIỂN THỊ SỐ LƯỢNG VÀO NÚT LỌC ẢNH NHANH VÀ BỘ LỌC
+    const allCountEl = document.getElementById('allFilterCount');
+    if (allCountEl) allCountEl.textContent = total;
     document.getElementById('selectedFilterCount').textContent = selected;
+    const unselCountEl = document.getElementById('unselectedFilterCount');
+    if (unselCountEl) unselCountEl.textContent = Math.max(0, total - selected);
     document.getElementById('copiedCount').textContent = selected; // Thay thế số 0 mặc định thành số thực tế
 
     // Cập nhật số lượng bình luận theo đúng thư mục con đang xem
@@ -2810,18 +2870,56 @@ function updateStats() {
 }
 
 
+        function resetAllPhotoFilters() {
+            state.searchQuery = '';
+            state.currentFilter = 'all';
+            state.currentCategory = 'all';
+            const searchEl = document.getElementById('searchInput');
+            if (searchEl) searchEl.value = '';
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) clearBtn.hidden = true;
+            const catSel = document.getElementById('categorySelect');
+            if (catSel) catSel.value = 'all';
+            document.querySelectorAll('.filter-btn, .stat-item').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+            document.querySelectorAll('.album-category-pill').forEach(btn => {
+                const isAll = btn.dataset.category === 'all';
+                btn.classList.toggle('active', isAll);
+                btn.setAttribute('aria-pressed', String(isAll));
+            });
+            window.TeeMediaFaceFilter?.clearSelection?.();
+            applyFilters();
+            updateStats();
+        }
+
         function applyFilters() {
             let list = [...state.photos];
             if (state.searchQuery) {
-                list = list.filter(p => p.name.toLowerCase().includes(state.searchQuery));
+                const q = state.searchQuery;
+                const orderMatch = q.match(/^#?(\d+)$/);
+                if (orderMatch) {
+                    const normalizedNum = String(parseInt(orderMatch[1], 10));
+                    const strictOrder = q.startsWith('#');
+                    list = list.filter(p => {
+                        const orderStr = String(p.orderNumber || '');
+                        if (strictOrder) return orderStr === normalizedNum;
+                        return orderStr === normalizedNum
+                            || orderStr.includes(orderMatch[1])
+                            || String(p.name || '').toLowerCase().includes(q);
+                    });
+                } else {
+                    list = list.filter(p => String(p.name || '').toLowerCase().includes(q));
+                }
             }
             if (state.currentCategory !== 'all') {
                 list = list.filter(p => p.category === state.currentCategory);
             }
             if (state.currentFilter === 'selected') {
-                list = list.filter(p => state.selectedPhotos.has(p.id));
+                list = list.filter(p => state.selectedPhotos.has(String(p.id)));
             } else if (state.currentFilter === 'unselected') {
-                list = list.filter(p => !state.selectedPhotos.has(p.id));
+                list = list.filter(p => !state.selectedPhotos.has(String(p.id)));
+            }
+            if (window.TeeMediaFaceFilter?.matchesPhoto) {
+                list = list.filter(p => window.TeeMediaFaceFilter.matchesPhoto(p.id));
             }
             state.displayPhotos = list;
             renderPhotoGrid();
@@ -2829,6 +2927,8 @@ function updateStats() {
 
         function handleSearch(e) {
             state.searchQuery = e.target.value.toLowerCase().trim();
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) clearBtn.hidden = !state.searchQuery;
             applyFilters();
         }
 
@@ -2886,7 +2986,7 @@ function updateStats() {
                 }).catch(() => {});
             }
 
-            document.getElementById('lightboxPhotoNumber').textContent = `#${index + 1}`;
+            document.getElementById('lightboxPhotoNumber').textContent = `#${photo.orderNumber || (index + 1)}`;
             document.getElementById('lightboxCaption').textContent = photo.name || 'Ảnh album';
             const dlToggleBtn = document.getElementById('lightboxDownloadToggle');
             if (dlToggleBtn) {

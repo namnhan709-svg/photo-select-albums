@@ -101,6 +101,12 @@ $pdo->exec('
         payload TEXT NOT NULL,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS invoices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        payload TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
     CREATE TABLE IF NOT EXISTS customers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -140,7 +146,7 @@ if (($_GET['google'] ?? '') === 'login') {
     if (!$first) {
         $hash = password_hash('123456', PASSWORD_DEFAULT);
         $pdo->prepare('INSERT INTO users (name, email, phone, password_hash) VALUES (?, ?, ?, ?)')
-            ->execute(['TeeMedia Studio', 'studio@gmail.com', '0901 234 567', $hash]);
+            ->execute(['TeeMedia Studio', 'studio@gmail.com', '0386 038 930', $hash]);
         $_SESSION['user_id'] = (int)$pdo->lastInsertId();
     } else {
         $_SESSION['user_id'] = (int)$first['id'];
@@ -497,6 +503,38 @@ switch ($action) {
     case 'contracts_delete':
         if ($uid <= 0) jsonOut(['success' => false], 401);
         $pdo->prepare('DELETE FROM contracts WHERE id = ? AND user_id = ?')->execute([(int)($body['id'] ?? 0), $uid]);
+        jsonOut(['success' => true]);
+
+    case 'invoices_list':
+        if ($uid <= 0) jsonOut(['success' => true, 'invoices' => []]);
+        $stmt = $pdo->prepare('SELECT id, payload FROM invoices WHERE user_id = ? ORDER BY id DESC');
+        $stmt->execute([$uid]);
+        $out = [];
+        foreach ($stmt->fetchAll() as $r) {
+            $item = json_decode($r['payload'], true) ?: [];
+            $item['id'] = (int)$r['id'];
+            $out[] = $item;
+        }
+        jsonOut(['success' => true, 'invoices' => $out]);
+
+    case 'invoices_save':
+        if ($uid <= 0) jsonOut(['success' => false, 'message' => 'Vui lòng đăng nhập.'], 401);
+        $inv = $body['invoice'] ?? [];
+        $iid = (int)($inv['id'] ?? 0);
+        unset($inv['id']);
+        $payload = json_encode($inv, JSON_UNESCAPED_UNICODE);
+        if ($iid > 0) {
+            $pdo->prepare('UPDATE invoices SET payload = ? WHERE id = ? AND user_id = ?')->execute([$payload, $iid, $uid]);
+        } else {
+            $pdo->prepare('INSERT INTO invoices (user_id, payload) VALUES (?, ?)')->execute([$uid, $payload]);
+            $iid = (int)$pdo->lastInsertId();
+        }
+        $inv['id'] = $iid;
+        jsonOut(['success' => true, 'invoice' => $inv]);
+
+    case 'invoices_delete':
+        if ($uid <= 0) jsonOut(['success' => false], 401);
+        $pdo->prepare('DELETE FROM invoices WHERE id = ? AND user_id = ?')->execute([(int)($body['id'] ?? 0), $uid]);
         jsonOut(['success' => true]);
 
     case 'customers_list':
