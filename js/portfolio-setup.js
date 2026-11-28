@@ -1,5 +1,5 @@
 /**
- * TeeMedia Studio Home — Quản trị Album Portfolio theo chủ đề (Tạo / Sửa / Xóa / Thứ tự / Ẩn-Hiện / Ảnh bìa / Mô tả) & Chọn ảnh từ Google Drive.
+ * selectphoto Home — Quản trị Album Portfolio theo chủ đề (Tạo / Sửa / Xóa / Thứ tự / Ẩn-Hiện / Ảnh bìa / Mô tả) & Chọn ảnh từ Google Drive.
  */
 (function initPortfolioSetup(global) {
     const params = new URLSearchParams(global.location.search);
@@ -118,7 +118,7 @@
         return {
             updated_at: full.updated_at,
             studio: {
-                name: global.__APP_USER__?.name || 'TeeMedia Atelier',
+                name: global.__APP_USER__?.name || 'selectphoto',
                 phone: (!global.__APP_USER__?.phone || global.__APP_USER__?.phone === '0901 234 567') ? '0386 038 930' : global.__APP_USER__.phone,
                 email: (!global.__APP_USER__?.email || global.__APP_USER__?.email === 'studio@gmail.com') ? 'thongtrong10@gmail.com' : global.__APP_USER__.email,
                 zalo: '0386038930'
@@ -935,9 +935,9 @@
         }
     }
 
-    if (global.__TEEMEDIA_STUDIO_HOME_READY__) {
+    if (global.__SELECTPHOTO_STUDIO_HOME_READY__) {
         loadSetupWorkspace();
     } else {
-        global.addEventListener('teemedia:studio-home-ready', loadSetupWorkspace);
+        global.addEventListener('selectphoto:studio-home-ready', loadSetupWorkspace);
     }
 })(window);

@@ -255,24 +255,104 @@
         }
     }
 
-    function openQuickFilter() {
-        const albumViewerStatus = document.getElementById('albumViewerStatus');
-        if (!state.selectedViewerFiles.size) {
-            albumViewerStatus.textContent = 'Hãy chọn ảnh đã thả tim trước khi lọc từ máy tính.';
-            return;
+    function getQuickFilterEntries() {
+        const LocalFilter = global.PhotoSelectLocalFilter;
+        const textarea = document.getElementById('quickFilterTxtArea');
+        if (textarea && LocalFilter) {
+            return LocalFilter.parseTargetList(textarea.value);
         }
-        if (!global.showDirectoryPicker) {
-            albumViewerStatus.textContent = 'Trình duyệt không hỗ trợ chọn thư mục. Hãy dùng Chrome hoặc Edge.';
-            return;
+        return state.viewerFiles
+            .filter(file => state.selectedViewerFiles.has(String(file.id)))
+            .map(file => String(file.name || '').trim())
+            .filter(Boolean);
+    }
+
+    function syncQuickFilterListCount() {
+        const countEl = document.getElementById('quickFilterEntryCount');
+        if (!countEl) return;
+        const entries = getQuickFilterEntries();
+        countEl.textContent = `${entries.length} ảnh`;
+    }
+
+    function toggleQuickFilterSubfolderMode() {
+        const autoChecked = Boolean(document.getElementById('quickFilterAutoSubfolder')?.checked);
+        const subRow = document.getElementById('quickFilterSubfolderRow');
+        const customRow = document.getElementById('quickFilterCustomDestRow');
+        if (subRow) subRow.hidden = !autoChecked;
+        if (customRow) customRow.hidden = autoChecked;
+    }
+
+    function fillQuickFilterFromViewer() {
+        const textarea = document.getElementById('quickFilterTxtArea');
+        const txtNameEl = document.getElementById('quickFilterTxtName');
+        const names = state.viewerFiles
+            .filter(file => state.selectedViewerFiles.has(String(file.id)))
+            .map(file => String(file.name || '').trim())
+            .filter(Boolean);
+        if (textarea) textarea.value = names.join('\n');
+        if (txtNameEl) {
+            txtNameEl.textContent = names.length ? `Đang dùng ${names.length} ảnh đã chọn trong album` : 'Chưa chọn file .txt';
         }
-        document.getElementById('quickFilterStatus').textContent = '';
+        syncQuickFilterListCount();
+    }
+
+    async function loadQuickFilterTxtFile(file) {
+        if (!file) return;
+        const text = await file.text();
+        const textarea = document.getElementById('quickFilterTxtArea');
+        const txtNameEl = document.getElementById('quickFilterTxtName');
+        const subfolderInput = document.getElementById('quickFilterSubfolderName');
+        if (textarea) textarea.value = text;
+        if (txtNameEl) txtNameEl.textContent = file.name;
+        if (subfolderInput && (!subfolderInput.value.trim() || subfolderInput.value.trim() === 'Anh_Da_Chon')) {
+            const stem = String(file.name || '').replace(/\.[^.]+$/, '').replace(/-danh-sach-anh$/i, '');
+            const suggested = global.PhotoSelectLocalFilter?.sanitizeFolderName(`${stem}_Da_Chon`, 'Anh_Da_Chon') || 'Anh_Da_Chon';
+            subfolderInput.value = suggested;
+        }
+        syncQuickFilterListCount();
+    }
+
+    function openQuickFilter(options = {}) {
+        const statusEl = document.getElementById('quickFilterStatus');
+        const missingBox = document.getElementById('quickFilterMissingBox');
+        const useSelectedBtn = document.getElementById('quickFilterUseSelectedBtn');
+        const subfolderInput = document.getElementById('quickFilterSubfolderName');
+        const selectedCount = state.selectedViewerFiles.size;
+
+        if (useSelectedBtn) {
+            useSelectedBtn.hidden = selectedCount === 0;
+            useSelectedBtn.textContent = `❤️ Lấy từ ${selectedCount} ảnh đã chọn`;
+        }
+        if (options.preferViewerSelections && selectedCount > 0) {
+            fillQuickFilterFromViewer();
+            const viewerTitle = document.getElementById('albumViewerTitle')?.textContent?.trim();
+            if (subfolderInput && viewerTitle && (!subfolderInput.value.trim() || subfolderInput.value.trim() === 'Anh_Da_Chon')) {
+                subfolderInput.value = global.PhotoSelectLocalFilter?.sanitizeFolderName(`${viewerTitle}_Da_Chon`, 'Anh_Da_Chon') || 'Anh_Da_Chon';
+            }
+        } else {
+            syncQuickFilterListCount();
+        }
+
+        if (missingBox) {
+            missingBox.hidden = true;
+            missingBox.innerHTML = '';
+        }
+        toggleQuickFilterSubfolderMode();
+        if (statusEl) {
+            statusEl.textContent = global.showDirectoryPicker
+                ? ''
+                : 'Trình duyệt hiện tại không hỗ trợ chọn thư mục. Hãy dùng Chrome hoặc Edge trên máy tính.';
+            statusEl.classList.toggle('is-error', !global.showDirectoryPicker);
+        }
         document.getElementById('quickFilterModal').classList.add('is-open');
     }
 
     async function chooseQuickFilterFolder(type) {
         if (!global.showDirectoryPicker) return;
         try {
-            const handle = await global.showDirectoryPicker({ mode: type === 'destination' ? 'readwrite' : 'read' });
+            const autoSub = Boolean(document.getElementById('quickFilterAutoSubfolder')?.checked);
+            const mode = type === 'destination' || autoSub ? 'readwrite' : 'read';
+            const handle = await global.showDirectoryPicker({ mode });
             if (type === 'destination') state.quickFilterDestinationHandle = handle;
             else state.quickFilterSourceHandle = handle;
             document.getElementById(type === 'destination' ? 'quickFilterDestinationName' : 'quickFilterSourceName').textContent = handle.name;
@@ -281,54 +361,81 @@
         }
     }
 
-    async function collectComputerImages(directoryHandle) {
-        const files = [];
-        for await (const entry of directoryHandle.values()) {
-            if (entry.kind === 'file') files.push(entry);
-            else if (entry.kind === 'directory') files.push(...await collectComputerImages(entry));
-        }
-        return files.filter(file => IMAGE_FILE_EXTENSION_RE.test(file.name));
-    }
-
     async function startQuickFilter() {
+        const LocalFilter = global.PhotoSelectLocalFilter;
         const status = document.getElementById('quickFilterStatus');
-        if (!state.quickFilterSourceHandle || !state.quickFilterDestinationHandle) {
-            status.textContent = 'Vui lòng chọn đủ thư mục nguồn và thư mục lưu.';
+        const missingBox = document.getElementById('quickFilterMissingBox');
+        const startButton = document.getElementById('quickFilterStart');
+        const entries = getQuickFilterEntries();
+
+        if (!LocalFilter) {
+            status.textContent = 'Không tìm thấy module lọc ảnh cục bộ.';
+            status.classList.add('is-error');
             return;
         }
-        const selectedNames = new Set(
-            state.viewerFiles
-                .filter(file => state.selectedViewerFiles.has(String(file.id)))
-                .map(file => String(file.name || '').trim().toLowerCase())
-                .filter(Boolean)
-        );
-        const startButton = document.getElementById('quickFilterStart');
+        if (!entries.length) {
+            status.textContent = 'Vui lòng chọn file .txt hoặc dán danh sách tên ảnh cần lọc.';
+            status.classList.add('is-error');
+            return;
+        }
+        if (!state.quickFilterSourceHandle) {
+            status.textContent = 'Vui lòng chọn thư mục chứa ảnh & RAW trong máy.';
+            status.classList.add('is-error');
+            return;
+        }
+
+        const createSubfolderInsideSource = Boolean(document.getElementById('quickFilterAutoSubfolder')?.checked);
+        const subfolderName = document.getElementById('quickFilterSubfolderName')?.value || 'Anh_Da_Chon';
+        const includeRaw = Boolean(document.getElementById('quickFilterIncludeRaw')?.checked);
+
+        if (!createSubfolderInsideSource && !state.quickFilterDestinationHandle) {
+            status.textContent = 'Vui lòng chọn thư mục lưu riêng hoặc bật tự động tạo thư mục con.';
+            status.classList.add('is-error');
+            return;
+        }
+
+        if (missingBox) {
+            missingBox.hidden = true;
+            missingBox.innerHTML = '';
+        }
+        status.classList.remove('is-error');
         startButton.disabled = true;
+
         try {
-            status.textContent = `Đang quét thư mục nguồn (${selectedNames.size} ảnh yêu thích)...`;
-            const sourceFiles = await collectComputerImages(state.quickFilterSourceHandle);
-            const matchedNames = new Set();
-            const matchedFiles = sourceFiles.filter(file => {
-                const normalizedName = file.name.trim().toLowerCase();
-                if (!selectedNames.has(normalizedName) || matchedNames.has(normalizedName)) return false;
-                matchedNames.add(normalizedName);
-                return true;
+            const summary = await LocalFilter.runFilterAndCopy({
+                entries,
+                sourceHandle: state.quickFilterSourceHandle,
+                destinationHandle: state.quickFilterDestinationHandle,
+                createSubfolderInsideSource,
+                subfolderName,
+                includeRaw,
+                onProgress: message => {
+                    status.textContent = message;
+                }
             });
-            const missingCount = Math.max(0, selectedNames.size - matchedNames.size);
-            let copied = 0;
-            status.textContent = `Đã đối chiếu ${matchedNames.size}/${selectedNames.size} ảnh yêu thích. Đang chuẩn bị copy...`;
-            for (const fileHandle of matchedFiles) {
-                const file = await fileHandle.getFile();
-                const output = await state.quickFilterDestinationHandle.getFileHandle(file.name, { create: true });
-                const writable = await output.createWritable();
-                await writable.write(file);
-                await writable.close();
-                copied += 1;
-                status.textContent = `Đang copy ${copied}/${matchedFiles.length} ảnh tìm thấy...`;
+
+            if (summary.cancelled) return;
+            const rawInfo = includeRaw ? `, kèm ${summary.rawCount} file RAW` : '';
+            const missingInfo = summary.missingEntries.length ? `, thiếu ${summary.missingEntries.length} mục` : '';
+            status.textContent = `Hoàn tất! Khớp ${summary.matchedEntryCount}/${summary.totalEntries} mục → đã copy ${summary.copiedCount} file (${summary.primaryCount} ảnh${rawInfo}) vào "${summary.outputFolderLabel}"${missingInfo}.`;
+
+            if ((summary.missingEntries.length || summary.copyErrors.length) && missingBox) {
+                const lines = [
+                    ...summary.missingEntries.map(item => `Không tìm thấy: ${item}`),
+                    ...summary.copyErrors.map(item => `Lỗi copy: ${item}`)
+                ];
+                missingBox.innerHTML = '';
+                const title = document.createElement('strong');
+                title.textContent = `Chi tiết chưa khớp / lỗi (${lines.length}):`;
+                const pre = document.createElement('pre');
+                pre.textContent = lines.join('\n');
+                missingBox.appendChild(title);
+                missingBox.appendChild(pre);
+                missingBox.hidden = false;
             }
-            status.textContent = `Hoàn tất: yêu thích ${selectedNames.size}, tìm thấy ${matchedNames.size}, đã copy ${copied}${missingCount ? `, thiếu ${missingCount}` : ''}.`;
         } catch (error) {
             status.textContent = error.message || 'Không thể lọc và copy ảnh.';
+            status.classList.add('is-error');
         } finally {
             startButton.disabled = false;
         }
@@ -344,6 +451,10 @@
         downloadViewerSelection,
         openQuickFilter,
         chooseQuickFilterFolder,
+        loadQuickFilterTxtFile,
+        syncQuickFilterListCount,
+        toggleQuickFilterSubfolderMode,
+        fillQuickFilterFromViewer,
         startQuickFilter
     };
 })(window);

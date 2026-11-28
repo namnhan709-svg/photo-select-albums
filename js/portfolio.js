@@ -1,5 +1,5 @@
 /**
- * TeeMedia Atelier Public Portfolio — Trưng bày các bộ ảnh theo chủ đề được Studio Setup.
+ * selectphoto Public Portfolio — Trưng bày các bộ ảnh theo chủ đề được Studio Setup.
  * Giao diện tối giản ưu tiên ảnh: không hiển thị tên file, không nút tim, không bộ lọc tên khách.
  */
 (function initPortfolioHome(global) {
@@ -25,7 +25,7 @@
     }
 
     const state = {
-        studio: { name: 'TeeMedia Atelier', phone: '0386 038 930', email: 'thongtrong10@gmail.com', zalo: '0386038930' },
+        studio: { name: 'selectphoto', phone: '0386 038 930', email: 'thongtrong10@gmail.com', zalo: '0386038930' },
         albums: [],
         photos: [],
         activeAlbumId: 'all',
@@ -75,7 +75,7 @@
             const caption = slide.querySelector('figcaption');
             if (img) {
                 API.bindDriveImage(img, photo, 'thumb');
-                img.alt = photo.albumName || 'TeeMedia Atelier';
+                img.alt = photo.albumName || 'selectphoto';
                 slide.style.cursor = 'pointer';
                 slide.onclick = () => {
                     selectPortfolioAlbum(photo.portfolioAlbumId || 'all', false);
@@ -85,7 +85,7 @@
                 };
             }
             if (caption) {
-                caption.textContent = photo.albumName || 'TeeMedia Atelier';
+                caption.textContent = photo.albumName || 'selectphoto';
             }
         });
     }
@@ -287,7 +287,7 @@
             card.className = 'portfolio-photo-card portfolio-photo-card--pure';
 
             const img = document.createElement('img');
-            img.alt = photo.albumName || 'Tác phẩm TeeMedia Atelier';
+            img.alt = photo.albumName || 'Tác phẩm selectphoto';
             img.loading = idx < 8 ? 'eager' : 'lazy';
             img.decoding = 'async';
             API.bindDriveImage(img, photo, 'thumb');
@@ -309,8 +309,8 @@
         const counter = document.getElementById('portfolioLightboxCounter');
         if (!modal || !img) return;
         API.bindDriveImage(img, photo, 'full');
-        img.alt = photo.albumName || 'Tác phẩm TeeMedia Atelier';
-        if (title) title.textContent = photo.albumName || 'TeeMedia Atelier';
+        img.alt = photo.albumName || 'Tác phẩm selectphoto';
+        if (title) title.textContent = photo.albumName || 'selectphoto';
         if (counter) {
             counter.textContent = `${String(index + 1).padStart(2, '0')} / ${String(photos.length).padStart(2, '0')}`;
         }
@@ -353,7 +353,7 @@
                 if (statusEl) statusEl.textContent = 'Vui lòng nhập nội dung tin nhắn.';
                 return;
             }
-            if (statusEl) statusEl.textContent = 'Đang gửi cho TeeMedia...';
+            if (statusEl) statusEl.textContent = 'Đang gửi cho selectphoto...';
             try {
                 const { ok, result } = await API.callJson({
                     action: 'send_chat_message',
@@ -371,7 +371,7 @@
                     messagesEl.scrollTop = messagesEl.scrollHeight;
                 }
                 if (input) input.value = '';
-                if (statusEl) statusEl.textContent = '✅ Đã gửi tới TeeMedia Atelier!';
+                if (statusEl) statusEl.textContent = '✅ Đã gửi tới selectphoto!';
             } catch (err) {
                 if (statusEl) statusEl.textContent = err.message || 'Không thể gửi tin nhắn.';
             }

@@ -1,5 +1,5 @@
 /**
- * TeeMedia API Layer
+ * selectphoto API Layer
  * - Tự động nhận diện Backend thật (`photowedding/app.php` trả JSON) hoặc Static Mode (GitHub Pages / file://).
  * - Trên GitHub Pages (Static Mode):
  *   + Link chia sẻ tự mang dữ liệu (`?share=v1.<base64url>`) để khách mở xem được ngay trên mọi thiết bị.
@@ -152,7 +152,7 @@
             users: [
                 {
                     id: 1,
-                    name: 'TeeMedia Studio',
+                    name: 'selectphoto',
                     email: 'studio@gmail.com',
                     phone: '0386 038 930',
                     contactEmail: 'thongtrong10@gmail.com',
@@ -185,16 +185,16 @@
                 { id: 101, user_id: 1, title: 'Khách hàng đã chọn xong ảnh', message: 'Album Pre-Wedding Minh & Lan - Đà Lạt vừa cập nhật 2 ảnh yêu thích và 2 bình luận mới.', created_at: '2026-10-02 09:25:00', is_read: 0 }
             ],
             chatMessages: [
-                { sender_type: 'admin', message: 'Xin chào! Chào mừng bạn đến với TeeMedia phiên bản Static / GitHub Pages.' }
+                { sender_type: 'admin', message: 'Xin chào! Chào mừng bạn đến với selectphoto phiên bản Static / GitHub Pages.' }
             ],
             photographers: [
-                { id: 1, user_id: 1, name: 'Nguyễn Minh Anh', role: 'Chụp ảnh cưới chính', phone: '0903 111 222', email: 'minhanh@teemedia.vn', zalo: '0903111222', facebook: 'minhanh.photo', shootLocation: 'Đà Lạt / TP.HCM', shootDates: [soonDate, laterDate], status: 'active' },
-                { id: 2, user_id: 1, name: 'Trần Quốc Thịnh', role: 'Phóng sự cưới', phone: '0908 333 444', email: 'quocthinh@teemedia.vn', zalo: '0908333444', facebook: 'quocthinh.studio', shootLocation: 'Quận 1, TP.HCM', shootDates: [laterDate], status: 'active' },
-                { id: 3, user_id: 1, name: 'Lê Hà Linh', role: 'Chân dung & Studio', phone: '0912 555 666', email: 'halinh@teemedia.vn', zalo: '0912555666', facebook: 'halinh.portrait', shootLocation: 'Studio Quận 3', shootDates: [], status: 'leave' }
+                { id: 1, user_id: 1, name: 'Nguyễn Minh Anh', role: 'Chụp ảnh cưới chính', phone: '0903 111 222', email: 'minhanh@selectphoto.vn', zalo: '0903111222', facebook: 'minhanh.photo', shootLocation: 'Đà Lạt / TP.HCM', shootDates: [soonDate, laterDate], status: 'active' },
+                { id: 2, user_id: 1, name: 'Trần Quốc Thịnh', role: 'Phóng sự cưới', phone: '0908 333 444', email: 'quocthinh@selectphoto.vn', zalo: '0908333444', facebook: 'quocthinh.studio', shootLocation: 'Quận 1, TP.HCM', shootDates: [laterDate], status: 'active' },
+                { id: 3, user_id: 1, name: 'Lê Hà Linh', role: 'Chân dung & Studio', phone: '0912 555 666', email: 'halinh@selectphoto.vn', zalo: '0912555666', facebook: 'halinh.portrait', shootLocation: 'Studio Quận 3', shootDates: [], status: 'leave' }
             ],
             contracts: [
                 {
-                    id: 1, user_id: 1, studioName: 'TeeMedia Studio', contractNumber: 'PS-20261002-001',
+                    id: 1, user_id: 1, studioName: 'selectphoto', contractNumber: 'PS-20261002-001',
                     studioAddress: '12 Nguyễn Huệ, Quận 1, TP.HCM', studioPhone: '0386 038 930', contractDate: '2026-10-02',
                     clientName: 'Trần Minh & Ngọc Lan', clientPhone: '0987 654 321', clientEmail: 'minhlan@gmail.com',
                     servicePreset: 'Gói chụp ảnh cưới trọn gói', serviceName: 'Gói chụp ảnh cưới trọn gói', eventType: 'Chụp cưới',
@@ -216,7 +216,7 @@
                     user_id: 1,
                     invoiceNumber: 'HD-20261128-001',
                     issueDate: '2026-11-28',
-                    studioName: 'TeeMedia',
+                    studioName: 'selectphoto',
                     studioAddress: '81/62 Ngô Mây, Quy Nhơn Nam',
                     studioPhone: '0386038930',
                     clientName: 'Trần Minh & Ngọc Lan',
@@ -375,8 +375,8 @@
             if (!Array.isArray(parsed.photo_selections)) parsed.photo_selections = [];
             if (Array.isArray(parsed.users)) {
                 parsed.users.forEach(u => {
-                    if (/(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(String(u?.name || ''))) {
-                        u.name = 'TeeMedia Studio';
+                    if (/(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame|teemedia)/i.test(String(u?.name || ''))) {
+                        u.name = 'selectphoto';
                     }
                 });
             }
@@ -748,10 +748,10 @@
             }
 
             case 'register':
-                return { success: false, message: 'Chức năng đăng ký tự do đã tắt. Chỉ quản trị viên TeeMedia Studio mới có quyền cấp tài khoản.' };
+                return { success: false, message: 'Chức năng đăng ký tự do đã tắt. Chỉ quản trị viên selectphoto mới có quyền cấp tài khoản.' };
 
             case 'forgot':
-                return { success: false, message: 'Vui lòng liên hệ trực tiếp quản trị viên TeeMedia Studio để được cấp lại mật khẩu.' };
+                return { success: false, message: 'Vui lòng liên hệ trực tiếp quản trị viên selectphoto để được cấp lại mật khẩu.' };
 
             case 'logout':
                 localStorage.setItem(STATIC_SESSION_KEY, '0');
@@ -811,10 +811,10 @@
 
             case 'load_public_portfolio': {
                 const portfolio = normalizePortfolioConfig(state.portfolio);
-                const primaryUser = (state.users || [])[0] || { name: 'TeeMedia Studio', phone: '0386 038 930', contactEmail: 'thongtrong10@gmail.com' };
-                const studioName = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(String(primaryUser.name || ''))
-                    ? 'TeeMedia Studio'
-                    : (primaryUser.name || 'TeeMedia Studio');
+                const primaryUser = (state.users || [])[0] || { name: 'selectphoto', phone: '0386 038 930', contactEmail: 'thongtrong10@gmail.com' };
+                const studioName = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame|teemedia)/i.test(String(primaryUser.name || ''))
+                    ? 'selectphoto'
+                    : (primaryUser.name || 'selectphoto');
                 const resolvedPhone = (!primaryUser.phone || primaryUser.phone === '0901 234 567') ? '0386 038 930' : primaryUser.phone;
                 const resolvedEmail = primaryUser.contactEmail
                     || ((!primaryUser.email || primaryUser.email === 'studio@gmail.com') ? 'thongtrong10@gmail.com' : primaryUser.email);
@@ -927,7 +927,7 @@
                 const code = String(payload.access_code || '').trim();
                 const cloudCfg = getCloudConfig();
                 const albumName = album?.album_name || 'Album ảnh';
-                const ownerName = user?.name || 'TeeMedia Atelier';
+                const ownerName = user?.name || 'selectphoto';
                 const allowSave = album ? (Number(album.allow_save) === 1 ? 1 : 0) : 1;
                 const codeHash = code ? await sha256Hex(code) : '';
 
@@ -997,7 +997,7 @@
                             folder_id: String(matchedBySlug.folder_id),
                             album_name: matchedBySlug.album_name || 'Album ảnh',
                             allow_save: Number(matchedBySlug.allow_save) === 1 ? 1 : 0,
-                            owner_name: 'TeeMedia Atelier',
+                            owner_name: 'selectphoto',
                             access_code_hash: '',
                             requires_code: false
                         };

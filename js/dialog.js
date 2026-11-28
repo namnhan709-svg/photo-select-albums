@@ -12,9 +12,9 @@
         const avatarUrl = String(user?.avatar || localStorage.getItem('photoSelectCurrentUserAvatar') || '').trim();
         const initials = name.charAt(0).toUpperCase() || 'U';
         document.getElementById('userNameText').textContent = name;
-        document.getElementById('userEmailText').textContent = email || 'Tài khoản TeeMedia';
+        document.getElementById('userEmailText').textContent = email || 'Tài khoản selectphoto';
         document.getElementById('greetingName').textContent = name;
-        document.getElementById('greetingEmail').textContent = email || 'Tài khoản TeeMedia';
+        document.getElementById('greetingEmail').textContent = email || 'Tài khoản selectphoto';
         ['userAvatar', 'accountAvatar'].forEach(id => {
             const avatar = document.getElementById(id);
             avatar.textContent = initials;
@@ -49,7 +49,7 @@
                             <input name="name" type="text" required placeholder="VD: Minh Anh Photographer">
                         </label>
                         <label>Email đăng nhập
-                            <input name="email" type="email" required placeholder="nhanvien@teemedia.vn">
+                            <input name="email" type="email" required placeholder="nhanvien@selectphoto.vn">
                         </label>
                         <label>Số điện thoại
                             <input name="phone" type="tel" placeholder="0386 038 930">
@@ -61,7 +61,7 @@
                         <p class="dashboard-password-status" id="dashboardStaffStatus" role="status"></p>
                     </form>
                     <div id="dashboardStaffList" class="dashboard-staff-list" style="display:flex;flex-direction:column;gap:.5rem;">Đang tải danh sách tài khoản...</div>`
-                    : '<p class="dashboard-dialog-message">Tài khoản nội bộ do quản trị viên TeeMedia Studio cấp. Bạn có thể đổi mật khẩu tại mục Bảo mật.</p>'
+                    : '<p class="dashboard-dialog-message">Tài khoản nội bộ do quản trị viên selectphoto cấp. Bạn có thể đổi mật khẩu tại mục Bảo mật.</p>'
             },
             settings: {
                 title: 'Cài đặt giao diện',

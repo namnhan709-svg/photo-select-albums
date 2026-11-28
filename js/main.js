@@ -213,12 +213,31 @@
     document.getElementById('viewerCommentForm').addEventListener('submit', Viewer.submitViewerComment);
 
     // Quick Filter
-    document.getElementById('viewerComputerFilterBtn').addEventListener('click', Export.openQuickFilter);
+    document.getElementById('openTxtLocalFilterBtn')?.addEventListener('click', () => {
+        Export.openQuickFilter({ preferViewerSelections: false });
+    });
+    document.getElementById('viewerComputerFilterBtn')?.addEventListener('click', () => {
+        Export.openQuickFilter({ preferViewerSelections: true });
+    });
+    document.getElementById('quickFilterTxtBtn')?.addEventListener('click', () => {
+        document.getElementById('quickFilterTxtInput')?.click();
+    });
+    document.getElementById('quickFilterTxtInput')?.addEventListener('change', async event => {
+        const file = event.target.files?.[0];
+        if (file) await Export.loadQuickFilterTxtFile(file);
+        event.target.value = '';
+    });
+    document.getElementById('quickFilterUseSelectedBtn')?.addEventListener('click', Export.fillQuickFilterFromViewer);
+    document.getElementById('quickFilterTxtArea')?.addEventListener('input', Export.syncQuickFilterListCount);
+    document.getElementById('quickFilterAutoSubfolder')?.addEventListener('change', Export.toggleQuickFilterSubfolderMode);
     document.getElementById('quickFilterSourceBtn').addEventListener('click', () => Export.chooseQuickFilterFolder('source'));
     document.getElementById('quickFilterDestinationBtn').addEventListener('click', () => Export.chooseQuickFilterFolder('destination'));
     document.getElementById('quickFilterStart').addEventListener('click', Export.startQuickFilter);
     document.getElementById('quickFilterClose').addEventListener('click', () => {
         document.getElementById('quickFilterModal').classList.remove('is-open');
+    });
+    document.getElementById('quickFilterModal')?.addEventListener('click', event => {
+        if (event.target.id === 'quickFilterModal') event.currentTarget.classList.remove('is-open');
     });
 
     // Share Modal

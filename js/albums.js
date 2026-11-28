@@ -243,7 +243,7 @@
                 document.getElementById('allowedAlbums').textContent = '0';
                 showMessage('Vui lòng đăng nhập để xem danh sách album và ảnh khách đã chọn.', true);
                 albumsGrid.innerHTML = `<section class="inline-login-card">
-                    <h3>Đăng nhập nội bộ TeeMedia</h3>
+                    <h3>Đăng nhập nội bộ selectphoto</h3>
                     <p>Cổng quản trị dành riêng cho chủ Studio và nhân sự được cấp tài khoản để quản lý album và xem ảnh khách đã chọn.</p>
                     <form class="inline-login-form" id="inlineLoginForm">
                         <input name="login_id" type="text" required placeholder="Email hoặc ID được cấp" autocomplete="username">
