@@ -154,7 +154,7 @@
         .payment-summary th { width: 28%; font-weight: 800; }
         .payment-summary td:nth-child(2) { font-weight: 800; white-space: nowrap; }
         .payment-summary td:nth-child(3) { color: var(--muted); }
-        .header-actions { display: flex; align-items: center; gap: .6rem; }
+        .header-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
         .form-actions { display: flex; gap: .6rem; margin-top: 1rem; }
         .form-actions .button-primary { flex: 1; }
         .export-dialog { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; padding: 1rem; background: rgba(9, 14, 18, .52); }
@@ -257,7 +257,8 @@
         .contract-payment-table {
             margin: 1rem 0;
             border: 1px solid #222;
-            overflow: hidden;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
             background: #fff;
             box-shadow: inset 0 0 0 1px rgba(17,17,17,.06);
         }
@@ -321,25 +322,28 @@
             font-style: italic;
         }
         .notice { margin: .8rem 0 0; color: var(--muted); font-size: .68rem; line-height: 1.5; }
-        @media (max-width: 900px) { .workspace { grid-template-columns: 1fr; } }
-        @media (max-width: 700px) {
+        @media (max-width: 960px) {
+            html, body { max-width: 100%; overflow-x: clip; }
             .dashboard-shell { grid-template-columns: minmax(0, 1fr); }
             .dashboard-sidebar { position: static; height: auto; min-height: 0; padding: .75rem 1rem; border-right: 0; border-bottom: 1px solid var(--border); }
             .sidebar-caption, .sidebar-divider, .sidebar-account { display: none; }
-            .sidebar-nav { display: flex; gap: .45rem; overflow-x: auto; padding-bottom: .1rem; scrollbar-width: thin; }
-            .sidebar-link { width: auto; min-width: max-content; min-height: 42px; padding: .55rem .75rem; }
+            .sidebar-nav { display: flex; gap: .45rem; overflow-x: auto; padding-bottom: .15rem; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+            .sidebar-link { flex: 0 0 auto; width: auto; min-width: max-content; min-height: 40px; padding: .5rem .8rem; white-space: nowrap; }
             .sidebar-link:hover { transform: translateY(-1px); }
-            main { padding: 1.5rem clamp(.75rem, 3vw, 1.5rem); }
+            main { width: 100%; max-width: 100%; padding: 1.25rem clamp(.75rem, 3vw, 1.5rem) 4rem; }
+            .workspace { grid-template-columns: 1fr; }
         }
-        @media (max-width: 560px) {
-            .heading { align-items: flex-start; flex-direction: column; }
-            .heading > .button { width: 100%; }
+        @media (max-width: 640px) {
+            .heading { align-items: flex-start; flex-direction: column; gap: .9rem; }
+            .heading .header-actions { width: 100%; }
+            .heading .header-actions .button { flex: 1 1 auto; }
             .form-grid { grid-template-columns: 1fr; }
             label.wide { grid-column: auto; }
             .contract { min-height: 0; padding: 1rem; font-size: .82rem; }
-            .contract-head { flex-direction: column; }
+            .contract-head, .contract-title-row, .contract-meta-row { flex-direction: column; align-items: flex-start; gap: .35rem; }
+            .contract-party-block { grid-template-columns: 1fr; gap: .75rem; }
             .contract-id { text-align: left; }
-            .signature-grid { gap: .8rem; }
+            .signature-grid { grid-template-columns: 1fr 1fr; gap: .8rem; }
             .settings-panel { padding: 1rem; }
             .settings-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
             .settings-nav { display: flex; gap: .4rem; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); }
