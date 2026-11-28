@@ -555,26 +555,31 @@
 
         function initializeUserProfile() {
             const user = window.__APP_USER__ || {};
-            if (!user.id) return;
             updateUserProfile(user);
-            document.getElementById('loginBtnHeader').style.display = 'none';
         }
 
         function updateUserProfile(user) {
             const isLoggedIn = Boolean(user && user.id);
             const name = isLoggedIn ? (user.name || 'Người dùng') : 'Khách';
-            const email = isLoggedIn ? (user.email || '') : 'Chưa đăng nhập';
+            const email = isLoggedIn ? (user.email || '') : '';
             const avatarUrl = (user && user.avatar) || localStorage.getItem('photoSelectCurrentUserAvatar') || '';
+            const loginBtn = document.getElementById('loginBtnHeader');
+            const userPanel = document.getElementById('userPanel');
+            const notifBtn = document.getElementById('notificationBtn');
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (userPanel) userPanel.style.display = isLoggedIn ? 'inline-flex' : 'none';
+            if (notifBtn) notifBtn.style.display = isLoggedIn ? 'inline-flex' : 'none';
             document.getElementById('userNameText').textContent = name;
             document.getElementById('userEmailText').textContent = email;
-            document.getElementById('loginBtnHeader').style.display = isLoggedIn ? 'none' : '';
             renderAvatarElement(document.getElementById('userAvatar'), avatarUrl, name);
             document.getElementById('greetingName').textContent = name;
             document.getElementById('greetingEmail').textContent = email;
             renderAvatarElement(document.getElementById('accountAvatar'), avatarUrl, name);
-            syncProfileModalFromUser();
-            loadUserNotifications();
-            updatePhoneAlert();
+            if (isLoggedIn) {
+                syncProfileModalFromUser();
+                loadUserNotifications();
+                updatePhoneAlert();
+            }
         }
 
         function updateAlbumVisibility() {
