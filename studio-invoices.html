@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#161310">
     <link rel="icon" type="image/svg+xml" href="photowedding/logo/teemedia-logo-mark.svg">
-    <title>Hóa đơn &amp; Báo giá in ảnh - TeeMedia</title>
+    <title>Hóa đơn in ảnh - TeeMedia</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -24,12 +24,12 @@
             justify-content: space-between;
             gap: 1rem;
             flex-wrap: wrap;
-            margin-bottom: 1.35rem;
+            margin-bottom: 1.25rem;
         }
         .invoice-page-head h1 {
-            margin: 0.25rem 0 0;
+            margin: 0.2rem 0 0;
             font-family: "Cormorant Garamond", Georgia, serif;
-            font-size: clamp(1.75rem, 3vw, 2.35rem);
+            font-size: clamp(1.75rem, 3vw, 2.3rem);
             line-height: 1.1;
             color: var(--ink);
         }
@@ -40,8 +40,8 @@
         }
         .invoice-workspace {
             display: grid;
-            grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-            gap: 1.25rem;
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+            gap: 1.2rem;
             align-items: start;
         }
         .invoice-editor-col,
@@ -65,9 +65,14 @@
             text-transform: uppercase;
             letter-spacing: 0.08em;
             color: var(--accent-ink);
-            margin: 1.1rem 0 0.6rem;
+            margin: 1rem 0 0.55rem;
             padding-bottom: 0.35rem;
             border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
         }
         .invoice-section-title:first-child { margin-top: 0; }
         .inv-grid {
@@ -85,11 +90,10 @@
         }
         .inv-grid label.wide { grid-column: 1 / -1; }
         .inv-grid input,
-        .inv-grid select,
-        .inv-grid textarea {
+        .inv-grid select {
             width: 100%;
             min-height: 40px;
-            padding: 0.52rem 0.7rem;
+            padding: 0.5rem 0.7rem;
             border: 1px solid var(--border);
             border-radius: 10px;
             background: var(--bg);
@@ -97,32 +101,27 @@
             font: inherit;
             font-size: 0.84rem;
         }
-        .inv-grid textarea { min-height: 68px; resize: vertical; }
-        .preset-pills {
+        .inv-quick-add-bar {
             display: flex;
+            gap: 0.5rem;
             flex-wrap: wrap;
-            gap: 0.42rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.65rem;
+            align-items: center;
         }
-        .preset-pill-btn {
-            min-height: 34px;
-            padding: 0.34rem 0.68rem;
-            border-radius: 999px;
+        .inv-quick-add-bar select {
+            flex: 1 1 220px;
+            min-height: 40px;
+            padding: 0.45rem 0.7rem;
             border: 1px solid var(--border);
-            background: var(--surface-soft);
+            border-radius: 10px;
+            background: var(--bg);
             color: var(--ink);
             font: inherit;
-            font-size: 0.74rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .preset-pill-btn:hover {
-            border-color: var(--accent);
-            background: var(--accent-soft);
+            font-size: 0.82rem;
         }
         .inv-items-table-wrap {
             width: 100%;
+            max-width: 100%;
             overflow-x: auto;
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -131,12 +130,12 @@
         .inv-items-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 560px;
+            min-width: 600px;
             font-size: 0.8rem;
         }
         .inv-items-table th {
             text-align: left;
-            padding: 0.55rem 0.6rem;
+            padding: 0.55rem 0.5rem;
             background: var(--surface-soft);
             color: var(--muted);
             font-size: 0.72rem;
@@ -145,11 +144,17 @@
             border-bottom: 1px solid var(--border);
         }
         .inv-items-table td {
-            padding: 0.45rem 0.45rem;
+            padding: 0.45rem 0.4rem;
             border-bottom: 1px solid var(--border);
-            vertical-align: middle;
+            vertical-align: top;
         }
-        .inv-items-table input {
+        .inv-product-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .inv-items-table input,
+        .inv-items-table select {
             width: 100%;
             padding: 0.38rem 0.48rem;
             border: 1px solid var(--border);
@@ -164,6 +169,7 @@
             font-weight: 700;
             text-align: right;
             white-space: nowrap;
+            padding-top: 0.75rem !important;
         }
         .inv-remove-btn {
             border: 0;
@@ -175,12 +181,82 @@
             cursor: pointer;
             font-weight: 800;
         }
+        .inv-total-strip {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.7rem 0.9rem;
+            border-radius: 12px;
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            font-size: 0.96rem;
+            font-weight: 800;
+            margin-bottom: 0.85rem;
+        }
+        .inv-total-strip span:last-child {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 1.08rem;
+            color: var(--accent-ink);
+        }
+
+        /* Product Catalog Setup Panel */
+        .catalog-setup-panel {
+            margin-bottom: 1rem;
+        }
+        .catalog-setup-panel[hidden] {
+            display: none;
+        }
+        .catalog-add-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(110px, 0.8fr) minmax(0, 1fr) auto;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            align-items: center;
+        }
+        .catalog-add-row input {
+            min-height: 38px;
+            padding: 0.45rem 0.65rem;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: var(--bg);
+            color: var(--ink);
+            font: inherit;
+            font-size: 0.82rem;
+        }
+        .catalog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        .catalog-item-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(100px, 0.75fr) minmax(0, 1fr) auto;
+            gap: 0.45rem;
+            align-items: center;
+            padding: 0.45rem 0.55rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+        }
+        .catalog-item-row input {
+            width: 100%;
+            padding: 0.36rem 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: var(--surface);
+            color: var(--ink);
+            font: inherit;
+            font-size: 0.8rem;
+        }
+
         .inv-saved-strip {
             display: flex;
             flex-direction: column;
-            gap: 0.55rem;
+            gap: 0.5rem;
             margin-top: 0.75rem;
-            max-height: 250px;
+            max-height: 240px;
             overflow-y: auto;
         }
         .inv-saved-item {
@@ -198,19 +274,8 @@
             border-color: var(--accent);
             background: var(--accent-soft);
         }
-        .inv-badge {
-            display: inline-block;
-            padding: 0.16rem 0.55rem;
-            border-radius: 999px;
-            font-size: 0.68rem;
-            font-weight: 800;
-            background: var(--surface-soft);
-            border: 1px solid var(--border);
-        }
-        .inv-badge.is-paid { background: rgba(47, 94, 70, 0.14); color: #2f5e46; border-color: rgba(47, 94, 70, 0.3); }
-        .inv-badge.is-deposit { background: rgba(184, 118, 60, 0.15); color: #8c521f; border-color: rgba(184, 118, 60, 0.35); }
 
-        /* A4 Print Preview Sheet */
+        /* Simple Delivery Note / Invoice A4 Sheet */
         .invoice-sheet {
             background: #ffffff;
             color: #161310;
@@ -218,7 +283,7 @@
             border-radius: 14px;
             padding: 1.8rem 1.9rem;
             box-shadow: 0 18px 42px rgba(22, 19, 16, 0.08);
-            font-size: 0.84rem;
+            font-size: 0.86rem;
             line-height: 1.5;
             max-width: 100%;
             overflow-x: auto;
@@ -228,7 +293,7 @@
             justify-content: space-between;
             align-items: flex-start;
             gap: 1rem;
-            padding-bottom: 1rem;
+            padding-bottom: 0.95rem;
             border-bottom: 2px solid #161310;
         }
         .sheet-brand {
@@ -248,19 +313,20 @@
             color: #161310;
         }
         .sheet-studio-meta {
-            font-size: 0.76rem;
-            color: #5c5146;
+            font-size: 0.78rem;
+            color: #4a4037;
+            margin-top: 0.15rem;
         }
         .sheet-doc-meta {
             text-align: right;
         }
         .sheet-doc-type {
             display: inline-block;
-            padding: 0.25rem 0.75rem;
+            padding: 0.28rem 0.85rem;
             border-radius: 6px;
             background: #161310;
             color: #f6f1ea;
-            font-size: 0.78rem;
+            font-size: 0.82rem;
             font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -269,21 +335,20 @@
             margin-top: 0.35rem;
             font-family: "JetBrains Mono", monospace;
             font-size: 0.78rem;
-            color: #4a4037;
+            color: #3a322b;
         }
-        .sheet-parties {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 1rem;
+        .sheet-customer-box {
             margin: 1rem 0 1.1rem;
             padding: 0.85rem 1rem;
             border-radius: 10px;
             background: #faf7f2;
             border: 1px solid #ece3d7;
+            display: grid;
+            gap: 0.28rem;
         }
-        .sheet-parties h4 {
-            margin: 0 0 0.3rem;
-            font-size: 0.72rem;
+        .sheet-customer-box h4 {
+            margin: 0 0 0.2rem;
+            font-size: 0.74rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             color: #8a5526;
@@ -291,7 +356,7 @@
         .sheet-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 1rem;
+            margin-bottom: 0.6rem;
         }
         .sheet-table th {
             text-align: left;
@@ -299,8 +364,8 @@
             background: #f3ece2;
             border-top: 1px solid #d7cbbd;
             border-bottom: 1px solid #d7cbbd;
-            font-size: 0.74rem;
-            color: #3a322b;
+            font-size: 0.75rem;
+            color: #2f2822;
         }
         .sheet-table td {
             padding: 0.52rem 0.5rem;
@@ -308,46 +373,13 @@
             vertical-align: top;
         }
         .sheet-table .num { text-align: right; font-family: "JetBrains Mono", monospace; }
-        .sheet-summary {
-            margin-left: auto;
-            width: min(100%, 300px);
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            font-size: 0.84rem;
-        }
-        .sheet-summary-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 0.8rem;
-        }
-        .sheet-summary-row.is-grand {
-            padding-top: 0.45rem;
-            margin-top: 0.25rem;
+        .sheet-table tfoot td {
+            padding: 0.7rem 0.5rem;
             border-top: 2px solid #161310;
+            border-bottom: 0;
             font-weight: 800;
             font-size: 0.96rem;
-        }
-        .sheet-summary-row.is-balance {
-            color: #9e2a2b;
-            font-weight: 800;
-        }
-        .sheet-footer {
-            margin-top: 1.2rem;
-            padding-top: 0.85rem;
-            border-top: 1px dashed #d7cbbd;
-            font-size: 0.78rem;
-            color: #5c5146;
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        .zalo-action-btn {
-            background: linear-gradient(135deg, #0068FF, #0088FF);
-            color: #fff;
-            border-color: transparent;
-            text-decoration: none;
+            background: #faf7f2;
         }
         .inv-status-banner {
             font-size: 0.8rem;
@@ -356,6 +388,7 @@
             font-weight: 600;
             margin-top: 0.5rem;
         }
+
         @media (max-width: 1080px) {
             .invoice-workspace {
                 grid-template-columns: minmax(0, 1fr);
@@ -373,36 +406,20 @@
                 text-align: center;
                 justify-content: center;
             }
-            .invoice-card {
-                padding: 0.9rem;
-            }
-            .preset-pill-btn {
-                max-width: 100%;
-                white-space: normal;
-                text-align: left;
-                line-height: 1.3;
-                padding: 0.4rem 0.65rem;
+            .invoice-card { padding: 0.9rem; }
+            .inv-grid { grid-template-columns: minmax(0, 1fr); }
+            .catalog-add-row,
+            .catalog-item-row {
+                grid-template-columns: minmax(0, 1fr);
             }
             .inv-saved-item {
                 flex-direction: column;
                 align-items: stretch;
             }
-            .inv-grid,
-            .sheet-parties {
-                grid-template-columns: minmax(0, 1fr);
-            }
-            .invoice-sheet {
-                padding: 1rem;
-            }
-            .sheet-table {
-                font-size: 0.76rem;
-            }
-            .sheet-head {
-                flex-direction: column;
-            }
-            .sheet-doc-meta {
-                text-align: left;
-            }
+            .invoice-sheet { padding: 1rem; }
+            .sheet-head { flex-direction: column; }
+            .sheet-doc-meta { text-align: left; }
+            .sheet-table { font-size: 0.76rem; }
         }
         @media print {
             header, .dashboard-sidebar, .invoice-page-head, .invoice-editor-col {
@@ -467,7 +484,7 @@
                 <a class="sidebar-link" href="./"><span class="sidebar-icon" aria-hidden="true">home</span><span>Trang chủ</span></a>
                 <a class="sidebar-link" href="albums"><span class="sidebar-icon" aria-hidden="true">photo_library</span><span>Album gần đây</span></a>
                 <a class="sidebar-link" href="studio-contracts"><span class="sidebar-icon" aria-hidden="true">description</span><span>Hợp đồng</span></a>
-                <a class="sidebar-link" href="studio-invoices" aria-current="page"><span class="sidebar-icon" aria-hidden="true">receipt_long</span><span>Hóa đơn &amp; In ảnh</span></a>
+                <a class="sidebar-link" href="studio-invoices" aria-current="page"><span class="sidebar-icon" aria-hidden="true">receipt_long</span><span>Hóa đơn in ảnh</span></a>
                 <a class="sidebar-link" href="studio-photographers"><span class="sidebar-icon" aria-hidden="true">groups</span><span>Quản lý thợ</span></a>
                 <a class="sidebar-link" href="studio-customers"><span class="sidebar-icon" aria-hidden="true">group</span><span>Khách hàng</span></a>
                 <a class="sidebar-link" href="studio-reports"><span class="sidebar-icon" aria-hidden="true">insights</span><span>Báo cáo</span></a>
@@ -479,7 +496,7 @@
             </nav>
             <div class="sidebar-account">
                 <span class="sidebar-account-mark" aria-hidden="true">TM</span>
-                <span class="sidebar-account-copy"><strong>TeeMedia</strong><small>Hóa đơn &amp; In ảnh</small></span>
+                <span class="sidebar-account-copy"><strong>TeeMedia</strong><small>Hóa đơn in ảnh</small></span>
             </div>
         </aside>
 
@@ -487,135 +504,107 @@
             <section class="invoice-page-head">
                 <div>
                     <p class="eyebrow">Dashboard / Studio</p>
-                    <h1>Tạo Hóa Đơn &amp; Báo Giá In Ảnh</h1>
-                    <p>Chọn nhanh quy cách in ảnh, Photobook, ảnh cổng hoặc chụp phóng sự, xem trước phiếu A4 và gửi báo giá trực tiếp qua Zalo.</p>
+                    <h1>Hóa đơn in ảnh</h1>
+                    <p>Lập phiếu giao hàng nhanh gọn, cài sẵn danh mục sản phẩm và đơn giá để chọn tự động điền giá khi tạo phiếu.</p>
                 </div>
                 <div class="invoice-head-actions">
+                    <button class="button" id="toggleCatalogSetupBtn" type="button">⚙️ Setup sản phẩm &amp; đơn giá</button>
                     <button class="button" id="newInvoiceBtn" type="button">＋ Tạo phiếu mới</button>
-                    <button class="button" id="copyQuoteTextBtn" type="button">📋 Copy báo giá Zalo</button>
-                    <a class="button zalo-action-btn" id="openClientZaloBtn" href="https://zalo.me/0386038930" target="_blank" rel="noopener">💬 Chat Zalo</a>
                     <button class="button" id="printInvoiceBtn" type="button">🖨️ In / Lưu PDF</button>
                     <button class="button button-primary" id="exportInvoicePdfBtn" type="button">⬇️ Xuất PDF</button>
                     <button class="button" id="exportInvoicePngBtn" type="button">🖼️ Xuất PNG</button>
                 </div>
             </section>
 
+            <section class="invoice-card catalog-setup-panel" id="catalogSetupCard" hidden>
+                <div class="invoice-section-title" style="margin-top:0;">
+                    <span>⚙️ Setup Sản phẩm &amp; Đơn giá mặc định</span>
+                    <button class="button" type="button" id="closeCatalogSetupBtn">Đóng</button>
+                </div>
+                <div class="catalog-add-row">
+                    <input id="newCatName" type="text" placeholder="Tên sản phẩm (VD: Ảnh ép gỗ 20×30)">
+                    <input id="newCatPrice" type="number" min="0" step="1000" placeholder="Đơn giá (VNĐ)">
+                    <input id="newCatNote" type="text" placeholder="Ghi chú mặc định (tùy chọn)">
+                    <button class="button button-primary" id="addCatalogProductBtn" type="button">＋ Thêm</button>
+                </div>
+                <div class="catalog-list" id="catalogItemsList"></div>
+                <p class="inv-status-banner" id="catalogStatusMsg" role="status"></p>
+            </section>
+
             <div class="invoice-workspace">
                 <section class="invoice-editor-col">
                     <form class="invoice-card" id="invoiceForm">
-                        <div class="invoice-section-title">1. Thông tin chứng từ &amp; Studio</div>
+                        <div class="invoice-section-title">1. Thông tin Phiếu giao hàng</div>
                         <div class="inv-grid">
-                            <label>Loại chứng từ
-                                <select id="invDocType">
-                                    <option value="quote">Báo giá in ảnh &amp; dịch vụ</option>
-                                    <option value="invoice">Hóa đơn thanh toán</option>
-                                </select>
-                            </label>
-                            <label>Mã phiếu
+                            <label>Số hóa đơn
                                 <input id="invNumber" type="text" maxlength="40" required>
                             </label>
-                            <label>Ngày lập
+                            <label>Ngày in phiếu
                                 <input id="invIssueDate" type="date" required>
                             </label>
-                            <label>Hạn / Ngày giao dự kiến
-                                <input id="invDueDate" type="date">
+                            <label class="wide">Địa chỉ cửa hàng
+                                <input id="invStudioAddress" type="text" value="81/62 Ngô Mây, Quy Nhơn Nam">
                             </label>
-                            <label>Trạng thái
-                                <select id="invStatus">
-                                    <option value="quote">Báo giá mới</option>
-                                    <option value="pending">Chờ thanh toán</option>
-                                    <option value="deposit">Đã đặt cọc</option>
-                                    <option value="paid">Đã thanh toán đủ</option>
-                                </select>
+                            <label>Số điện thoại
+                                <input id="invStudioPhone" type="tel" value="0386038930">
                             </label>
-                            <label>Tên Studio
-                                <input id="invStudioName" type="text" value="TeeMedia Atelier">
-                            </label>
-                            <label>SĐT / Zalo Studio
-                                <input id="invStudioPhone" type="tel" value="0386 038 930">
-                            </label>
-                            <label>Email Studio
-                                <input id="invStudioEmail" type="email" value="thongtrong10@gmail.com">
+                            <label>Tên cửa hàng
+                                <input id="invStudioName" type="text" value="TeeMedia">
                             </label>
                         </div>
 
-                        <div class="invoice-section-title">2. Khách hàng &amp; Album</div>
+                        <div class="invoice-section-title">2. Thông tin khách hàng</div>
                         <div class="inv-grid">
-                            <label>Chọn nhanh từ Khách hàng
+                            <label class="wide">Chọn nhanh từ Khách hàng (tùy chọn)
                                 <select id="invCustomerPicker">
-                                    <option value="">-- Nhập tay hoặc chọn khách --</option>
-                                </select>
-                            </label>
-                            <label>Chọn nhanh từ Album gần đây
-                                <select id="invAlbumPicker">
-                                    <option value="">-- Chọn album (tùy chọn) --</option>
+                                    <option value="">-- Nhập tay hoặc chọn khách có sẵn --</option>
                                 </select>
                             </label>
                             <label>Tên khách hàng *
-                                <input id="invClientName" type="text" required placeholder="VD: Cô dâu Ngọc Lan & Chú rể Trần Minh">
+                                <input id="invClientName" type="text" required placeholder="Nhập tên khách hàng...">
                             </label>
-                            <label>SĐT / Zalo khách hàng
-                                <input id="invClientPhone" type="tel" placeholder="VD: 0987 654 321">
+                            <label>Số điện thoại
+                                <input id="invClientPhone" type="tel" placeholder="Nhập SĐT khách hàng...">
                             </label>
-                            <label>Email khách hàng
-                                <input id="invClientEmail" type="email" placeholder="khachhang@gmail.com">
-                            </label>
-                            <label>Tên Album / Gói dịch vụ
-                                <input id="invAlbumName" type="text" placeholder="VD: Pre-Wedding Đà Lạt">
+                            <label class="wide">Địa chỉ
+                                <input id="invClientAddress" type="text" placeholder="Nhập địa chỉ khách hàng...">
                             </label>
                         </div>
 
-                        <div class="invoice-section-title">3. Bảng giá In ảnh &amp; Hạng mục</div>
-                        <div class="preset-pills" id="printPresetPills" aria-label="Thêm nhanh quy cách in ảnh"></div>
+                        <div class="invoice-section-title">3. Danh sách sản phẩm</div>
+                        <div class="inv-quick-add-bar">
+                            <select id="quickAddCatalogSelect" aria-label="Chọn sản phẩm từ danh mục để thêm nhanh">
+                                <option value="">-- Chọn nhanh sản phẩm đã setup --</option>
+                            </select>
+                            <button class="button" type="button" id="addCustomItemBtn">＋ Thêm dòng trống</button>
+                        </div>
+
+                        <datalist id="printCatalogDatalist"></datalist>
+
                         <div class="inv-items-table-wrap">
                             <table class="inv-items-table">
                                 <thead>
                                     <tr>
-                                        <th style="width: 34%;">Hạng mục</th>
-                                        <th style="width: 24%;">Quy cách / Kích thước</th>
-                                        <th style="width: 11%;">ĐVT</th>
-                                        <th style="width: 10%;">SL</th>
-                                        <th style="width: 16%;">Đơn giá</th>
-                                        <th style="width: 14%; text-align:right;">Thành tiền</th>
-                                        <th style="width: 36px;"></th>
+                                        <th style="width:36px;">STT</th>
+                                        <th style="width:36%;">Sản phẩm</th>
+                                        <th style="width:74px;">Số lượng</th>
+                                        <th style="width:110px;">Đơn giá</th>
+                                        <th style="width:105px;text-align:right;">Thành tiền</th>
+                                        <th>Ghi chú</th>
+                                        <th style="width:36px;"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="invItemsBody"></tbody>
                             </table>
                         </div>
-                        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;">
-                            <button class="button" type="button" id="addCustomItemBtn">＋ Thêm dòng tùy chỉnh</button>
-                            <button class="button" type="button" id="fillFromAlbumSelectedBtn" hidden>❤️ Đồng bộ số ảnh khách đã chọn</button>
+
+                        <div class="inv-total-strip">
+                            <span>Tổng cộng</span>
+                            <span id="formGrandTotalText">0đ</span>
                         </div>
 
-                        <div class="invoice-section-title">4. Chiết khấu, Thuế &amp; Đặt cọc</div>
-                        <div class="inv-grid">
-                            <label>Giảm giá
-                                <input id="invDiscountVal" type="number" min="0" step="1000" value="0">
-                            </label>
-                            <label>Kiểu giảm giá
-                                <select id="invDiscountType">
-                                    <option value="vnd">Theo số tiền (VNĐ)</option>
-                                    <option value="percent">Theo phần trăm (%)</option>
-                                </select>
-                            </label>
-                            <label>Thuế VAT
-                                <select id="invVatPercent">
-                                    <option value="0">Không tính VAT (0%)</option>
-                                    <option value="8">VAT 8%</option>
-                                    <option value="10">VAT 10%</option>
-                                </select>
-                            </label>
-                            <label>Đã đặt cọc (VNĐ)
-                                <input id="invDepositAmount" type="number" min="0" step="50000" value="0">
-                            </label>
-                            <label class="wide">Ghi chú &amp; Thông tin chuyển khoản
-                                <textarea id="invNotes" placeholder="VD: Thời gian in hoàn thiện 5-7 ngày làm việc sau khi chốt file. Liên hệ Zalo 0386 038 930 khi cần hỗ trợ."></textarea>
-                            </label>
-                        </div>
-
-                        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;">
-                            <button class="button button-primary" id="saveInvoiceBtn" type="submit">💾 Lưu Hóa đơn / Báo giá</button>
+                        <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+                            <button class="button button-primary" id="saveInvoiceBtn" type="submit">💾 Lưu phiếu</button>
                             <button class="button" id="deleteCurrentInvoiceBtn" type="button" hidden>🗑️ Xóa phiếu này</button>
                         </div>
                         <p class="inv-status-banner" id="invoiceStatusMsg" role="status"></p>
@@ -623,8 +612,8 @@
 
                     <section class="invoice-card" style="margin-top: 1rem;">
                         <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap;">
-                            <strong style="font-size:.92rem;">📂 Hóa đơn &amp; Báo giá đã lưu</strong>
-                            <span id="savedInvoicesCount" class="inv-badge">0 phiếu</span>
+                            <strong style="font-size:.92rem;">📂 Phiếu giao hàng đã lưu</strong>
+                            <span id="savedInvoicesCount" style="font-size:.78rem;color:var(--muted);font-weight:700;">0 phiếu</span>
                         </div>
                         <div class="inv-saved-strip" id="savedInvoicesList">
                             <div style="color:var(--muted);font-size:.82rem;">Đang tải danh sách phiếu đã lưu...</div>
@@ -632,7 +621,7 @@
                     </section>
                 </section>
 
-                <section class="invoice-preview-col" aria-label="Bản xem trước phiếu A4">
+                <section class="invoice-preview-col" aria-label="Bản xem trước Phiếu giao hàng">
                     <div class="invoice-sheet" id="invoicePreviewSheet"></div>
                 </section>
             </div>

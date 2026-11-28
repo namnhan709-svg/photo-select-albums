@@ -115,7 +115,7 @@
                     </a>
                     <a class="studio-sidebar-link" href="studio-invoices">
                         <span class="studio-sidebar-icon" aria-hidden="true">receipt_long</span>
-                        <span>Hóa đơn &amp; In ảnh</span>
+                        <span>Hóa đơn in ảnh</span>
                     </a>
                     <a class="studio-sidebar-link" href="studio-photographers">
                         <span class="studio-sidebar-icon" aria-hidden="true">groups</span>
@@ -607,9 +607,10 @@
     </div>
 
     <!-- EXPORT MODAL -->
-    <div class="modal" id="exportModal">
+    <div class="modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
         <div class="modal-content">
-            <h3 style="margin-bottom: 1rem;">Xuất danh sách ảnh đã chọn</h3>
+            <button class="auth-close" id="exportClose" type="button" aria-label="Đóng">✕</button>
+            <h3 id="exportModalTitle" style="margin-bottom: 1rem;">Xuất danh sách ảnh đã chọn</h3>
             <label class="export-include-name" for="exportIncludeName">
                 <input id="exportIncludeName" type="checkbox">
                 <span>Kèm tên file ảnh (bỏ chọn để chỉ xuất mã số)</span>
@@ -651,8 +652,21 @@
         </div>
     </div>
 
+    <div class="modal" id="downloadConfirmModal" role="dialog" aria-modal="true" aria-labelledby="downloadConfirmTitle">
+        <div class="modal-content zip-setup-content">
+            <button class="auth-close" id="downloadConfirmClose" type="button" aria-label="Đóng">✕</button>
+            <h3 id="downloadConfirmTitle">Xác nhận tải ảnh</h3>
+            <p class="zip-setup-note" id="downloadConfirmMessage">Bạn có chắc chắn muốn tải ảnh chất lượng gốc về máy không?</p>
+            <div class="modal-buttons">
+                <button class="modal-btn-cancel" id="downloadConfirmCancelBtn" type="button">Đóng</button>
+                <button class="modal-btn-confirm" id="downloadConfirmProceedBtn" type="button">✅ Xác nhận tải</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal" id="zipProgressModal" role="dialog" aria-modal="true" aria-labelledby="zipProgressTitle">
         <div class="modal-content zip-progress-content">
+            <button class="auth-close" id="zipProgressClose" type="button" aria-label="Đóng">✕</button>
             <div class="zip-progress-icon">📁</div>
             <h3 id="zipProgressTitle">Đang đóng gói ảnh yêu thích</h3>
             <p class="zip-progress-status" id="zipProgressStatus">Đang bắt đầu...</p>
@@ -661,11 +675,15 @@
                 <div class="zip-progress-fill" id="zipProgressFill"></div>
             </div>
             <div class="zip-progress-percent" id="zipProgressPercent">0%</div>
+            <div class="modal-buttons" style="margin-top: 0.9rem;">
+                <button class="modal-btn-cancel" id="zipProgressCloseBtn" type="button">Đóng</button>
+            </div>
         </div>
     </div>
 
     <div class="modal" id="mobileDownloadNoticeModal" role="dialog" aria-modal="true" aria-labelledby="mobileDownloadNoticeTitle">
         <div class="modal-content">
+            <button class="auth-close" id="mobileDownloadNoticeTopClose" type="button" aria-label="Đóng">✕</button>
             <h3 id="mobileDownloadNoticeTitle" style="margin-bottom:0.7rem;color:var(--primary);">Tải toàn album trên máy tính</h3>
             <p style="color:var(--secondary);line-height:1.55;">Trên điện thoại, bạn vẫn có thể tải từng ảnh đang xem. Tải toàn bộ album hiện chỉ hỗ trợ trên máy tính.</p>
             <div class="modal-buttons">
@@ -676,6 +694,7 @@
 
     <div class="modal" id="albumFolderDownloadModal" role="dialog" aria-modal="true" aria-labelledby="albumFolderDownloadTitle">
         <div class="modal-content zip-setup-content">
+            <button class="auth-close" id="albumFolderDownloadClose" type="button" aria-label="Đóng">✕</button>
             <h3 id="albumFolderDownloadTitle">Chọn thư mục con cần tải</h3>
             <p class="zip-setup-note">Ảnh ở thư mục album luôn được thêm vào ZIP. Chọn một thư mục cha để bao gồm cả các thư mục con bên trong.</p>
             <label class="album-folder-select-all">
@@ -693,14 +712,15 @@
 
     <div class="modal" id="zipSetupModal" role="dialog" aria-modal="true" aria-labelledby="zipSetupTitle">
         <div class="modal-content zip-setup-content">
-            <h3 id="zipSetupTitle">Tải ảnh vào thư mục album</h3>
+            <button class="auth-close" id="zipSetupClose" type="button" aria-label="Đóng">✕</button>
+            <h3 id="zipSetupTitle">Xác nhận tải ảnh yêu thích</h3>
             
             <p class="zip-setup-note">Hệ thống sẽ đóng gói toàn bộ ảnh đã chọn thành một file ZIP rồi tải vào Downloads mặc định của trình duyệt.</p>
             <p class="zip-setup-warning">Lưu ý: Ảnh được tải trực tiếp từ Google Drive, là ảnh gốc.</p>
             
             <div class="modal-buttons">
-                <button class="modal-btn-cancel" id="zipSetupCancel" type="button">Hủy</button>
-                <button class="modal-btn-confirm" id="zipSetupStart" type="button">📦 Đóng gói và tải ZIP</button>
+                <button class="modal-btn-cancel" id="zipSetupCancel" type="button">Đóng</button>
+                <button class="modal-btn-confirm" id="zipSetupStart" type="button">✅ Xác nhận tải ZIP</button>
             </div>
         </div>
     </div>
