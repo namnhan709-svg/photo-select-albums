@@ -3,7 +3,7 @@
         const ALBUM_NAMES_KEY = 'albumNames';
         const THEME_STORAGE_KEY = 'photoSelectTheme';
         const SETTINGS_STORAGE_KEY = 'photoSelectInterfaceSettings';
-        const PHOTO_CACHE_PREFIX = 'photoList:v13:';
+        const PHOTO_CACHE_PREFIX = 'photoList:v14:';
         const PHOTO_CACHE_TTL = 30 * 60 * 1000;
         const DRIVE_COVER_CACHE_PREFIX = 'driveCover:v2:';
         const DRIVE_COVER_CACHE_TTL = 24 * 60 * 60 * 1000;
@@ -439,7 +439,10 @@
                 event.currentTarget.setAttribute('aria-expanded', String(isOpen));
             });
             document.getElementById('downloadCurrentLightboxPhoto').addEventListener('click', downloadCurrentLightboxPhoto);
+            document.getElementById('downloadCurrentPhotoDirectDrive')?.addEventListener('click', downloadCurrentPhotoDirectDrive);
             document.getElementById('downloadSharedAlbum').addEventListener('click', downloadSharedAlbum);
+            document.getElementById('guestDownloadSelectedBtn')?.addEventListener('click', downloadGuestSelectedPhotos);
+            document.getElementById('guestDownloadAllBtn')?.addEventListener('click', downloadSharedAlbum);
             document.addEventListener('click', event => {
                 const downloadWrap = document.getElementById('lightboxDownloadWrap');
                 if (!downloadWrap.contains(event.target)) closeLightboxDownloadMenu();
@@ -2113,11 +2116,13 @@ async function selectSavedAlbum(id) {
                         category: f.category || albumName,
                         folderPath: f.folderPath || [],
                         modifiedTime: f.modifiedTime,
+                        size: Number(f.size || 0),
+                        webContentLink: f.webContentLink || '',
                         thumbnailLink: f.thumbnailLink || '',
                         thumbnailUrl: f.thumbnailUrl || '',
                         fullUrl: f.fullUrl || '',
                         thumbnail: f.thumbnailUrl || `https://lh3.googleusercontent.com/d/${encodeURIComponent(f.id)}=w${thumbnailSize}`,
-                        url: f.fullUrl || `https://lh3.googleusercontent.com/d/${encodeURIComponent(f.id)}=w1600`
+                        url: f.fullUrl || `https://lh3.googleusercontent.com/d/${encodeURIComponent(f.id)}=w2048`
                     }));
                     try {
                         sessionStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), photos: state.photos }));
@@ -2377,7 +2382,21 @@ async function selectSavedAlbum(id) {
                     number.textContent = '#' + (index + 1);
                     top.appendChild(number);
                     overlay.appendChild(top);
-                    item.append(image, badge, name, commentBadge, heart, overlay);
+                    if (CONFIG.IS_SHARED_ALBUM) {
+                        const downloadBtn = document.createElement('button');
+                        downloadBtn.type = 'button';
+                        downloadBtn.className = 'photo-download-btn';
+                        downloadBtn.title = 'Tải ảnh gốc chất lượng cao nhất';
+                        downloadBtn.setAttribute('aria-label', `Tải ảnh gốc ${photo.name || ''}`);
+                        downloadBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m-5-5 5 5 5-5M4 15v4h16v-4"/></svg>';
+                        downloadBtn.addEventListener('click', (event) => {
+                            event.stopPropagation();
+                            downloadOriginalPhotoFile(photo, { triggerButton: downloadBtn });
+                        });
+                        item.append(image, badge, name, commentBadge, downloadBtn, heart, overlay);
+                    } else {
+                        item.append(image, badge, name, commentBadge, heart, overlay);
+                    }
                     batch.appendChild(item);
                 }
                 grid.appendChild(batch);
@@ -2637,6 +2656,13 @@ function updateStats() {
 
             document.getElementById('lightboxPhotoNumber').textContent = `#${index + 1}`;
             document.getElementById('lightboxCaption').textContent = photo.name || 'Ảnh album';
+            const dlCurrentBtn = document.getElementById('downloadCurrentLightboxPhoto');
+            if (dlCurrentBtn) {
+                const sizeText = formatPhotoBytes(photo.size);
+                dlCurrentBtn.textContent = sizeText
+                    ? `⬇️ Tải ảnh gốc (${sizeText})`
+                    : '⬇️ Tải ảnh gốc (Chất lượng cao nhất)';
+            }
             document.getElementById('lightboxCommentInput').value = '';
             document.getElementById('lightboxHeart').textContent = state.selectedPhotos.has(photo.id) ? '❤️' : '🤍';
             document.getElementById('lightbox').classList.add('active');
@@ -2654,6 +2680,7 @@ function updateStats() {
         function updateLightboxDownloadAvailability() {
             const isAllowed = getCurrentAlbumPermission();
             const shouldHideDownloads = isGuestSharedView() && !isAllowed;
+            document.body.classList.toggle('guest-save-disabled', shouldHideDownloads);
             [
                 document.getElementById('toolbarZipBtn'),
                 document.getElementById('lightboxDownloadWrap')
@@ -2662,10 +2689,19 @@ function updateStats() {
                 control.hidden = shouldHideDownloads;
                 control.style.display = shouldHideDownloads ? 'none' : '';
             });
+            const guestDownloadActions = document.getElementById('guestDownloadActions');
+            if (guestDownloadActions) {
+                const showGuestDownloads = CONFIG.IS_SHARED_ALBUM && isAllowed;
+                guestDownloadActions.hidden = !showGuestDownloads;
+                guestDownloadActions.style.display = showGuestDownloads ? 'flex' : 'none';
+            }
             const controls = [
                 document.getElementById('lightboxDownloadToggle'),
                 document.getElementById('downloadCurrentLightboxPhoto'),
-                document.getElementById('downloadSharedAlbum')
+                document.getElementById('downloadCurrentPhotoDirectDrive'),
+                document.getElementById('downloadSharedAlbum'),
+                document.getElementById('guestDownloadSelectedBtn'),
+                document.getElementById('guestDownloadAllBtn')
             ];
             controls.forEach(control => {
                 if (!control) return;
@@ -2684,36 +2720,173 @@ function updateStats() {
             document.getElementById('mobileDownloadNoticeModal').classList.add('active');
         }
 
-        function downloadCurrentLightboxPhoto() {
-            if (!ensureAlbumAllowsSave('tải ảnh')) return;
-            const photo = state.displayPhotos[state.currentLightboxIndex];
-            if (!photo) return;
+        function formatPhotoBytes(bytes) {
+            const num = Number(bytes || 0);
+            if (!Number.isFinite(num) || num <= 0) return '';
+            if (num >= 1024 * 1024) return `${(num / (1024 * 1024)).toFixed(1)} MB`;
+            if (num >= 1024) return `${Math.round(num / 1024)} KB`;
+            return `${num} B`;
+        }
 
-            const status = document.getElementById('lightboxDownloadStatus');
-            const filename = String(photo.name || `anh-${state.currentLightboxIndex + 1}`)
+        function buildSanitizedPhotoFilename(photo, fallbackIndex = 1) {
+            return String(photo?.name || `anh-${fallbackIndex}`)
                 .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_');
+        }
 
-            const url = `photowedding/app.php?drive_proxy=download&file_id=${encodeURIComponent(photo.id)}&filename=${encodeURIComponent(filename)}${getSharedDownloadQuery()}`;
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-            if (isIOS) {
-                const popup = window.open(url, '_blank', 'noopener,noreferrer');
-                if (!popup) {
-                    window.location.href = url;
-                }
-                status.textContent = 'Đang bắt đầu tải xuống...';
-                return;
+        function getDirectGoogleDriveDownloadUrl(photo) {
+            if (!photo) return '';
+            if (window.PhotoSelectAPI?.getDriveOriginalDownloadUrl) {
+                return window.PhotoSelectAPI.getDriveOriginalDownloadUrl(photo);
             }
+            if (photo.webContentLink) return String(photo.webContentLink);
+            return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(String(photo.id || ''))}`;
+        }
 
+        function triggerBrowserBlobDownload(blob, filename) {
+            const objectUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url;
+            link.href = objectUrl;
             link.download = filename;
             link.rel = 'noopener';
             link.style.display = 'none';
             document.body.appendChild(link);
             link.click();
-            window.setTimeout(() => link.remove(), 1000);
-            status.textContent = 'Đã bắt đầu tải ảnh gốc.';
+            window.setTimeout(() => {
+                link.remove();
+                URL.revokeObjectURL(objectUrl);
+            }, 60000);
+        }
+
+        async function fetchOriginalDrivePhotoBlob(photo) {
+            if (typeof photo?.fullUrl === 'string' && photo.fullUrl.startsWith('data:')) {
+                const res = await fetch(photo.fullUrl);
+                return res.blob();
+            }
+            if (window.PhotoSelectAPI?.isMockMode && window.PhotoSelectAPI.isMockMode()) {
+                return window.PhotoSelectAPI.driveDownloadBlob(photo.id);
+            }
+            const filename = buildSanitizedPhotoFilename(photo);
+            const url = `photowedding/app.php?drive_proxy=download&file_id=${encodeURIComponent(photo.id)}&filename=${encodeURIComponent(filename)}${getSharedDownloadQuery()}`;
+            const response = await fetch(url, { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const blob = await response.blob();
+            if (!blob || (blob.type && /text\/html/i.test(blob.type))) {
+                throw new Error('Drive returned HTML instead of image');
+            }
+            return blob;
+        }
+
+        async function downloadOriginalPhotoFile(photo, { statusEl = null, triggerButton = null } = {}) {
+            if (!ensureAlbumAllowsSave('tải ảnh')) return;
+            if (!photo) return;
+            const filename = buildSanitizedPhotoFilename(photo, state.currentLightboxIndex + 1);
+            const sizeLabel = formatPhotoBytes(photo.size);
+            const prevHtml = triggerButton ? triggerButton.innerHTML : '';
+            if (triggerButton) {
+                triggerButton.disabled = true;
+                if (triggerButton.classList.contains('photo-download-btn')) {
+                    triggerButton.textContent = '⏳';
+                }
+            }
+            if (statusEl) {
+                statusEl.textContent = sizeLabel
+                    ? `Đang tải ảnh gốc (${sizeLabel})...`
+                    : 'Đang tải ảnh gốc chất lượng cao nhất...';
+            }
+
+            try {
+                const blob = await fetchOriginalDrivePhotoBlob(photo);
+                const actualSize = formatPhotoBytes(blob.size) || sizeLabel;
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '')
+                    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+                if (isIOS && navigator.canShare && typeof File === 'function') {
+                    try {
+                        const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+                        if (navigator.canShare({ files: [file] })) {
+                            await navigator.share({ files: [file], title: filename });
+                            if (statusEl) statusEl.textContent = `✅ Đã lưu ảnh gốc (${actualSize || 'Full'}).`;
+                            return;
+                        }
+                    } catch (shareErr) {
+                        if (shareErr?.name === 'AbortError') {
+                            if (statusEl) statusEl.textContent = 'Đã hủy lưu ảnh.';
+                            return;
+                        }
+                    }
+                }
+
+                triggerBrowserBlobDownload(blob, filename);
+                if (statusEl) statusEl.textContent = `✅ Đã tải ảnh gốc (${actualSize || 'Full'}).`;
+            } catch (error) {
+                console.warn('Tải qua API gặp lỗi, chuyển sang link tải trực tiếp từ Google Drive:', error);
+                const directUrl = getDirectGoogleDriveDownloadUrl(photo);
+                if (directUrl && !String(photo.id || '').startsWith('img-')) {
+                    window.open(directUrl, '_blank', 'noopener,noreferrer');
+                    if (statusEl) statusEl.textContent = '↗️ Đã mở link tải file gốc trực tiếp từ Google Drive.';
+                } else {
+                    if (statusEl) statusEl.textContent = '❌ Không thể tải ảnh gốc. Vui lòng thử lại.';
+                }
+            } finally {
+                if (triggerButton) {
+                    triggerButton.disabled = false;
+                    triggerButton.innerHTML = prevHtml;
+                }
+            }
+        }
+
+        function downloadCurrentLightboxPhoto() {
+            if (!ensureAlbumAllowsSave('tải ảnh')) return;
+            const photo = state.displayPhotos[state.currentLightboxIndex];
+            if (!photo) return;
+            const status = document.getElementById('lightboxDownloadStatus');
+            const button = document.getElementById('downloadCurrentLightboxPhoto');
+            downloadOriginalPhotoFile(photo, { statusEl: status, triggerButton: button });
+        }
+
+        function downloadCurrentPhotoDirectDrive() {
+            if (!ensureAlbumAllowsSave('tải ảnh')) return;
+            const photo = state.displayPhotos[state.currentLightboxIndex];
+            if (!photo) return;
+            const status = document.getElementById('lightboxDownloadStatus');
+            const directUrl = getDirectGoogleDriveDownloadUrl(photo);
+            if (!directUrl || String(photo.id || '').startsWith('img-')) {
+                downloadCurrentLightboxPhoto();
+                return;
+            }
+            window.open(directUrl, '_blank', 'noopener,noreferrer');
+            if (status) status.textContent = '↗️ Đã mở trang tải gốc trực tiếp từ Google Drive.';
+        }
+
+        async function downloadGuestSelectedPhotos() {
+            if (!ensureAlbumAllowsSave('tải ảnh')) return;
+            const selected = state.photos.filter(photo => state.selectedPhotos.has(String(photo.id)));
+            if (!selected.length) {
+                window.alert('Bạn chưa chọn (thả tim ❤️) ảnh nào. Hãy thả tim các ảnh muốn tải hoặc bấm "Tải toàn bộ album".');
+                return;
+            }
+            if (selected.length === 1) {
+                const btn = document.getElementById('guestDownloadSelectedBtn');
+                await downloadOriginalPhotoFile(selected[0], { triggerButton: btn });
+                return;
+            }
+            if (isMobileDownloadBlocked()) {
+                if (selected.length <= 5) {
+                    const btn = document.getElementById('guestDownloadSelectedBtn');
+                    for (let i = 0; i < selected.length; i += 1) {
+                        await downloadOriginalPhotoFile(selected[i], { triggerButton: btn });
+                        if (i < selected.length - 1) {
+                            await new Promise(resolve => window.setTimeout(resolve, 400));
+                        }
+                    }
+                    return;
+                }
+                showMobileDownloadNotice();
+                return;
+            }
+            await downloadSelectedPhotosAsZip(selected);
         }
 
         function sanitizeZipEntrySegment(value, fallback = 'anh') {
