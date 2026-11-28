@@ -837,7 +837,7 @@
                     const session = await response.json();
                     if (!response.ok) throw new Error(session.message || 'Không thể tải thông tin tài khoản.');
                     if (!session.user) {
-                        dashboardUserLoadError = 'Không tìm thấy thông tin phiên đăng nhập.';
+                        window.location.replace('login.html?redirect=studio-photographers.html');
                         return;
                     }
                     window.dashboardUser = session.user;

@@ -211,15 +211,15 @@
                 <span>TeeMedia PRO</span>
             </a>
             <div class="login-brand-copy">
-                <h1>Quản lý album & theo dõi ảnh khách chọn</h1>
-                <p>Đăng nhập vào không gian làm việc Studio để kết nối thư mục Google Drive, gửi link cho khách thả tim và xem lại chính xác danh sách ảnh khách đã chọn.</p>
+                <h1>Không gian quản trị TeeMedia</h1>
+                <p>Cổng đăng nhập nội bộ dành riêng cho chủ Studio và nhân sự được cấp tài khoản để quản lý album Google Drive và theo dõi ảnh khách hàng đã chọn.</p>
                 <div class="login-highlights">
-                    <div class="login-highlight">❤️ Đồng bộ danh sách ảnh khách đã thả tim vào database theo từng thư mục</div>
-                    <div class="login-highlight">💬 Ghi chú & bình luận trực tiếp trên từng file ảnh gốc</div>
-                    <div class="login-highlight">📦 Đóng gói ZIP, xuất `.txt`, lọc ảnh trực tiếp từ máy tính</div>
+                    <div class="login-highlight">🔒 Truy cập nội bộ — không hỗ trợ đăng ký công khai</div>
+                    <div class="login-highlight">❤️ Đồng bộ danh sách ảnh khách đã chọn theo từng thư mục</div>
+                    <div class="login-highlight">💬 Ghi chú & tải ảnh gốc trực tiếp từ Google Drive</div>
                 </div>
             </div>
-            <p style="margin:1.5rem 0 0;font-size:.76rem;color:rgba(247,243,234,.68);">Tài khoản mẫu: <strong>studio@gmail.com</strong> · Mật khẩu: <strong>123456</strong></p>
+            <p style="margin:1.5rem 0 0;font-size:.76rem;color:rgba(247,243,234,.68);">Nếu bạn cần tài khoản truy cập hoặc cấp lại mật khẩu, vui lòng liên hệ quản trị viên TeeMedia Studio.</p>
         </section>
 
         <section class="login-form-side">
@@ -235,48 +235,20 @@
             </div>
 
             <div class="login-tabs" role="tablist">
-                <button class="login-tab is-active" type="button" data-tab="login">Đăng nhập</button>
-                <button class="login-tab" type="button" data-tab="register">Đăng ký</button>
-                <button class="login-tab" type="button" data-tab="forgot">Quên mật khẩu</button>
+                <button class="login-tab is-active" type="button" data-tab="login">Đăng nhập nội bộ</button>
             </div>
 
             <form class="login-form is-active" id="loginForm" data-panel="login">
-                <label>Email hoặc ID tài khoản
-                    <input id="loginIdentifier" name="login_id" type="text" required autocomplete="username" placeholder="studio@gmail.com">
+                <label>Email hoặc ID được cấp
+                    <input id="loginIdentifier" name="login_id" type="text" required autocomplete="username" placeholder="Nhập email hoặc ID tài khoản...">
                 </label>
                 <label>Mật khẩu
                     <input id="loginPassword" name="password" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu">
                 </label>
                 <div class="login-row">
                     <label class="login-remember"><input type="checkbox" name="remember_me" value="1" checked> Ghi nhớ đăng nhập</label>
-                    <button class="login-link-btn" type="button" id="fillDemoAccountBtn">Điền tài khoản mẫu</button>
                 </div>
                 <button class="button button-primary" type="submit">Đăng nhập vào hệ thống</button>
-                <div class="login-divider">hoặc</div>
-                <a class="button" href="photowedding/app.php?google=login">Đăng nhập nhanh bằng Google</a>
-            </form>
-
-            <form class="login-form" id="registerForm" data-panel="register">
-                <label>Họ và tên / Tên Studio
-                    <input name="name" type="text" required placeholder="VD: Minh Anh Studio">
-                </label>
-                <label>Số điện thoại
-                    <input name="phone" type="tel" required placeholder="0901 234 567">
-                </label>
-                <label>Email (@gmail.com)
-                    <input name="email" type="email" required placeholder="name@gmail.com">
-                </label>
-                <label>Mật khẩu (tối thiểu 6 ký tự)
-                    <input name="password" type="password" minlength="6" required placeholder="Tối thiểu 6 ký tự">
-                </label>
-                <button class="button button-primary" type="submit">Tạo tài khoản mới</button>
-            </form>
-
-            <form class="login-form" id="forgotForm" data-panel="forgot">
-                <label>Email đã đăng ký
-                    <input name="email" type="email" required placeholder="studio@gmail.com">
-                </label>
-                <button class="button button-primary" type="submit">Khôi phục mật khẩu</button>
             </form>
 
             <p class="login-status" id="loginStatus" role="status"></p>
@@ -289,45 +261,10 @@
             const redirectTarget = new URLSearchParams(window.location.search).get('redirect') || 'albums.html';
             const statusEl = document.getElementById('loginStatus');
 
-            function switchTab(tabName) {
-                document.querySelectorAll('.login-tab').forEach(btn => btn.classList.toggle('is-active', btn.dataset.tab === tabName));
-                document.querySelectorAll('.login-form').forEach(form => form.classList.toggle('is-active', form.dataset.panel === tabName));
-                statusEl.textContent = '';
-                statusEl.className = 'login-status';
-            }
-
-            document.querySelectorAll('.login-tab').forEach(btn => {
-                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-            });
-
-            document.getElementById('fillDemoAccountBtn').addEventListener('click', () => {
-                document.getElementById('loginIdentifier').value = 'studio@gmail.com';
-                document.getElementById('loginPassword').value = '123456';
-                statusEl.textContent = 'Đã điền tài khoản mẫu studio@gmail.com.';
-                statusEl.className = 'login-status';
-            });
-
-            async function checkExistingSession() {
-                try {
-                    const res = await fetch('photowedding/app.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'session_state' })
-                    });
-                    const data = await res.json();
-                    if (data?.user?.id) {
-                        document.getElementById('activeSessionName').textContent = `Đang đăng nhập: ${data.user.name}`;
-                        document.getElementById('activeSessionEmail').textContent = data.user.email || '';
-                        document.getElementById('continueDashboardBtn').href = redirectTarget;
-                        document.getElementById('activeSessionBox').classList.add('is-visible');
-                    }
-                } catch {}
-            }
-
-            async function submitAuth(action, form) {
+            async function submitAuth(form) {
                 const payload = Object.fromEntries(new FormData(form));
-                payload.action = action;
-                statusEl.textContent = 'Đang xử lý...';
+                payload.action = 'login';
+                statusEl.textContent = 'Đang xác thực...';
                 statusEl.className = 'login-status';
                 try {
                     const res = await fetch('photowedding/app.php', {
@@ -337,23 +274,18 @@
                     });
                     const result = await res.json();
                     if (!res.ok || !result.success) {
-                        throw new Error(result.message || 'Không thể hoàn tất yêu cầu.');
+                        throw new Error(result.message || 'Không thể đăng nhập.');
                     }
-                    statusEl.textContent = result.message || 'Thành công!';
+                    statusEl.textContent = result.message || 'Đăng nhập thành công!';
                     statusEl.className = 'login-status is-success';
-                    if (action === 'login' || action === 'register') {
-                        window.location.replace(redirectTarget);
-                    }
+                    window.location.replace(redirectTarget);
                 } catch (err) {
                     statusEl.textContent = err.message || 'Lỗi kết nối máy chủ.';
                     statusEl.className = 'login-status is-error';
                 }
             }
 
-            document.getElementById('loginForm').addEventListener('submit', e => { e.preventDefault(); submitAuth('login', e.currentTarget); });
-            document.getElementById('registerForm').addEventListener('submit', e => { e.preventDefault(); submitAuth('register', e.currentTarget); });
-            document.getElementById('forgotForm').addEventListener('submit', e => { e.preventDefault(); submitAuth('forgot', e.currentTarget); });
-
+            document.getElementById('loginForm').addEventListener('submit', e => { e.preventDefault(); submitAuth(e.currentTarget); });
             checkExistingSession();
         })();
     </script>

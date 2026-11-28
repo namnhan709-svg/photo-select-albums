@@ -31,12 +31,15 @@
             </div>
             
             <div class="header-right">
-                <button class="header-btn" id="loginBtnHeader" type="button" title="Đăng nhập">Đăng nhập</button>
+                <a class="header-btn" href="#portfolioAlbumsSection">Bộ sưu tập</a>
+                <a class="header-btn" href="#portfolioGallerySection">Tác phẩm</a>
+                <a class="header-btn" href="#portfolioContactSection">Liên hệ</a>
+                <button class="header-btn" id="loginBtnHeader" type="button" title="Đăng nhập" style="display: none;">Đăng nhập</button>
                 <button class="header-btn" id="homeBtn" type="button" title="Trang chủ" style="display:none;">Trang chủ</button>
                 <a class="header-btn" id="manageAlbumsBtn" href="albums.html" title="Album gần đây" style="display: none;">Album gần đây</a>
-                <button class="header-btn notification-btn" id="notificationBtn" type="button" title="Thông báo" aria-label="Thông báo" aria-expanded="false">🔔<span class="notification-badge" id="notificationBadge" hidden>0</span></button>
+                <button class="header-btn notification-btn" id="notificationBtn" type="button" title="Thông báo" aria-label="Thông báo" aria-expanded="false" style="display: none;">🔔<span class="notification-badge" id="notificationBadge" hidden>0</span></button>
                 <button class="header-btn" id="shareLinkBtn" title="Chia sẻ link" style="display: none;">🔗 Chia sẻ</button>
-                <div class="user-panel" id="userPanel" aria-expanded="false" aria-haspopup="true">
+                <div class="user-panel" id="userPanel" aria-expanded="false" aria-haspopup="true" style="display: none;">
                     <div class="user-avatar" id="userAvatar">K</div>
                     <div class="user-meta">
                         <strong id="userNameText">Khách</strong>
@@ -167,7 +170,7 @@
                 </div>
                 <div class="portfolio-contact-actions">
                     <button class="hero-cta" id="portfolioOpenChatBtn" type="button">💬 Nhắn tư vấn ngay</button>
-                    <a class="portfolio-secondary-cta" href="login.html?redirect=albums.html">🔐 Dành cho Studio</a>
+                    <a class="portfolio-secondary-cta" href="#portfolioAlbumsSection">🎞️ Xem lại Album</a>
                 </div>
             </section>
         </main>
@@ -441,41 +444,16 @@
                 <section class="auth-form-panel">
                     <button class="auth-close" id="authClose" type="button" aria-label="Đóng">✕</button>
                     <div class="auth-tabs">
-                        <button class="auth-tab active" type="button" data-auth-tab="login">Đăng nhập</button>
-                        <button class="auth-tab" type="button" data-auth-tab="register">Đăng ký</button>
+                        <button class="auth-tab active" type="button" data-auth-tab="login">Đăng nhập nội bộ</button>
                     </div>
                     <form class="auth-form active" data-auth-form="login">
-                        <label>ID hoặc Email<input name="login_id" type="text" required placeholder="Nhập tài khoản hoặc email..."></label>
-                        <label>Mật khẩu<input name="password" type="password" required placeholder="Tối thiểu 6 ký tự"></label>
+                        <label>ID hoặc Email được cấp<input name="login_id" type="text" required placeholder="Nhập tài khoản hoặc email..."></label>
+                        <label>Mật khẩu<input name="password" type="password" required placeholder="Nhập mật khẩu"></label>
                         <div class="auth-options-row">
                             <label class="remember-login"><input name="remember_me" type="checkbox" value="1"> Ghi nhớ đăng nhập trên thiết bị này</label>
-                            <button class="auth-forgot-link" type="button" data-auth-tab="forgot">Quên mật khẩu?</button>
                         </div>
-                        <p class="auth-session-note">Chỉ khi bật tùy chọn này, tài khoản mới được duy trì khi mở lại ứng dụng. (Demo: <code>studio@gmail.com</code> / <code>123456</code>)</p>
+                        <p class="auth-session-note">Cổng quản trị nội bộ dành riêng cho chủ Studio và nhân sự được cấp tài khoản.</p>
                         <button type="submit" class="btn btn-primary">Vào hệ thống</button>
-                        <div class="auth-oauth-divider"><span>hoặc</span></div>
-                        <a class="google-login-btn" href="photowedding/app.php?google=login">
-                            <span class="google-login-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" role="img">
-                                    <path fill="#4285F4" d="M21.35 12.27c0-.71-.06-1.4-.18-2.06H12v3.9h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.23Z"/>
-                                    <path fill="#34A853" d="M12 21.5c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.3v2.53A9.74 9.74 0 0 0 12 21.5Z"/>
-                                    <path fill="#FBBC05" d="M6.54 13.58A5.86 5.86 0 0 1 6.23 12c0-.55.11-1.09.31-1.58V7.89H3.3A9.5 9.5 0 0 0 2.25 12c0 1.48.35 2.88 1.05 4.11l3.24-2.53Z"/>
-                                    <path fill="#EA4335" d="M12 6.39c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 3.47 14.63 2.5 12 2.5a9.74 9.74 0 0 0-8.7 5.39l3.24 2.53C7.31 8.11 9.46 6.39 12 6.39Z"/>
-                                </svg>
-                            </span>
-                            <span>Đăng nhập bằng Google</span>
-                        </a>
-                    </form>
-                    <form class="auth-form" data-auth-form="register">
-                        <label>Họ và tên<input name="name" type="text" required placeholder="Nguyễn Văn A"></label>
-                        <label>Số điện thoại<input name="phone" type="tel" inputmode="tel" required placeholder="0912 345 678"></label>
-                        <label>Email<input name="email" type="email" required placeholder="name@example.com"></label>
-                        <label>Mật khẩu<input name="password" type="password" minlength="6" required placeholder="Tối thiểu 6 ký tự"></label>
-                        <button type="submit" class="btn btn-primary">Tạo tài khoản</button>
-                    </form>
-                    <form class="auth-form" data-auth-form="forgot">
-                        <label>Email đã đăng ký<input name="email" type="email" required placeholder="name@example.com"></label>
-                        <button type="submit" class="btn btn-primary">Gửi link khôi phục</button>
                     </form>
                     <p class="auth-message" id="authMessage" role="status"></p>
                 </section>
