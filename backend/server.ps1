@@ -57,7 +57,9 @@ function Initialize-Database {
                 id = 1
                 name = 'TeeMedia Studio'
                 email = 'studio@gmail.com'
-                phone = '0901 234 567'
+                phone = '0386 038 930'
+                contactEmail = 'thongtrong10@gmail.com'
+                zalo = '0386038930'
                 passwordSalt = $pw.salt
                 passwordHash = $pw.hash
                 status = 'active'
@@ -112,7 +114,7 @@ function Initialize-Database {
         contracts = @(
             @{
                 id = 1; user_id = 1; studioName = 'TeeMedia Studio'; contractNumber = 'PS-20261002-001'
-                studioAddress = '12 Nguyễn Huệ, Quận 1, TP.HCM'; studioPhone = '0901 234 567'; contractDate = '2026-10-02'
+                studioAddress = '12 Nguyễn Huệ, Quận 1, TP.HCM'; studioPhone = '0386 038 930'; contractDate = '2026-10-02'
                 clientName = 'Trần Minh & Ngọc Lan'; clientPhone = '0987 654 321'; clientEmail = 'minhlan@gmail.com'
                 servicePreset = 'Gói chụp ảnh cưới trọn gói'; serviceName = 'Gói chụp ảnh cưới trọn gói'; eventType = 'Chụp cưới'
                 shootDate = $soonDate; shootDateSecondary = ''; shootLocation = 'Đồi thông Đà Lạt & Studio'; shootSchedule = 'Chụp ngoại cảnh Đà Lạt'
@@ -121,6 +123,21 @@ function Initialize-Database {
                 totalPrice = '25000000'; deposit = '12000000'
                 paymentTerms = 'Đặt cọc 50% khi ký hợp đồng, thanh toán phần còn lại khi nhận ảnh.'
                 extraTerms = 'Hỗ trợ chỉnh sửa màu theo tone yêu cầu.'
+                created_at = (Get-NowIso)
+            }
+        )
+        invoices = @(
+            @{
+                id = 1; user_id = 1; docType = 'quote'; invoiceNumber = 'BG-20261128-001'
+                issueDate = '2026-11-28'; dueDate = $laterDate; status = 'quote'
+                studioName = 'TeeMedia Atelier'; studioPhone = '0386 038 930'; studioEmail = 'thongtrong10@gmail.com'; studioZalo = '0386038930'
+                clientName = 'Trần Minh & Ngọc Lan'; clientPhone = '0987 654 321'; clientEmail = 'minhlan@gmail.com'
+                albumName = 'Pre-Wedding Đà Lạt'; discountValue = 0; discountType = 'vnd'; vatPercent = 0; depositAmount = 1000000
+                notes = 'Báo giá in ấn hoàn thiện từ danh sách ảnh khách đã thả tim.'
+                items = @(
+                    @{ name = 'Album Photobook mở phẳng cao cấp'; spec = '25x35 cm · 20 trang bìa da'; unit = 'Cuốn'; qty = 1; price = 1800000 },
+                    @{ name = 'Ảnh cổng Tráng gương Pha lê'; spec = '60x90 cm kèm khung'; unit = 'Tấm'; qty = 1; price = 950000 }
+                )
                 created_at = (Get-NowIso)
             }
         )
@@ -754,8 +771,9 @@ function Handle-ApiRequest($Context, $Db, $SessionCtx) {
                 updated_at = $portfolio['updated_at']
                 studio = @{
                     name = $studioName
-                    phone = if ($primaryUser -and $primaryUser['phone']) { [string]$primaryUser['phone'] } else { '0901 234 567' }
-                    email = if ($primaryUser -and $primaryUser['email']) { [string]$primaryUser['email'] } else { 'studio@gmail.com' }
+                    phone = if ($primaryUser -and $primaryUser['phone'] -and $primaryUser['phone'] -ne '0901 234 567') { [string]$primaryUser['phone'] } else { '0386 038 930' }
+                    email = if ($primaryUser -and $primaryUser['contactEmail']) { [string]$primaryUser['contactEmail'] } elseif ($primaryUser -and $primaryUser['email'] -and $primaryUser['email'] -ne 'studio@gmail.com') { [string]$primaryUser['email'] } else { 'thongtrong10@gmail.com' }
+                    zalo = if ($primaryUser -and $primaryUser['zalo']) { [string]$primaryUser['zalo'] } else { '0386038930' }
                 }
                 albums = @($visibleAlbums)
                 photos = @($savedPhotos)
@@ -1167,6 +1185,48 @@ function Handle-ApiRequest($Context, $Db, $SessionCtx) {
             return
         }
 
+        'invoices_list' {
+            if ($uid -le 0) { Send-Json $Context 401 @{ success = $false; message = 'Vui lòng đăng nhập để quản lý hóa đơn.' }; return }
+            if (-not $Db.ContainsKey('invoices')) { $Db['invoices'] = @() }
+            $items = @($Db['invoices'] | Where-Object { [int]$_['user_id'] -eq $uid })
+            Send-Json $Context 200 @{ success = $true; invoices = $items }
+            return
+        }
+
+        'invoices_save' {
+            if ($uid -le 0) { Send-Json $Context 401 @{ success = $false; message = 'Vui lòng đăng nhập.' }; return }
+            if (-not $Db.ContainsKey('invoices')) { $Db['invoices'] = @() }
+            $inv = $body['invoice']
+            $iid = if ($inv['id']) { [int]$inv['id'] } else { 0 }
+            $existing = if ($iid -gt 0) { $Db['invoices'] | Where-Object { [int]$_['id'] -eq $iid -and [int]$_['user_id'] -eq $uid } | Select-Object -First 1 } else { $null }
+            if ($existing) {
+                foreach ($k in $inv.Keys) {
+                    if ($k -ne 'id' -and $k -ne 'user_id') { $existing[$k] = $inv[$k] }
+                }
+                $existing['updated_at'] = (Get-NowIso)
+                Save-Db $Db
+                Send-Json $Context 200 @{ success = $true; invoice = $existing }
+                return
+            }
+            $newInv = @{ id = (Get-NextId $Db); user_id = $uid; created_at = (Get-NowIso); updated_at = (Get-NowIso) }
+            foreach ($k in $inv.Keys) { if ($k -ne 'id' -and $k -ne 'user_id') { $newInv[$k] = $inv[$k] } }
+            $Db['invoices'] = @($newInv) + @($Db['invoices'])
+            Save-Db $Db
+            Send-Json $Context 200 @{ success = $true; invoice = $newInv }
+            return
+        }
+
+        'invoices_delete' {
+            if ($uid -le 0) { Send-Json $Context 401 @{ success = $false; message = 'Vui lòng đăng nhập.' }; return }
+            $iid = [int]$body['id']
+            if ($Db.ContainsKey('invoices')) {
+                $Db['invoices'] = @($Db['invoices'] | Where-Object { -not ([int]$_['id'] -eq $iid -and [int]$_['user_id'] -eq $uid) })
+                Save-Db $Db
+            }
+            Send-Json $Context 200 @{ success = $true }
+            return
+        }
+
         'customers_list' {
             if ($uid -le 0) { Send-Json $Context 401 @{ success = $false; message = 'Vui lòng đăng nhập để quản lý khách hàng.' }; return }
             $items = @($Db['customers'] | Where-Object { [int]$_['user_id'] -eq $uid })
@@ -1331,6 +1391,10 @@ try {
                 '/studio-contracts'     { 'studio-contracts.html' }
                 '/contracts'            { 'studio-contracts.html' }
                 '/hop-dong'             { 'studio-contracts.html' }
+                '/studio-invoices'      { 'studio-invoices.html' }
+                '/invoices'             { 'studio-invoices.html' }
+                '/hoa-don'              { 'studio-invoices.html' }
+                '/bao-gia'              { 'studio-invoices.html' }
                 '/studio-photographers' { 'studio-photographers.html' }
                 '/team'                 { 'studio-photographers.html' }
                 '/photographers'        { 'studio-photographers.html' }
