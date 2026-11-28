@@ -1666,6 +1666,7 @@ select option {
 }
 
 body.guest-save-disabled .photo-download-btn,
+body.guest-save-disabled #guestDownloadActions,
 body.guest-save-disabled .guest-download-actions {
     display: none !important;
 }
@@ -4567,17 +4568,7 @@ body.customer-view .customer-album-title.has-hero-media .guest-hero-meta {
 }
 
 body.customer-view .customer-album-title.has-hero-media .guest-permission-status {
-    display: inline-flex;
-    align-items: center;
-    margin-top: 0.55rem;
-    padding: 0.25rem 0.65rem;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.56);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    color: #f8fafc !important;
-    font-size: 0.72rem;
-    font-weight: 700;
-    backdrop-filter: blur(8px);
+    display: none !important;
 }
 
 body.customer-view .guest-hero-strip-wrap {
