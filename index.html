@@ -297,7 +297,6 @@
                     <label for="guestNameInput">Tên của bạn:</label>
                     <input id="guestNameInput" type="text" maxlength="60" placeholder="VD: Cô dâu Lan / Chú rể Minh">
                     <button id="confirmGuestSelectionBtn" type="button" class="guest-confirm-btn">✅ Gửi danh sách đã chọn cho Studio</button>
-                    <a class="guest-zalo-btn" id="guestZaloContactBtn" href="https://zalo.me/0386038930" target="_blank" rel="noopener">💬 Zalo Studio: 0386 038 930</a>
                 </div>
                 <div id="guestDownloadActions" class="guest-download-actions" style="display:none;gap:.45rem;flex-wrap:wrap;justify-content:center;align-items:center;">
                     <button id="guestDownloadSelectedBtn" class="guest-download-btn" type="button">⬇️ Tải ảnh đã chọn (Chất lượng gốc)</button>
@@ -360,26 +359,6 @@
                 <button class="export-btn" id="toolbarExportBtn" type="button">⬇️ Xuất .txt</button>
             </div>
         </div>
-
-        <!-- PRIVACY-FIRST ON-DEVICE FACE FILTER -->
-        <section class="face-filter-panel" id="faceFilterSection" hidden aria-label="Lọc ảnh theo khuôn mặt">
-            <div class="face-filter-head">
-                <div class="face-filter-title-wrap">
-                    <strong>👥 Lọc theo khuôn mặt</strong>
-                    <span class="face-privacy-badge">🔒 Xử lý trong trình duyệt · Phạm vi album</span>
-                </div>
-                <div class="face-filter-actions">
-                    <button type="button" class="face-action-btn" id="faceScanBtn">🔍 Quét khuôn mặt</button>
-                    <button type="button" class="face-action-btn" id="faceManageBtn" hidden>✏️ Sửa nhóm &amp; Tên</button>
-                    <button type="button" class="face-action-btn is-reset" id="faceClearSelectionBtn" hidden>↩️ Xem tất cả ảnh</button>
-                    <button type="button" class="face-action-btn is-danger" id="faceDeleteDataBtn">🗑️ Xóa dữ liệu khuôn mặt</button>
-                </div>
-            </div>
-            <div class="face-filter-status" id="faceFilterStatusBar" aria-live="polite">
-                <span>🔒 Nhận diện khuôn mặt chạy trực tiếp trên thiết bị trong phạm vi album này, không gửi dữ liệu sinh trắc học ra ngoài.</span>
-            </div>
-            <div class="face-avatar-strip" id="faceAvatarStrip" hidden role="group" aria-label="Chọn khuôn mặt để lọc"></div>
-        </section>
 
         <!-- PHOTO GRID -->
         <div class="photo-grid" id="photoGrid" style="display: none;"></div>
@@ -779,23 +758,7 @@
         </div>
     </div>
 
-    <div class="modal" id="faceGroupManagerModal" role="dialog" aria-modal="true" aria-labelledby="faceGroupManagerTitle">
-        <div class="modal-content face-manager-modal-content">
-            <button class="auth-close" id="faceGroupManagerClose" type="button" aria-label="Đóng">✕</button>
-            <h3 id="faceGroupManagerTitle">✏️ Sửa nhóm &amp; Đặt tên khuôn mặt</h3>
-            <p class="face-manager-intro">Đổi tên, gộp 2 nhóm bị tách nhầm hoặc chuyển ảnh nhận diện nhầm sang đúng người. Mọi chỉnh sửa chỉ lưu cục bộ trong album này trên trình duyệt.</p>
-            <div class="face-manager-layout">
-                <div class="face-manager-groups" id="faceManagerGroupsList"></div>
-                <div class="face-manager-photos" id="faceManagerPhotosPane"></div>
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn-confirm" id="faceGroupManagerDoneBtn" type="button">Xong</button>
-            </div>
-        </div>
-    </div>
-
     <script src="js/api.js"></script>
-    <script src="js/face-filter.js"></script>
     <script src="photowedding/index.js"></script>
     <script src="js/portfolio-setup.js"></script>
 </body>
