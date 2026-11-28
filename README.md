@@ -1,9 +1,9 @@
-# TeeMedia Atelier — Studio & Portfolio Management
+# selectphoto — Studio & Portfolio Management
 
 Hệ thống quản trị Studio nhiếp ảnh, thiết lập **Portfolio** công khai và gửi link **chọn ảnh Google Drive** rút gọn cho khách hàng.
 
-- **Website Live (GitHub Pages):** https://namnhan709-svg.github.io/photo-select-albums/
-- **Repository:** https://github.com/namnhan709-svg/photo-select-albums
+- **Website Live (GitHub Pages):** https://teemediaqn.github.io/photo-select-albums/
+- **Repository:** https://github.com/TeeMediaQn/photo-select-albums
 
 ## Các trang & đường dẫn chính
 
@@ -15,9 +15,9 @@ Hệ thống quản trị Studio nhiếp ảnh, thiết lập **Portfolio** côn
 
 ## Tiếp tục phát triển trên máy tính khác
 
-1. **Clone mã nguồn & đăng nhập GitHub (`namnhan709-svg`):**
+1. **Clone mã nguồn & đăng nhập GitHub (`TeeMediaQn`):**
    ```bash
-   git clone https://github.com/namnhan709-svg/photo-select-albums.git
+   git clone https://github.com/TeeMediaQn/photo-select-albums.git
    cd photo-select-albums
    ```
 2. **Chạy local server trên Windows (không cần cài PHP/Node/Python):**
@@ -30,6 +30,6 @@ Hệ thống quản trị Studio nhiếp ảnh, thiết lập **Portfolio** côn
    ```powershell
    powershell -ExecutionPolicy Bypass -File .\scripts\build-pages.ps1
    git add .
-   git commit -m "Update TeeMedia"
+   git commit -m "Update selectphoto"
    git push origin main
    ```

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Danh sách album gần đây của TeeMedia.">
-    <link rel="icon" type="image/svg+xml" href="photowedding/logo/teemedia-logo-mark.svg">
-    <title>Album gần đây - TeeMedia</title>
+    <meta name="description" content="Danh sách album gần đây của selectphoto.">
+    <link rel="icon" type="image/svg+xml" href="photowedding/logo/selectphoto-logo-mark.svg">
+    <title>Album gần đây - selectphoto</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -16,14 +16,14 @@
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/albums.css">
     <link rel="stylesheet" href="css/viewer.css">
-    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/modals.css?v=20261128d">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
     <header>
         <a class="brand" href="./" aria-label="Về trang chủ">
-            <img class="brand-logo" src="photowedding/logo/teemedia-logo-mark.svg" alt="">
-            TeeMedia
+            <img class="brand-logo" src="photowedding/logo/selectphoto-logo-mark.svg" alt="">
+            selectphoto
         </a>
         <nav class="header-actions" aria-label="Điều hướng">
             <a class="button" href="./">Trang chủ</a>
@@ -119,9 +119,9 @@
                 </button>
             </nav>
             <div class="sidebar-account">
-                <span class="sidebar-account-mark" aria-hidden="true">TM</span>
+                <span class="sidebar-account-mark" aria-hidden="true">SP</span>
                 <span class="sidebar-account-copy">
-                    <strong>TeeMedia</strong>
+                    <strong>selectphoto</strong>
                     <small>Không gian làm việc</small>
                 </span>
             </div>
@@ -155,6 +155,7 @@
             <section aria-labelledby="albumsHeading">
                 <div class="dashboard-section-heading">
                     <h2 id="albumsHeading">Danh sách album</h2>
+                    <button class="button button-primary" id="openTxtLocalFilterBtn" type="button">📁 Lọc ảnh + RAW từ .txt</button>
                 </div>
                 <div class="albums-grid" id="albumsGrid" aria-live="polite"></div>
 
@@ -241,18 +242,54 @@
     <div class="quick-filter-modal" id="quickFilterModal" role="dialog" aria-modal="true" aria-labelledby="quickFilterTitle">
         <div class="quick-filter-dialog">
             <button class="button quick-filter-close" id="quickFilterClose" type="button">Đóng</button>
-            <h2 id="quickFilterTitle">Lọc ảnh từ máy tính</h2>
-            <p>Chọn thư mục chứa ảnh gốc và thư mục lưu. Hệ thống sẽ đối chiếu tên các ảnh đã thả tim trong album hiện tại.</p>
-            <div class="quick-filter-row">
-                <button class="button" id="quickFilterSourceBtn" type="button">Chọn thư mục nguồn</button>
-                <span class="quick-filter-name" id="quickFilterSourceName">Chưa chọn</span>
+            <h2 id="quickFilterTitle">Lọc &amp; Copy ảnh + RAW từ danh sách .txt</h2>
+            <p class="quick-filter-desc">Chọn file <code>.txt</code> hoặc dán danh sách tên ảnh, chọn thư mục chứa ảnh trong máy — hệ thống tự tạo thư mục con bên trong và copy ảnh kèm file RAW tương ứng.</p>
+
+            <div class="quick-filter-block">
+                <div class="quick-filter-block-head">
+                    <strong>1. Danh sách ảnh (.txt)</strong>
+                    <span class="quick-filter-count" id="quickFilterEntryCount">0 ảnh</span>
+                </div>
+                <div class="quick-filter-row quick-filter-row-wrap">
+                    <input type="file" id="quickFilterTxtInput" accept=".txt,text/plain" hidden>
+                    <button class="button" id="quickFilterTxtBtn" type="button">📄 Chọn file .txt</button>
+                    <button class="button" id="quickFilterUseSelectedBtn" type="button" hidden>❤️ Lấy từ ảnh đã chọn</button>
+                    <span class="quick-filter-name" id="quickFilterTxtName">Chưa chọn file .txt</span>
+                </div>
+                <textarea class="quick-filter-textarea" id="quickFilterTxtArea" rows="5" placeholder="Dán danh sách hoặc chọn file .txt, ví dụ:&#10;3376-ATEP3376.jpg&#10;3662-ATEP3366-2.jpg&#10;3367-ATEP3367.jpg" aria-label="Danh sách tên ảnh cần lọc"></textarea>
             </div>
-            <div class="quick-filter-row">
-                <button class="button" id="quickFilterDestinationBtn" type="button">Chọn thư mục lưu</button>
-                <span class="quick-filter-name" id="quickFilterDestinationName">Chưa chọn</span>
+
+            <div class="quick-filter-block">
+                <strong class="quick-filter-block-title">2. Thư mục chứa ảnh &amp; RAW trên máy</strong>
+                <div class="quick-filter-row">
+                    <button class="button" id="quickFilterSourceBtn" type="button">📂 Chọn thư mục chứa</button>
+                    <span class="quick-filter-name" id="quickFilterSourceName">Chưa chọn thư mục</span>
+                </div>
             </div>
+
+            <div class="quick-filter-block">
+                <strong class="quick-filter-block-title">3. Thư mục kết quả &amp; Tùy chọn RAW</strong>
+                <label class="quick-filter-option">
+                    <input type="checkbox" id="quickFilterAutoSubfolder" checked>
+                    <span>Tự động tạo thư mục con ngay bên trong thư mục vừa chọn</span>
+                </label>
+                <div class="quick-filter-subfolder-row" id="quickFilterSubfolderRow">
+                    <label for="quickFilterSubfolderName">Tên thư mục con:</label>
+                    <input class="quick-filter-subfolder-input" id="quickFilterSubfolderName" type="text" value="Anh_Da_Chon" placeholder="Ví dụ: Anh_Da_Chon">
+                </div>
+                <div class="quick-filter-row" id="quickFilterCustomDestRow" hidden>
+                    <button class="button" id="quickFilterDestinationBtn" type="button">Chọn thư mục lưu riêng</button>
+                    <span class="quick-filter-name" id="quickFilterDestinationName">Chưa chọn</span>
+                </div>
+                <label class="quick-filter-option">
+                    <input type="checkbox" id="quickFilterIncludeRaw" checked>
+                    <span>Tự động tìm &amp; copy kèm file ảnh RAW cùng tên (.CR2, .CR3, .NEF, .ARW, .RAF, .DNG...)</span>
+                </label>
+            </div>
+
             <p class="quick-filter-status" id="quickFilterStatus" role="status"></p>
-            <button class="button button-primary" id="quickFilterStart" type="button">Bắt đầu lọc và copy</button>
+            <div class="quick-filter-missing" id="quickFilterMissingBox" hidden></div>
+            <button class="button button-primary quick-filter-start-btn" id="quickFilterStart" type="button">▶ Tạo thư mục &amp; Copy ảnh + RAW</button>
         </div>
     </div>
 
@@ -350,8 +387,9 @@
     <script src="js/dialog.js"></script>
     <script src="js/albums.js"></script>
     <script src="js/viewer.js"></script>
-    <script src="js/export.js"></script>
+    <script src="js/local-filter.js?v=20261128d"></script>
+    <script src="js/export.js?v=20261128d"></script>
     <script src="js/chat.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/main.js?v=20261128d"></script>
 </body>
 </html>
