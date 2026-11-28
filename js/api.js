@@ -196,7 +196,68 @@
                 { id: 1, user_id: 1, name: 'Trần Minh & Ngọc Lan', phone: '0987 654 321', email: 'minhlan@gmail.com', social: '0987654321', packageName: 'Gói chụp ảnh cưới trọn gói', shootDate: soonDate, budget: 25000000, status: 'confirmed', notes: 'Ưu tiên tone màu phim ấm Đà Lạt' },
                 { id: 2, user_id: 1, name: 'Phạm Hoàng Anh', phone: '0909 888 777', email: 'hoanganh@gmail.com', social: '0909888777', packageName: 'Gói đám hỏi & tiệc cưới', shootDate: laterDate, budget: 18500000, status: 'shooting', notes: 'Đang hậu kỳ ảnh lễ gia tiên' },
                 { id: 3, user_id: 1, name: 'Vũ Thảo Vy', phone: '0938 222 111', email: 'thaovy@gmail.com', social: 'thaovy.wedding', packageName: 'Gói chụp studio nghệ thuật', shootDate: '', budget: 9500000, status: 'lead', notes: 'Đang tư vấn concept Minimalist' }
-            ]
+            ],
+            portfolio: {
+                updated_at: null,
+                headline: '',
+                subtitle: '',
+                albums: [],
+                photos: []
+            }
+        };
+    }
+
+    function normalizePortfolioConfig(raw) {
+        const src = (raw && typeof raw === 'object') ? raw : {};
+        const rawAlbums = Array.isArray(src.albums)
+            ? src.albums
+            : (src.albums && typeof src.albums === 'object' ? Object.values(src.albums) : []);
+        const rawPhotos = Array.isArray(src.photos)
+            ? src.photos
+            : (src.photos && typeof src.photos === 'object' ? Object.values(src.photos) : []);
+        const albums = rawAlbums
+            .filter(a => a && a.folder_id)
+            .map(a => ({
+                folder_id: String(a.folder_id),
+                album_name: String(a.album_name || 'Album ảnh'),
+                allow_save: Number(a.allow_save) === 1 ? 1 : 0,
+                created_at: a.created_at || null,
+                cover_photo_id: a.cover_photo_id ? String(a.cover_photo_id) : '',
+                photo_ids: Array.isArray(a.photo_ids)
+                    ? a.photo_ids.map(String)
+                    : (a.photo_ids && typeof a.photo_ids === 'object' ? Object.values(a.photo_ids).map(String) : [])
+            }));
+        const seenPhotoKeys = new Set();
+        const photos = [];
+        for (const p of rawPhotos) {
+            if (!p || !p.id) continue;
+            const pid = String(p.id);
+            const fid = String(p.folder_id || '');
+            const key = `${fid}::${pid}`;
+            if (seenPhotoKeys.has(key)) continue;
+            seenPhotoKeys.add(key);
+            const item = {
+                id: pid,
+                name: String(p.name || 'IMG.jpg'),
+                folder_id: fid,
+                album_name: String(p.album_name || 'Album ảnh'),
+                category: String(p.category || p.album_name || 'Album ảnh'),
+                thumbnailLink: String(p.thumbnailLink || ''),
+                thumbnailUrl: String(p.thumbnailUrl || ''),
+                fullUrl: String(p.fullUrl || ''),
+                mimeType: String(p.mimeType || 'image/jpeg'),
+                createdTime: p.createdTime || null,
+                modifiedTime: p.modifiedTime || null
+            };
+            if (Number(p.size) > 0) item.size = Number(p.size);
+            photos.push(item);
+        }
+        return {
+            updated_at: src.updated_at || null,
+            headline: String(src.headline || '').trim(),
+            subtitle: String(src.subtitle || '').trim(),
+            albums,
+            photos
         };
     }
 
@@ -366,6 +427,7 @@
                         contracts: state.contracts || [],
                         photographers: state.photographers || [],
                         notifications: state.notifications || [],
+                        portfolio: normalizePortfolioConfig(state.portfolio),
                         updated_at: new Date().toISOString()
                     });
                     lastWorkspaceSyncAt = Date.now();
@@ -424,6 +486,24 @@
                     if (notifMerge.dirty) shouldPush = true;
                 }
 
+                const localPortfolio = normalizePortfolioConfig(state.portfolio);
+                if (cloudWs.portfolio && typeof cloudWs.portfolio === 'object') {
+                    const cloudPortfolio = normalizePortfolioConfig(cloudWs.portfolio);
+                    const localTs = Date.parse(localPortfolio.updated_at || '') || 0;
+                    const cloudTs = Date.parse(cloudPortfolio.updated_at || '') || 0;
+                    if (cloudTs >= localTs) {
+                        state.portfolio = cloudPortfolio;
+                    } else {
+                        state.portfolio = localPortfolio;
+                        shouldPush = true;
+                    }
+                } else {
+                    state.portfolio = localPortfolio;
+                    if (localPortfolio.updated_at || localPortfolio.albums.length || localPortfolio.photos.length) {
+                        shouldPush = true;
+                    }
+                }
+
                 const maxId = [
                     ...(state.users || []),
                     ...(state.albums || []),
@@ -443,6 +523,7 @@
                         contracts: state.contracts || [],
                         photographers: state.photographers || [],
                         notifications: state.notifications || [],
+                        portfolio: normalizePortfolioConfig(state.portfolio),
                         updated_at: new Date().toISOString()
                     });
                 }
@@ -500,6 +581,8 @@
             'register',
             'forgot',
             'load_albums',
+            'load_portfolio_setup',
+            'save_portfolio_setup',
             'load_public_portfolio',
             'load_deleted_albums',
             'save_album',
@@ -516,7 +599,14 @@
             'toggle_staff_account',
             'delete_staff_account'
         ].includes(action)) {
-            await ensureWorkspaceSynced(state, action === 'login' || action === 'load_albums' || action === 'list_staff_accounts');
+            await ensureWorkspaceSynced(
+                state,
+                action === 'login' ||
+                    action === 'load_albums' ||
+                    action === 'list_staff_accounts' ||
+                    action === 'load_portfolio_setup' ||
+                    action === 'load_public_portfolio'
+            );
         }
         const user = getStaticSessionUser(state);
 
@@ -572,43 +662,83 @@
                 return { success: true, data: enriched };
             }
 
+            case 'load_portfolio_setup': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
+                const activeAlbums = (state.albums || []).filter(a => !a.deleted_at && String(a.folder_id) !== 'test_check_folder');
+                const realAlbums = activeAlbums.filter(a => !SEED_DEMO_FOLDER_IDS.has(String(a.folder_id || '')));
+                const availableAlbums = realAlbums.length ? realAlbums : activeAlbums;
+                return {
+                    success: true,
+                    portfolio: normalizePortfolioConfig(state.portfolio),
+                    albums: availableAlbums
+                };
+            }
+
+            case 'save_portfolio_setup': {
+                if (!user) return { success: false, message: 'Chưa đăng nhập.' };
+                const normalized = normalizePortfolioConfig(payload.portfolio || payload);
+                normalized.updated_at = new Date().toISOString();
+                state.portfolio = normalized;
+                saveMockState(state);
+                await pushWorkspaceSection('portfolio', normalized);
+                return {
+                    success: true,
+                    portfolio: normalized,
+                    message: 'Đã lưu và xuất bản Portfolio thành công!'
+                };
+            }
+
             case 'load_public_portfolio': {
-                const active = (state.albums || []).filter(a => !a.deleted_at && !a.portfolio_hidden && String(a.folder_id) !== 'test_check_folder');
-                const realAlbums = active.filter(a => !SEED_DEMO_FOLDER_IDS.has(String(a.folder_id || '')));
-                const showcaseAlbums = realAlbums.length ? realAlbums : active;
+                const activeMap = new Map(
+                    (state.albums || [])
+                        .filter(a => !a.deleted_at && String(a.folder_id) !== 'test_check_folder')
+                        .map(a => [String(a.folder_id), a])
+                );
+                const portfolio = normalizePortfolioConfig(state.portfolio);
                 const primaryUser = (state.users || [])[0] || { name: 'TeeMedia Studio', phone: '0901 234 567', email: 'studio@gmail.com' };
                 const studioName = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(String(primaryUser.name || ''))
                     ? 'TeeMedia Studio'
                     : (primaryUser.name || 'TeeMedia Studio');
-                const cloudCfg = getCloudConfig();
-                const baseUrl = new URL('./', global.location.href).toString();
-                const albums = showcaseAlbums.map(a => {
-                    const shareObj = {
-                        f: String(a.folder_id),
-                        n: a.album_name || 'Album ảnh',
-                        a: Number(a.allow_save) === 1 ? 1 : 0,
-                        o: studioName
-                    };
-                    if (cloudCfg.googleApiKey) shareObj.k = cloudCfg.googleApiKey;
-                    if (cloudCfg.firebaseDbUrl) shareObj.c = cloudCfg.firebaseDbUrl;
-                    const token = `v1.${encodeBase64Url(shareObj)}`;
-                    return {
-                        id: a.id,
-                        album_name: a.album_name,
-                        folder_id: a.folder_id,
-                        allow_save: Number(a.allow_save) === 1 ? 1 : 0,
-                        created_at: a.created_at,
-                        share_url: `${baseUrl}?share=${encodeURIComponent(token)}&from=portfolio`
-                    };
+
+                const enabledFolderIds = new Set();
+                const albums = [];
+                portfolio.albums.forEach(cfg => {
+                    const fid = String(cfg.folder_id || '');
+                    if (!fid) return;
+                    if (activeMap.size > 0 && !activeMap.has(fid)) return;
+                    const active = activeMap.get(fid);
+                    enabledFolderIds.add(fid);
+                    const albumPhotos = portfolio.photos.filter(p => String(p.folder_id) === fid);
+                    if (!albumPhotos.length) return;
+                    albums.push({
+                        id: active?.id || fid,
+                        album_name: active?.album_name || cfg.album_name || 'Album ảnh',
+                        folder_id: fid,
+                        allow_save: Number(active?.allow_save ?? cfg.allow_save) === 1 ? 1 : 0,
+                        created_at: active?.created_at || cfg.created_at || null,
+                        cover_photo_id: cfg.cover_photo_id || albumPhotos[0]?.id || '',
+                        photo_count: albumPhotos.length
+                    });
                 });
+
+                const curatedPhotos = portfolio.photos.filter(p => enabledFolderIds.has(String(p.folder_id || '')));
+                // Fallback if owner saved photos without matching album entry
+                const validAlbumIds = new Set(albums.map(a => String(a.folder_id)));
+                const finalPhotos = curatedPhotos.filter(p => validAlbumIds.has(String(p.folder_id || '')));
+
                 return {
                     success: true,
+                    curated: true,
+                    updated_at: portfolio.updated_at || null,
+                    headline: portfolio.headline || '',
+                    subtitle: portfolio.subtitle || '',
                     studio: {
                         name: studioName,
                         phone: primaryUser.phone || '0901 234 567',
                         email: primaryUser.email || 'studio@gmail.com'
                     },
-                    albums
+                    albums,
+                    photos: finalPhotos
                 };
             }
 
