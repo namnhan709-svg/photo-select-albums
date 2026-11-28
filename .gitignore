@@ -1,0 +1,4 @@
+data/db.json
+data/config.json
+data/*.sqlite
+dist/
