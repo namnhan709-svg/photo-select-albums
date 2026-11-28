@@ -108,7 +108,7 @@
             CONFIG.DRIVE_FOLDER_ID = String(payload.f);
             CONFIG.ALBUM_NAME = String(payload.n || 'Album ảnh');
             const rawOwner = String(payload.o || 'TeeMedia Studio').trim();
-            CONFIG.OWNER_NAME = /^(HD Design Studio|PHOTO SELECT|PHOTO SELECT GALLERY)$/i.test(rawOwner)
+            CONFIG.OWNER_NAME = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(rawOwner)
                 ? 'TeeMedia Studio'
                 : rawOwner;
             CONFIG.IS_SHARED_ALBUM = true;
@@ -442,19 +442,10 @@
             document.getElementById('lightboxNext').addEventListener('click', () => changeLightboxPhoto(1));
             document.getElementById('lightboxDownloadToggle').addEventListener('click', event => {
                 event.stopPropagation();
-                if (!ensureAlbumAllowsSave('tải ảnh')) return;
-                const isOpen = document.getElementById('lightboxDownloadMenu').classList.toggle('is-open');
-                event.currentTarget.setAttribute('aria-expanded', String(isOpen));
+                downloadCurrentLightboxPhoto();
             });
-            document.getElementById('downloadCurrentLightboxPhoto').addEventListener('click', downloadCurrentLightboxPhoto);
-            document.getElementById('downloadCurrentPhotoDirectDrive')?.addEventListener('click', downloadCurrentPhotoDirectDrive);
-            document.getElementById('downloadSharedAlbum').addEventListener('click', downloadSharedAlbum);
             document.getElementById('guestDownloadSelectedBtn')?.addEventListener('click', downloadGuestSelectedPhotos);
             document.getElementById('guestDownloadAllBtn')?.addEventListener('click', downloadSharedAlbum);
-            document.addEventListener('click', event => {
-                const downloadWrap = document.getElementById('lightboxDownloadWrap');
-                if (!downloadWrap.contains(event.target)) closeLightboxDownloadMenu();
-            });
             document.addEventListener('keydown', (event) => {
                 const lightbox = document.getElementById('lightbox');
                 const target = event.target;
@@ -1833,15 +1824,31 @@ if (!previousPermission && window.__SHARED_ALBUM_ALLOW_SAVE__) {
             }, 5000);
         }
 
+        function updateGuestHeroMetaText(photoCount = state.photos.length) {
+            const metaEl = document.getElementById('guestHeroMeta');
+            if (!metaEl) return;
+            const actionCopy = getCurrentAlbumPermission()
+                ? 'Chạm ❤️ để gửi ảnh đã chọn cho Studio hoặc tải nhanh về'
+                : 'Chạm ❤️ để gửi ảnh đã chọn cho Studio';
+            metaEl.textContent = `${photoCount} khoảnh khắc · ${actionCopy}`;
+        }
+
         function renderGuestHeroShowcase(photos) {
             const section = document.getElementById('customerAlbumHeaderSection');
             const strip = document.getElementById('guestHeroStrip');
             const stripWrap = document.getElementById('guestHeroStripWrap');
-            const metaEl = document.getElementById('guestHeroMeta');
+            const studioPill = document.getElementById('guestHeroStudioPill');
             const mainImg = document.getElementById('guestHeroMainImg');
             const openBtn = document.getElementById('guestHeroOpenLightboxBtn');
             const showcase = document.getElementById('guestHeroShowcase');
             if (!section || !strip || !CONFIG.IS_SHARED_ALBUM) return;
+
+            if (studioPill) {
+                const ownerLabel = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(String(CONFIG.OWNER_NAME || ''))
+                    ? 'TeeMedia Studio'
+                    : (CONFIG.OWNER_NAME || 'TeeMedia Studio');
+                studioPill.textContent = `✨ ${ownerLabel} · GALLERY`;
+            }
 
             if (!Array.isArray(photos) || !photos.length) {
                 section.classList.remove('has-hero-media');
@@ -1851,9 +1858,7 @@ if (!previousPermission && window.__SHARED_ALBUM_ALLOW_SAVE__) {
 
             guestHeroItems = pickHeroHighlightPhotos(photos, 6);
             section.classList.add('has-hero-media');
-            if (metaEl) {
-                metaEl.textContent = `${photos.length} khoảnh khắc · Chạm ❤️ để chọn ảnh hoặc bấm xem từng khung hình`;
-            }
+            updateGuestHeroMetaText(photos.length);
 
             strip.replaceChildren();
             if (stripWrap) stripWrap.hidden = guestHeroItems.length <= 1;
@@ -2780,7 +2785,8 @@ function updateStats() {
             lightboxImage.style.transformOrigin = 'center center';
             updateLightboxZoom();
             closeLightboxDownloadMenu();
-            document.getElementById('lightboxDownloadStatus').textContent = '';
+            const dlStatusEl = document.getElementById('lightboxDownloadStatus');
+            if (dlStatusEl) dlStatusEl.textContent = '';
             updateLightboxDownloadAvailability();
             const photoId = String(photo.id);
             lightboxImage.dataset.photoId = photoId;
@@ -2811,12 +2817,12 @@ function updateStats() {
 
             document.getElementById('lightboxPhotoNumber').textContent = `#${index + 1}`;
             document.getElementById('lightboxCaption').textContent = photo.name || 'Ảnh album';
-            const dlCurrentBtn = document.getElementById('downloadCurrentLightboxPhoto');
-            if (dlCurrentBtn) {
+            const dlToggleBtn = document.getElementById('lightboxDownloadToggle');
+            if (dlToggleBtn) {
                 const sizeText = formatPhotoBytes(photo.size);
-                dlCurrentBtn.textContent = sizeText
-                    ? `⬇️ Tải ảnh gốc (${sizeText})`
-                    : '⬇️ Tải ảnh gốc (Chất lượng cao nhất)';
+                dlToggleBtn.title = sizeText
+                    ? `Tải ảnh gốc (${sizeText})`
+                    : 'Tải ảnh gốc chất lượng cao nhất';
             }
             document.getElementById('lightboxCommentInput').value = '';
             document.getElementById('lightboxHeart').textContent = state.selectedPhotos.has(photo.id) ? '❤️' : '🤍';
@@ -2852,17 +2858,19 @@ function updateStats() {
             }
             const controls = [
                 document.getElementById('lightboxDownloadToggle'),
-                document.getElementById('downloadCurrentLightboxPhoto'),
-                document.getElementById('downloadCurrentPhotoDirectDrive'),
-                document.getElementById('downloadSharedAlbum'),
                 document.getElementById('guestDownloadSelectedBtn'),
                 document.getElementById('guestDownloadAllBtn')
             ];
             controls.forEach(control => {
                 if (!control) return;
                 control.disabled = !isAllowed;
-                control.title = isAllowed ? '' : 'Chủ album chưa bật quyền lưu ảnh';
+                if (control.id !== 'lightboxDownloadToggle') {
+                    control.title = isAllowed ? '' : 'Chủ album chưa bật quyền lưu ảnh';
+                }
             });
+            if (state.photos.length && CONFIG.IS_SHARED_ALBUM) {
+                updateGuestHeroMetaText(state.photos.length);
+            }
             if (!isAllowed) closeLightboxDownloadMenu();
         }
 
@@ -2941,7 +2949,7 @@ function updateStats() {
             const prevHtml = triggerButton ? triggerButton.innerHTML : '';
             if (triggerButton) {
                 triggerButton.disabled = true;
-                if (triggerButton.classList.contains('photo-download-btn')) {
+                if (triggerButton.classList.contains('photo-download-btn') || triggerButton.id === 'lightboxDownloadToggle') {
                     triggerButton.textContent = '⏳';
                 }
             }
@@ -2996,23 +3004,8 @@ function updateStats() {
             if (!ensureAlbumAllowsSave('tải ảnh')) return;
             const photo = state.displayPhotos[state.currentLightboxIndex];
             if (!photo) return;
-            const status = document.getElementById('lightboxDownloadStatus');
-            const button = document.getElementById('downloadCurrentLightboxPhoto');
-            downloadOriginalPhotoFile(photo, { statusEl: status, triggerButton: button });
-        }
-
-        function downloadCurrentPhotoDirectDrive() {
-            if (!ensureAlbumAllowsSave('tải ảnh')) return;
-            const photo = state.displayPhotos[state.currentLightboxIndex];
-            if (!photo) return;
-            const status = document.getElementById('lightboxDownloadStatus');
-            const directUrl = getDirectGoogleDriveDownloadUrl(photo);
-            if (!directUrl || String(photo.id || '').startsWith('img-')) {
-                downloadCurrentLightboxPhoto();
-                return;
-            }
-            window.open(directUrl, '_blank', 'noopener,noreferrer');
-            if (status) status.textContent = '↗️ Đã mở trang tải gốc trực tiếp từ Google Drive.';
+            const button = document.getElementById('lightboxDownloadToggle');
+            downloadOriginalPhotoFile(photo, { triggerButton: button });
         }
 
         async function downloadGuestSelectedPhotos() {
