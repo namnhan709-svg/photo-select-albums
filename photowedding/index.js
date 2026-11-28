@@ -107,7 +107,10 @@
 
             CONFIG.DRIVE_FOLDER_ID = String(payload.f);
             CONFIG.ALBUM_NAME = String(payload.n || 'Album ảnh');
-            CONFIG.OWNER_NAME = String(payload.o || 'PHOTO SELECT GALLERY');
+            const rawOwner = String(payload.o || 'TeeMedia Studio').trim();
+            CONFIG.OWNER_NAME = /^(HD Design Studio|PHOTO SELECT|PHOTO SELECT GALLERY)$/i.test(rawOwner)
+                ? 'TeeMedia Studio'
+                : rawOwner;
             CONFIG.IS_SHARED_ALBUM = true;
             CONFIG.SHARED_OWNER_USER_ID = 1;
             CONFIG.SHARED_ALBUM_ALLOW_SAVE = Boolean(payload.a);
