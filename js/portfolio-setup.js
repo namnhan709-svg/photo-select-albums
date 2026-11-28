@@ -673,7 +673,8 @@
         try {
             localStorage.setItem(PREVIEW_DRAFT_KEY, JSON.stringify(preview));
         } catch {}
-        global.open('portfolio.html?preview=1', '_blank', 'noopener');
+        const portfolioPath = global.location.protocol === 'file:' ? 'portfolio.html' : 'portfolio';
+        global.open(`${portfolioPath}?preview=1`, '_blank', 'noopener');
     }
 
     async function savePortfolioSetup() {
@@ -709,7 +710,8 @@
     }
 
     function copyPublicPortfolioLink() {
-        const url = new URL('portfolio.html', global.location.href).toString();
+        const portfolioPath = global.location.protocol === 'file:' ? 'portfolio.html' : 'portfolio';
+        const url = new URL(portfolioPath, global.location.href).toString();
         if (navigator.clipboard?.writeText) {
             navigator.clipboard.writeText(url).then(() => {
                 showSetupToast('✅ Đã sao chép link Portfolio công khai!');

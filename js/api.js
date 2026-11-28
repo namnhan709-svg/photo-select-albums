@@ -65,6 +65,17 @@
         }
     }
 
+    function toCleanSlug(raw, fallback = 'album') {
+        const clean = String(raw || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[đĐ]/g, 'd')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        return clean || fallback;
+    }
+
     async function sha256Hex(text) {
         const data = new TextEncoder().encode(String(text || ''));
         if (global.crypto?.subtle) {
@@ -861,27 +872,114 @@
                 const album = state.albums.find(item => String(item.folder_id) === folderId && !item.deleted_at);
                 const code = String(payload.access_code || '').trim();
                 const cloudCfg = getCloudConfig();
+                const albumName = album?.album_name || 'Album ảnh';
+                const ownerName = user?.name || 'TeeMedia Atelier';
+                const allowSave = album ? (Number(album.allow_save) === 1 ? 1 : 0) : 1;
+                const codeHash = code ? await sha256Hex(code) : '';
+
+                const cloudShares = await cloudGet('workspace/shares');
+                const shareMap = { ...(state.shares || {}), ...(cloudShares && typeof cloudShares === 'object' ? cloudShares : {}) };
+                const baseSlug = toCleanSlug(albumName, `album-${folderId.slice(0, 6).toLowerCase()}`);
+                let slug = baseSlug;
+                let suffix = 2;
+                while (shareMap[slug] && String(shareMap[slug].folder_id || '') !== folderId && suffix < 100) {
+                    slug = `${baseSlug}-${suffix++}`;
+                }
+
+                const shareRecord = {
+                    slug,
+                    folder_id: folderId,
+                    album_name: albumName,
+                    allow_save: allowSave,
+                    owner_name: ownerName,
+                    access_code_hash: codeHash,
+                    requires_code: Boolean(code),
+                    created_at: new Date().toISOString()
+                };
+                state.shares = state.shares || {};
+                state.shares[slug] = shareRecord;
+                saveMockState(state);
+
+                let pushedCloud = false;
+                if (getActiveCloudUrl()) {
+                    pushedCloud = await cloudPut(`workspace/shares/${encodeURIComponent(slug)}`, shareRecord);
+                }
+
                 const shareObj = {
                     f: folderId,
-                    n: album?.album_name || 'Album ảnh',
-                    a: album ? (Number(album.allow_save) === 1 ? 1 : 0) : 1,
-                    o: user?.name || 'TeeMedia'
+                    n: albumName,
+                    a: allowSave,
+                    o: ownerName
                 };
-                if (code) shareObj.ch = await sha256Hex(code);
+                if (codeHash) shareObj.ch = codeHash;
                 if (cloudCfg.googleApiKey) shareObj.k = cloudCfg.googleApiKey;
                 if (cloudCfg.firebaseDbUrl) shareObj.c = cloudCfg.firebaseDbUrl;
 
                 const token = `v1.${encodeBase64Url(shareObj)}`;
                 const baseUrl = new URL('./', global.location.href).toString();
+                const shortUrl = pushedCloud || !getActiveCloudUrl()
+                    ? `${baseUrl}?a=${encodeURIComponent(slug)}`
+                    : `${baseUrl}?share=${encodeURIComponent(token)}`;
                 return {
                     success: true,
-                    url: `${baseUrl}?share=${encodeURIComponent(token)}`,
+                    url: shortUrl,
+                    slug,
                     requires_code: Boolean(code),
                     token
                 };
             }
 
+            case 'resolve_share_slug': {
+                const slug = String(payload.slug || '').trim().toLowerCase();
+                if (!slug) return { success: false, message: 'Thiếu mã album chia sẻ.' };
+                let record = (await cloudGet(`workspace/shares/${encodeURIComponent(slug)}`)) || state.shares?.[slug] || null;
+                if (!record || !record.folder_id) {
+                    const cloudAlbums = await cloudGet('workspace/albums');
+                    const albumList = Array.isArray(cloudAlbums) ? cloudAlbums : (state.albums || []);
+                    const matchedBySlug = albumList.find(a => !a?.deleted_at && toCleanSlug(a.album_name) === slug);
+                    if (matchedBySlug) {
+                        record = {
+                            slug,
+                            folder_id: String(matchedBySlug.folder_id),
+                            album_name: matchedBySlug.album_name || 'Album ảnh',
+                            allow_save: Number(matchedBySlug.allow_save) === 1 ? 1 : 0,
+                            owner_name: 'TeeMedia Atelier',
+                            access_code_hash: '',
+                            requires_code: false
+                        };
+                    }
+                }
+                if (!record || !record.folder_id) {
+                    return { success: false, message: 'Liên kết album không tồn tại hoặc đã hết hạn.' };
+                }
+                const cloudAlbums = await cloudGet('workspace/albums');
+                const albumList = Array.isArray(cloudAlbums) ? cloudAlbums : (state.albums || []);
+                const liveAlbum = albumList.find(a => String(a?.folder_id || '') === String(record.folder_id) && !a?.deleted_at);
+                const liveAllowSave = liveAlbum ? (Number(liveAlbum.allow_save) === 1 ? 1 : 0) : (Number(record.allow_save) === 1 ? 1 : 0);
+                return {
+                    success: true,
+                    share: {
+                        ...record,
+                        album_name: liveAlbum?.album_name || record.album_name || 'Album ảnh',
+                        allow_save: liveAllowSave
+                    }
+                };
+            }
+
             case 'get_share_permission': {
+                const slug = String(payload.share_slug || '').trim().toLowerCase();
+                if (slug) {
+                    const record = (await cloudGet(`workspace/shares/${encodeURIComponent(slug)}`)) || state.shares?.[slug];
+                    if (record?.folder_id) {
+                        const cloudAlbums = await cloudGet('workspace/albums');
+                        const albumList = Array.isArray(cloudAlbums) ? cloudAlbums : (state.albums || []);
+                        const matched = albumList.find(a => String(a?.folder_id || '') === String(record.folder_id) && !a?.deleted_at);
+                        if (matched) {
+                            return { success: true, allow_save: Number(matched.allow_save) === 1 };
+                        }
+                        return { success: true, allow_save: Boolean(record.allow_save) };
+                    }
+                }
                 const token = String(payload.share_token || '');
                 if (token.startsWith('v1.')) {
                     const decoded = decodeBase64Url(token);
@@ -1525,7 +1623,8 @@
             ensureBackendMode().then(isStatic => {
                 if (isStatic) {
                     localStorage.setItem(STATIC_SESSION_KEY, '0');
-                    const cleanUrl = new URL('./?home=1', global.location.href).toString();
+                    const loginPath = global.location.protocol === 'file:' ? 'login.html' : 'login';
+                    const cleanUrl = new URL(loginPath, global.location.href).toString();
                     global.history.replaceState({}, document.title, cleanUrl);
                 }
             });
@@ -1538,7 +1637,7 @@
             if (href.includes('logout=1') && (await ensureBackendMode())) {
                 event.preventDefault();
                 localStorage.setItem(STATIC_SESSION_KEY, '0');
-                global.location.href = './?home=1';
+                global.location.href = global.location.protocol === 'file:' ? 'login.html' : 'login';
             }
         });
 

@@ -14,6 +14,16 @@
     const PREVIEW_DRAFT_KEY = 'teemediaPortfolioPreviewDraft_v1';
     const isPreviewMode = params.get('preview') === '1';
 
+    function toAlbumSlug(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[\u0111\u0110]/g, 'd')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
     const state = {
         studio: { name: 'TeeMedia Atelier', phone: '0901 234 567', email: 'studio@gmail.com' },
         albums: [],
@@ -97,8 +107,26 @@
         }
     }
 
-    function selectPortfolioAlbum(albumId, scrollToGallery = true) {
+    function syncAlbumQueryUrl() {
+        if (!global.history?.replaceState) return;
+        try {
+            const nextUrl = new URL(global.location.href);
+            nextUrl.searchParams.delete('album');
+            if (isPreviewMode) nextUrl.searchParams.set('preview', '1');
+            if (state.activeAlbumId !== 'all') {
+                const matched = state.albums.find(a => String(a.id) === String(state.activeAlbumId));
+                const slug = toAlbumSlug(matched?.album_name || '') || String(state.activeAlbumId);
+                if (slug) nextUrl.searchParams.set('album', slug);
+            }
+            const query = nextUrl.searchParams.toString();
+            const cleanTarget = `${nextUrl.pathname}${query ? `?${query}` : ''}${nextUrl.hash || ''}`;
+            global.history.replaceState(null, '', cleanTarget);
+        } catch {}
+    }
+
+    function selectPortfolioAlbum(albumId, scrollToGallery = true, syncUrl = true) {
         state.activeAlbumId = String(albumId || 'all');
+        if (syncUrl) syncAlbumQueryUrl();
         renderAlbumCards();
         renderFilterTabs();
         renderGalleryHeading();
@@ -445,6 +473,17 @@
             }
         }
 
+        const requestedAlbum = toAlbumSlug(params.get('album') || '') || (params.get('album') || '').trim().toLowerCase();
+        if (requestedAlbum && requestedAlbum !== 'all') {
+            const matchedAlbum = state.albums.find(a =>
+                String(a.id).toLowerCase() === requestedAlbum
+                || toAlbumSlug(a.album_name || '') === requestedAlbum
+            );
+            if (matchedAlbum) {
+                state.activeAlbumId = String(matchedAlbum.id);
+            }
+        }
+
         renderStatsAndStudioInfo();
         renderAlbumCards();
         renderFilterTabs();
@@ -452,6 +491,11 @@
         renderPhotoGallery();
         if (state.photos.length) {
             hydrateHeroCarousel(state.photos);
+        }
+        if (requestedAlbum && state.activeAlbumId !== 'all') {
+            requestAnimationFrame(() => {
+                document.getElementById('portfolioGallerySection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
         }
     }
 

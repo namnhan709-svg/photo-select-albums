@@ -51,7 +51,8 @@
         }
 
         tbody.innerHTML = filtered.map(c => {
-            const contractUrl = `studio-contracts.html?customerName=${encodeURIComponent(c.name || '')}&customerPhone=${encodeURIComponent(c.phone || '')}&customerEmail=${encodeURIComponent(c.email || '')}&package=${encodeURIComponent(c.packageName || '')}&budget=${encodeURIComponent(c.budget || 0)}&shootDate=${encodeURIComponent(c.shootDate || '')}`;
+            const contractsPath = global.location.protocol === 'file:' ? 'studio-contracts.html' : 'studio-contracts';
+            const contractUrl = `${contractsPath}?customerName=${encodeURIComponent(c.name || '')}&customerPhone=${encodeURIComponent(c.phone || '')}&customerEmail=${encodeURIComponent(c.email || '')}&package=${encodeURIComponent(c.packageName || '')}&budget=${encodeURIComponent(c.budget || 0)}&shootDate=${encodeURIComponent(c.shootDate || '')}`;
             return `<tr>
                 <td><strong>${escapeHtml(c.name)}</strong>${c.notes ? `<br><small style="color:var(--muted)">${escapeHtml(c.notes)}</small>` : ''}</td>
                 <td><div>${escapeHtml(c.phone || '—')}</div><small style="color:var(--muted)">${escapeHtml(c.email || '')}</small></td>
@@ -90,7 +91,8 @@
         try {
             const { result: session } = await API.callJson({ action: 'session_state' });
             if (!session?.user?.id) {
-                global.location.replace('login.html?redirect=studio-customers.html');
+                const loginPath = global.location.protocol === 'file:' ? 'login.html' : 'login';
+                global.location.replace(`${loginPath}?to=studio-customers`);
                 return;
             }
             state.dashboardUser = session.user;

@@ -30,7 +30,8 @@
         try {
             const { result: session } = await API.callJson({ action: 'session_state' });
             if (!session?.user?.id) {
-                global.location.replace('login.html?redirect=studio-reports.html');
+                const loginPath = global.location.protocol === 'file:' ? 'login.html' : 'login';
+                global.location.replace(`${loginPath}?to=studio-reports`);
                 return;
             }
             state.dashboardUser = session.user;
