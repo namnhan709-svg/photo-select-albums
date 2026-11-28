@@ -6681,3 +6681,295 @@ body.customer-view .guest-confirm-btn {
         border-bottom: 1px solid rgba(223, 173, 116, 0.16);
     }
 }
+
+/* =====================================================
+   PORTFOLIO ALBUM CRUD (SETUP) & CLEAN PUBLIC GALLERY
+   ===================================================== */
+.setup-album-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.setup-album-order-pill {
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: rgba(184, 118, 60, 0.14);
+    color: var(--atelier-copper);
+    font-family: var(--atelier-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.setup-album-card.is-active .setup-album-order-pill {
+    background: rgba(223, 173, 116, 0.22);
+    color: var(--atelier-champagne);
+}
+
+.setup-album-card.is-hidden-album {
+    opacity: 0.72;
+}
+
+.setup-album-card-body {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.setup-album-card-thumb {
+    width: 64px;
+    height: 54px;
+    flex: 0 0 64px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #EFE9DF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.setup-album-card-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.setup-album-card-copy {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.setup-album-card-desc {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--atelier-taupe);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.setup-album-card.is-active .setup-album-card-desc {
+    color: rgba(244, 237, 226, 0.74);
+}
+
+.setup-album-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.setup-mini-btn {
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(111, 101, 90, 0.24);
+    background: #FFFFFF;
+    color: var(--atelier-espresso);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.setup-album-card.is-active .setup-mini-btn {
+    background: rgba(255, 250, 242, 0.12);
+    border-color: rgba(223, 173, 116, 0.35);
+    color: #F4EDE2;
+}
+
+.setup-mini-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.setup-mini-btn.is-danger,
+.setup-btn.is-danger {
+    color: #B42318;
+    border-color: rgba(180, 35, 24, 0.3);
+}
+
+.setup-album-editor {
+    margin-top: 6px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(184, 118, 60, 0.28);
+    background: #FBF8F3;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.setup-album-editor[hidden] {
+    display: none !important;
+}
+
+.setup-editor-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.setup-editor-head h3 {
+    margin: 0;
+    font-family: var(--atelier-display);
+    font-size: 1.35rem;
+    color: var(--atelier-espresso);
+}
+
+.setup-editor-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--atelier-espresso);
+    cursor: pointer;
+}
+
+.setup-editor-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    gap: 12px;
+}
+
+.setup-editor-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--atelier-taupe);
+}
+
+.setup-editor-grid label.is-wide {
+    grid-column: 1 / -1;
+}
+
+.setup-editor-grid input {
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--atelier-line);
+    background: #FFFFFF;
+    color: var(--atelier-espresso);
+    font: inherit;
+    font-size: 0.86rem;
+}
+
+.setup-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.setup-source-select {
+    min-height: 36px;
+    max-width: 260px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--atelier-line);
+    background: #FAF7F2;
+    color: var(--atelier-espresso);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* Public Portfolio — Clean Editorial Cards without Filename/Heart Clutter */
+.portfolio-hero-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    max-width: 400px !important;
+}
+
+body.portfolio-public-page .portfolio-albums-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr));
+    gap: 1.5rem;
+}
+
+body.portfolio-public-page .portfolio-album-visual--clean {
+    height: auto;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: #161310;
+}
+
+body.portfolio-public-page .portfolio-album-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 22%;
+}
+
+body.portfolio-public-page .portfolio-album-card.is-selected-album {
+    border-color: var(--atelier-copper);
+    box-shadow: 0 0 0 2px #FFFDF9, 0 0 0 4px var(--atelier-copper), 0 18px 36px rgba(184, 118, 60, 0.2);
+}
+
+body.portfolio-public-page .portfolio-album-body--clean {
+    padding: 1.25rem 1.35rem 1.35rem;
+    gap: 0.4rem;
+    flex: 1;
+}
+
+body.portfolio-public-page .portfolio-album-count-tag {
+    font-family: var(--atelier-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--atelier-copper);
+}
+
+body.portfolio-public-page .portfolio-album-desc {
+    margin: 0.15rem 0 0;
+    color: var(--atelier-taupe);
+    font-size: 0.84rem;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+body.portfolio-public-page .portfolio-photo-grid {
+    gap: 1.15rem;
+}
+
+body.portfolio-public-page .portfolio-photo-card--pure {
+    padding: 8px;
+    border-radius: 16px;
+}
+
+body.portfolio-public-page .portfolio-photo-card--pure img {
+    border-radius: 10px;
+}
+
+.portfolio-lightbox-counter {
+    font-family: var(--atelier-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    opacity: 0.85;
+}
+
+@media (max-width: 640px) {
+    .setup-editor-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .setup-source-select {
+        width: 100%;
+        max-width: 100%;
+    }
+}
