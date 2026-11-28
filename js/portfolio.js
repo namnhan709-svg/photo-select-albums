@@ -1,52 +1,27 @@
 /**
- * TeeMedia Studio Public Portfolio - Chỉ trưng bày các album & hình ảnh đã được Setup sẵn bởi Studio.
+ * TeeMedia Atelier Public Portfolio — Trưng bày các bộ ảnh theo chủ đề được Studio Setup.
+ * Giao diện tối giản ưu tiên ảnh: không hiển thị tên file, không nút tim, không bộ lọc tên khách.
  */
 (function initPortfolioHome(global) {
     const params = new URLSearchParams(global.location.search);
     if (params.has('share') || params.has('folder')) return;
 
-    const isPortfolioPage = Boolean(document.getElementById('portfolioHomeRoot'));
-    if (!isPortfolioPage) return;
+    if (!document.getElementById('portfolioHomeRoot')) return;
 
     const API = global.PhotoSelectAPI;
     if (!API) return;
 
-    const BOOKMARKS_KEY = 'teemediaPortfolioBookmarks_v1';
     const PREVIEW_DRAFT_KEY = 'teemediaPortfolioPreviewDraft_v1';
     const isPreviewMode = params.get('preview') === '1';
 
     const state = {
-        studio: { name: 'TeeMedia Studio', phone: '0901 234 567', email: 'studio@gmail.com' },
+        studio: { name: 'TeeMedia Atelier', phone: '0901 234 567', email: 'studio@gmail.com' },
         albums: [],
         photos: [],
-        activeAlbumFilter: 'all',
-        albumSearchQuery: '',
-        bookmarks: new Map(),
+        activeAlbumId: 'all',
         lightboxIndex: -1,
         visibleLightboxPhotos: []
     };
-
-    try {
-        const saved = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]');
-        if (Array.isArray(saved)) {
-            saved.forEach(item => {
-                if (item?.id) state.bookmarks.set(String(item.id), item);
-            });
-        }
-    } catch {}
-
-    function saveBookmarks() {
-        try {
-            localStorage.setItem(BOOKMARKS_KEY, JSON.stringify([...state.bookmarks.values()]));
-        } catch {}
-    }
-
-    function formatDisplayDate(raw) {
-        if (!raw) return 'Mới cập nhật';
-        const d = new Date(String(raw).replace(' ', 'T'));
-        if (Number.isNaN(d.getTime())) return String(raw);
-        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    }
 
     function initCarouselRotation() {
         const slides = [...document.querySelectorAll('.wedding-slide')];
@@ -90,23 +65,17 @@
             const caption = slide.querySelector('figcaption');
             if (img) {
                 API.bindDriveImage(img, photo, 'thumb');
-                img.alt = photo.name || photo.albumName || 'TeeMedia Portfolio';
+                img.alt = photo.albumName || 'TeeMedia Atelier';
                 slide.style.cursor = 'pointer';
                 slide.onclick = () => {
+                    selectPortfolioAlbum(photo.portfolioAlbumId || 'all', false);
                     const visible = getFilteredPortfolioPhotos();
                     const foundIdx = visible.findIndex(p => String(p.id) === String(photo.id));
                     if (foundIdx >= 0) openPortfolioLightbox(foundIdx);
-                    else {
-                        state.activeAlbumFilter = 'all';
-                        renderFilterTabs();
-                        renderPhotoGallery();
-                        const allIdx = getFilteredPortfolioPhotos().findIndex(p => String(p.id) === String(photo.id));
-                        if (allIdx >= 0) openPortfolioLightbox(allIdx);
-                    }
                 };
             }
             if (caption) {
-                caption.textContent = photo.albumName || 'TeeMedia Studio';
+                caption.textContent = photo.albumName || 'TeeMedia Atelier';
             }
         });
     }
@@ -128,42 +97,56 @@
         }
     }
 
-    function selectAlbumOnPortfolio(folderId, openFirstInLightbox = false) {
-        state.activeAlbumFilter = String(folderId || 'all');
+    function selectPortfolioAlbum(albumId, scrollToGallery = true) {
+        state.activeAlbumId = String(albumId || 'all');
+        renderAlbumCards();
         renderFilterTabs();
+        renderGalleryHeading();
         renderPhotoGallery();
-        if (openFirstInLightbox) {
-            const visible = getFilteredPortfolioPhotos();
-            if (visible.length) {
-                openPortfolioLightbox(0);
-                return;
-            }
+        if (scrollToGallery) {
+            document.getElementById('portfolioGallerySection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        document.getElementById('portfolioGallerySection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderGalleryHeading() {
+        const eyebrowEl = document.getElementById('portfolioGalleryEyebrow');
+        const titleEl = document.getElementById('portfolioGalleryTitle');
+        const descEl = document.getElementById('portfolioGalleryDesc');
+        if (state.activeAlbumId === 'all') {
+            if (eyebrowEl) eyebrowEl.textContent = 'Triển lãm tác phẩm';
+            if (titleEl) titleEl.textContent = 'Tất Cả Tác Phẩm Chọn Lọc';
+            if (descEl) descEl.textContent = 'Duyệt toàn bộ khung hình hoặc lọc theo từng album chủ đề.';
+            return;
+        }
+        const activeAlbum = state.albums.find(a => String(a.id) === String(state.activeAlbumId));
+        if (!activeAlbum) return;
+        if (eyebrowEl) eyebrowEl.textContent = `Bộ ảnh · ${activeAlbum.photoCount} khung hình`;
+        if (titleEl) titleEl.textContent = activeAlbum.album_name || 'Bộ ảnh';
+        if (descEl) {
+            descEl.textContent = activeAlbum.description || 'Chạm vào từng bức ảnh để xem ở chế độ toàn màn hình.';
+        }
     }
 
     function renderAlbumCards() {
         const grid = document.getElementById('portfolioAlbumsGrid');
         if (!grid) return;
-        const query = state.albumSearchQuery.trim().toLowerCase();
-        const filtered = state.albums.filter(a => !query || String(a.album_name || '').toLowerCase().includes(query));
 
-        if (!filtered.length) {
+        if (!state.albums.length) {
             grid.innerHTML = `<div class="portfolio-empty">
-                <p>${query ? 'Không tìm thấy album phù hợp với từ khóa.' : 'Hiện chưa có bộ sưu tập nào được setup hiển thị trên Portfolio.'}</p>
+                <p>Hiện chưa có bộ ảnh nào được xuất bản lên Portfolio.</p>
             </div>`;
             return;
         }
 
         grid.replaceChildren();
-        filtered.forEach(album => {
+        state.albums.forEach(album => {
+            const isActive = String(state.activeAlbumId) === String(album.id);
             const card = document.createElement('article');
-            card.className = 'portfolio-album-card';
+            card.className = `portfolio-album-card${isActive ? ' is-selected-album' : ''}`;
 
             const visual = document.createElement('div');
-            visual.className = 'portfolio-album-visual';
-            const samples = Array.isArray(album.samples) ? album.samples : [];
-            const coverPhoto = samples.find(s => String(s.id) === String(album.cover_photo_id || '')) || samples[0] || null;
+            visual.className = 'portfolio-album-visual portfolio-album-visual--clean';
+            const coverPhoto = album.coverPhoto || album.samples[0] || null;
 
             if (coverPhoto) {
                 const coverImg = document.createElement('img');
@@ -180,61 +163,44 @@
                 visual.appendChild(placeholder);
             }
 
-            const miniThumbs = samples.filter(s => String(s.id) !== String(coverPhoto?.id || '')).slice(0, 3);
-            if (miniThumbs.length) {
-                const miniRow = document.createElement('div');
-                miniRow.className = 'portfolio-album-mini-strip';
-                miniThumbs.forEach(sample => {
-                    const mini = document.createElement('img');
-                    mini.alt = sample.name || album.album_name || '';
-                    mini.loading = 'lazy';
-                    mini.decoding = 'async';
-                    API.bindDriveImage(mini, sample, 'thumb');
-                    miniRow.appendChild(mini);
-                });
-                visual.appendChild(miniRow);
-            }
-
-            const countBadge = document.createElement('span');
-            countBadge.className = 'portfolio-album-count';
-            countBadge.textContent = `${samples.length} ảnh chọn lọc`;
-            visual.appendChild(countBadge);
-
             const body = document.createElement('div');
-            body.className = 'portfolio-album-body';
+            body.className = 'portfolio-album-body portfolio-album-body--clean';
+
+            const countMeta = document.createElement('span');
+            countMeta.className = 'portfolio-album-count-tag';
+            countMeta.textContent = `${album.photoCount} ảnh`;
+
             const title = document.createElement('h3');
             title.textContent = album.album_name || 'Bộ sưu tập ảnh';
-            const meta = document.createElement('p');
-            meta.className = 'portfolio-album-meta';
-            meta.textContent = `Thực hiện: ${formatDisplayDate(album.created_at)} · TeeMedia Studio`;
 
-            const actions = document.createElement('div');
-            actions.className = 'portfolio-album-actions';
+            body.append(countMeta, title);
 
-            const viewGalleryBtn = document.createElement('button');
-            viewGalleryBtn.type = 'button';
-            viewGalleryBtn.className = 'portfolio-album-cta';
-            viewGalleryBtn.style.border = '0';
-            viewGalleryBtn.style.cursor = 'pointer';
-            viewGalleryBtn.textContent = `Xem ${samples.length} ảnh chọn lọc →`;
-            viewGalleryBtn.addEventListener('click', event => {
+            if (album.description) {
+                const desc = document.createElement('p');
+                desc.className = 'portfolio-album-desc';
+                desc.textContent = album.description;
+                body.appendChild(desc);
+            }
+
+            const actionRow = document.createElement('div');
+            actionRow.className = 'portfolio-album-actions';
+
+            const openBtn = document.createElement('button');
+            openBtn.type = 'button';
+            openBtn.className = 'portfolio-album-cta';
+            openBtn.style.border = '0';
+            openBtn.style.cursor = 'pointer';
+            openBtn.textContent = isActive ? 'Đang xem bộ ảnh ↓' : 'Xem bộ ảnh →';
+            openBtn.addEventListener('click', event => {
                 event.stopPropagation();
-                selectAlbumOnPortfolio(album.folder_id, false);
+                selectPortfolioAlbum(album.id, true);
             });
 
-            const lightboxBtn = document.createElement('button');
-            lightboxBtn.type = 'button';
-            lightboxBtn.className = 'portfolio-album-preview-btn';
-            lightboxBtn.textContent = '🔍 Phóng to';
-            lightboxBtn.addEventListener('click', event => {
-                event.stopPropagation();
-                selectAlbumOnPortfolio(album.folder_id, true);
-            });
+            actionRow.appendChild(openBtn);
+            body.appendChild(actionRow);
 
-            actions.append(viewGalleryBtn, lightboxBtn);
-            body.append(title, meta, actions);
             card.append(visual, body);
-            card.addEventListener('click', () => selectAlbumOnPortfolio(album.folder_id, false));
+            card.addEventListener('click', () => selectPortfolioAlbum(album.id, true));
             grid.appendChild(card);
         });
     }
@@ -245,56 +211,25 @@
         container.replaceChildren();
         const tabs = [
             { id: 'all', label: `Tất cả (${state.photos.length})` },
-            ...state.albums
-                .filter(a => (a.samples || []).length > 0)
-                .map(a => ({ id: String(a.folder_id), label: `${a.album_name} (${a.samples.length})` }))
+            ...state.albums.map(a => ({
+                id: String(a.id),
+                label: `${a.album_name} (${a.photoCount})`
+            }))
         ];
         tabs.forEach(tab => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = `portfolio-filter-tab${state.activeAlbumFilter === tab.id ? ' is-active' : ''}`;
+            btn.className = `portfolio-filter-tab${state.activeAlbumId === tab.id ? ' is-active' : ''}`;
             btn.textContent = tab.label;
-            btn.addEventListener('click', () => {
-                state.activeAlbumFilter = tab.id;
-                renderFilterTabs();
-                renderPhotoGallery();
-            });
+            btn.addEventListener('click', () => selectPortfolioAlbum(tab.id, false));
             container.appendChild(btn);
         });
     }
 
     function getFilteredPortfolioPhotos() {
-        return state.activeAlbumFilter === 'all'
+        return state.activeAlbumId === 'all'
             ? state.photos
-            : state.photos.filter(p => String(p.albumFolderId) === String(state.activeAlbumFilter));
-    }
-
-    function updateBookmarkDock() {
-        const dock = document.getElementById('portfolioConceptDock');
-        const countEl = document.getElementById('portfolioBookmarkCount');
-        const listEl = document.getElementById('portfolioBookmarkPreview');
-        const headerBadge = document.getElementById('portfolioSavedConceptBadge');
-        const count = state.bookmarks.size;
-        if (headerBadge) headerBadge.textContent = String(count);
-        if (!dock) return;
-        dock.hidden = count < 1;
-        dock.classList.toggle('is-visible', count > 0);
-        if (countEl) countEl.textContent = String(count);
-        if (listEl) {
-            const names = [...state.bookmarks.values()].slice(0, 3).map(p => p.name);
-            listEl.textContent = names.join(', ') + (count > 3 ? ` và ${count - 3} ảnh khác` : '');
-        }
-    }
-
-    function toggleBookmark(photo) {
-        if (!photo?.id) return;
-        const key = String(photo.id);
-        if (state.bookmarks.has(key)) state.bookmarks.delete(key);
-        else state.bookmarks.set(key, { id: key, name: photo.name || key, albumName: photo.albumName || 'Portfolio' });
-        saveBookmarks();
-        updateBookmarkDock();
-        renderPhotoGallery();
-        if (state.lightboxIndex >= 0) syncPortfolioLightboxHeart();
+            : state.photos.filter(p => String(p.portfolioAlbumId) === String(state.activeAlbumId));
     }
 
     function renderPhotoGallery() {
@@ -304,52 +239,25 @@
         state.visibleLightboxPhotos = photos;
         if (!photos.length) {
             grid.innerHTML = `<div class="portfolio-empty">
-                <p>Hiện chưa có ảnh nào được chọn hiển thị trên Portfolio.</p>
+                <p>Hiện chưa có ảnh nào trong bộ sưu tập này.</p>
             </div>`;
             return;
         }
         grid.replaceChildren();
         photos.forEach((photo, idx) => {
-            const isBookmarked = state.bookmarks.has(String(photo.id));
             const card = document.createElement('article');
-            card.className = `portfolio-photo-card${isBookmarked ? ' is-selected' : ''}`;
+            card.className = 'portfolio-photo-card portfolio-photo-card--pure';
 
             const img = document.createElement('img');
-            img.alt = photo.name || photo.albumName || 'Ảnh TeeMedia Studio';
+            img.alt = photo.albumName || 'Tác phẩm TeeMedia Atelier';
             img.loading = idx < 8 ? 'eager' : 'lazy';
             img.decoding = 'async';
             API.bindDriveImage(img, photo, 'thumb');
 
-            const heartBtn = document.createElement('button');
-            heartBtn.type = 'button';
-            heartBtn.className = 'portfolio-photo-heart';
-            heartBtn.title = isBookmarked ? 'Bỏ chọn ảnh mẫu' : 'Chọn làm ảnh mẫu';
-            heartBtn.setAttribute('aria-label', heartBtn.title);
-            heartBtn.textContent = isBookmarked ? '❤️' : '🤍';
-            heartBtn.addEventListener('click', event => {
-                event.stopPropagation();
-                toggleBookmark(photo);
-            });
-
-            const caption = document.createElement('div');
-            caption.className = 'portfolio-photo-caption';
-            caption.innerHTML = '<strong></strong><small></small>';
-            caption.querySelector('strong').textContent = photo.albumName || 'TeeMedia Studio';
-            caption.querySelector('small').textContent = photo.name || '';
-
-            card.append(img, heartBtn, caption);
+            card.appendChild(img);
             card.addEventListener('click', () => openPortfolioLightbox(idx));
             grid.appendChild(card);
         });
-    }
-
-    function syncPortfolioLightboxHeart() {
-        const btn = document.getElementById('portfolioLightboxHeart');
-        const photo = state.visibleLightboxPhotos[state.lightboxIndex];
-        if (!btn || !photo) return;
-        const active = state.bookmarks.has(String(photo.id));
-        btn.textContent = active ? '❤️ Đã chọn mẫu' : '🤍 Chọn mẫu';
-        btn.classList.toggle('is-active', active);
     }
 
     function openPortfolioLightbox(index) {
@@ -360,11 +268,14 @@
         const modal = document.getElementById('portfolioLightbox');
         const img = document.getElementById('portfolioLightboxImg');
         const title = document.getElementById('portfolioLightboxTitle');
+        const counter = document.getElementById('portfolioLightboxCounter');
         if (!modal || !img) return;
         API.bindDriveImage(img, photo, 'full');
-        img.alt = photo.name || 'Ảnh Portfolio TeeMedia';
-        if (title) title.textContent = `${photo.albumName || 'TeeMedia'} · ${photo.name || ''}`;
-        syncPortfolioLightboxHeart();
+        img.alt = photo.albumName || 'Tác phẩm TeeMedia Atelier';
+        if (title) title.textContent = photo.albumName || 'TeeMedia Atelier';
+        if (counter) {
+            counter.textContent = `${String(index + 1).padStart(2, '0')} / ${String(photos.length).padStart(2, '0')}`;
+        }
         modal.classList.add('is-open');
     }
 
@@ -373,25 +284,14 @@
         state.lightboxIndex = -1;
     }
 
-    function openChatWidgetWithText(text) {
+    function openChatWidget() {
         const chatToggle = document.getElementById('adminChatToggle');
         const chatInput = document.getElementById('adminChatInput');
         const chatContainer = document.getElementById('adminChat');
         if (chatContainer && !chatContainer.classList.contains('open')) {
             chatToggle?.click();
         }
-        if (chatInput) {
-            if (text) chatInput.value = text;
-            chatInput.focus();
-        }
-    }
-
-    function sendConceptsToStudio() {
-        const items = [...state.bookmarks.values()];
-        if (!items.length) return;
-        const summary = `Chào TeeMedia Studio, mình thích ${items.length} ảnh mẫu trên Portfolio:\n` +
-            items.map((item, i) => `${i + 1}. ${item.name} (${item.albumName})`).join('\n');
-        openChatWidgetWithText(summary);
+        chatInput?.focus();
     }
 
     function bindChatEvents() {
@@ -415,7 +315,7 @@
                 if (statusEl) statusEl.textContent = 'Vui lòng nhập nội dung tin nhắn.';
                 return;
             }
-            if (statusEl) statusEl.textContent = 'Đang gửi cho TeeMedia Studio...';
+            if (statusEl) statusEl.textContent = 'Đang gửi cho TeeMedia...';
             try {
                 const { ok, result } = await API.callJson({
                     action: 'send_chat_message',
@@ -433,7 +333,7 @@
                     messagesEl.scrollTop = messagesEl.scrollHeight;
                 }
                 if (input) input.value = '';
-                if (statusEl) statusEl.textContent = '✅ Đã gửi tới TeeMedia Studio!';
+                if (statusEl) statusEl.textContent = '✅ Đã gửi tới TeeMedia Atelier!';
             } catch (err) {
                 if (statusEl) statusEl.textContent = err.message || 'Không thể gửi tin nhắn.';
             }
@@ -441,10 +341,6 @@
     }
 
     function bindPortfolioEvents() {
-        document.getElementById('portfolioAlbumSearch')?.addEventListener('input', e => {
-            state.albumSearchQuery = e.currentTarget.value || '';
-            renderAlbumCards();
-        });
         document.getElementById('portfolioLightboxClose')?.addEventListener('click', closePortfolioLightbox);
         document.getElementById('portfolioLightbox')?.addEventListener('click', e => {
             if (e.target.id === 'portfolioLightbox') closePortfolioLightbox();
@@ -459,27 +355,7 @@
             const next = (state.lightboxIndex + 1) % state.visibleLightboxPhotos.length;
             openPortfolioLightbox(next);
         });
-        document.getElementById('portfolioLightboxHeart')?.addEventListener('click', () => {
-            const photo = state.visibleLightboxPhotos[state.lightboxIndex];
-            if (photo) toggleBookmark(photo);
-        });
-        document.getElementById('portfolioLightboxFilterAlbum')?.addEventListener('click', () => {
-            const photo = state.visibleLightboxPhotos[state.lightboxIndex];
-            closePortfolioLightbox();
-            if (photo?.albumFolderId) {
-                selectAlbumOnPortfolio(photo.albumFolderId, false);
-            }
-        });
-        document.getElementById('portfolioSendConceptsBtn')?.addEventListener('click', sendConceptsToStudio);
-        document.getElementById('portfolioClearConceptsBtn')?.addEventListener('click', () => {
-            state.bookmarks.clear();
-            saveBookmarks();
-            updateBookmarkDock();
-            renderPhotoGallery();
-        });
-        document.getElementById('portfolioOpenChatBtn')?.addEventListener('click', () => {
-            openChatWidgetWithText('');
-        });
+        document.getElementById('portfolioOpenChatBtn')?.addEventListener('click', openChatWidget);
         document.addEventListener('keydown', e => {
             const modal = document.getElementById('portfolioLightbox');
             if (!modal?.classList.contains('is-open')) return;
@@ -493,40 +369,54 @@
         const photos = (Array.isArray(rawPhotos) ? rawPhotos : []).map(p => ({
             ...p,
             id: String(p.id),
-            albumFolderId: String(p.folder_id || p.albumFolderId || ''),
-            albumName: String(p.album_name || p.albumName || p.category || 'TeeMedia Studio')
+            portfolioAlbumId: String(p.portfolio_album_id || p.folder_id || ''),
+            albumName: String(p.album_name || p.albumName || 'Bộ sưu tập')
         }));
 
         const photosByAlbum = new Map();
         photos.forEach(p => {
-            const list = photosByAlbum.get(p.albumFolderId) || [];
+            const key = p.portfolioAlbumId;
+            const list = photosByAlbum.get(key) || [];
             list.push(p);
-            photosByAlbum.set(p.albumFolderId, list);
+            photosByAlbum.set(key, list);
         });
 
         const albums = (Array.isArray(rawAlbums) ? rawAlbums : [])
             .map(a => {
-                const fid = String(a.folder_id || '');
-                const samples = photosByAlbum.get(fid) || [];
+                const aid = String(a.id || a.folder_id || '');
+                const samples = Array.isArray(a.photos) && a.photos.length
+                    ? a.photos.map(p => ({ ...p, id: String(p.id), portfolioAlbumId: aid, albumName: a.album_name }))
+                    : (photosByAlbum.get(aid) || photosByAlbum.get(String(a.folder_id || '')) || []);
+                const coverPhoto = samples.find(s => String(s.id) === String(a.cover_photo_id || '')) || a.cover_photo || samples[0] || null;
                 return {
                     ...a,
-                    folder_id: fid,
+                    id: aid,
+                    description: String(a.description || '').trim(),
+                    order: Number(a.order || 999),
                     samples,
+                    coverPhoto,
                     photoCount: samples.length
                 };
             })
-            .filter(a => a.samples.length > 0);
+            .filter(a => a.visible !== false && a.samples.length > 0)
+            .sort((a, b) => (a.order - b.order));
 
-        const validAlbumIds = new Set(albums.map(a => a.folder_id));
+        const validIds = new Set(albums.map(a => a.id));
+        const flattened = [];
+        albums.forEach(a => {
+            a.samples.forEach(p => {
+                if (validIds.has(a.id)) flattened.push(p);
+            });
+        });
+
         state.albums = albums;
-        state.photos = photos.filter(p => validAlbumIds.has(p.albumFolderId));
+        state.photos = flattened;
     }
 
     async function bootPortfolio() {
         initCarouselRotation();
         bindChatEvents();
         bindPortfolioEvents();
-        updateBookmarkDock();
 
         let loadedFromPreview = false;
         if (isPreviewMode) {
@@ -558,6 +448,7 @@
         renderStatsAndStudioInfo();
         renderAlbumCards();
         renderFilterTabs();
+        renderGalleryHeading();
         renderPhotoGallery();
         if (state.photos.length) {
             hydrateHeroCarousel(state.photos);

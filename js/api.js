@@ -207,6 +207,28 @@
         };
     }
 
+    function normalizePortfolioPhoto(p, fallbackAlbumId = '', fallbackAlbumName = 'Bộ sưu tập') {
+        if (!p || !p.id) return null;
+        const pid = String(p.id);
+        const fid = String(p.folder_id || p.albumFolderId || '');
+        const paid = String(p.portfolio_album_id || fallbackAlbumId || fid || '');
+        const item = {
+            id: pid,
+            name: String(p.name || ''),
+            folder_id: fid,
+            portfolio_album_id: paid,
+            album_name: String(p.album_name || fallbackAlbumName || 'Bộ sưu tập'),
+            thumbnailLink: String(p.thumbnailLink || ''),
+            thumbnailUrl: String(p.thumbnailUrl || ''),
+            fullUrl: String(p.fullUrl || ''),
+            mimeType: String(p.mimeType || 'image/jpeg'),
+            createdTime: p.createdTime || null,
+            modifiedTime: p.modifiedTime || null
+        };
+        if (Number(p.size) > 0) item.size = Number(p.size);
+        return item;
+    }
+
     function normalizePortfolioConfig(raw) {
         const src = (raw && typeof raw === 'object') ? raw : {};
         const rawAlbums = Array.isArray(src.albums)
@@ -215,43 +237,82 @@
         const rawPhotos = Array.isArray(src.photos)
             ? src.photos
             : (src.photos && typeof src.photos === 'object' ? Object.values(src.photos) : []);
+
+        const flatLegacyPhotos = rawPhotos
+            .map(p => normalizePortfolioPhoto(p))
+            .filter(Boolean);
+
         const albums = rawAlbums
-            .filter(a => a && a.folder_id)
-            .map(a => ({
-                folder_id: String(a.folder_id),
-                album_name: String(a.album_name || 'Album ảnh'),
-                allow_save: Number(a.allow_save) === 1 ? 1 : 0,
-                created_at: a.created_at || null,
-                cover_photo_id: a.cover_photo_id ? String(a.cover_photo_id) : '',
-                photo_ids: Array.isArray(a.photo_ids)
-                    ? a.photo_ids.map(String)
-                    : (a.photo_ids && typeof a.photo_ids === 'object' ? Object.values(a.photo_ids).map(String) : [])
-            }));
-        const seenPhotoKeys = new Set();
+            .filter(a => a && (a.id || a.folder_id || a.album_name || a.name))
+            .map((a, idx) => {
+                const fid = String(a.folder_id || '');
+                const albumId = String(a.id || (fid ? `pf-${fid}` : `pf-album-${idx + 1}`));
+                const albumName = String(a.album_name || a.name || 'Bộ sưu tập');
+                const rawAlbumPhotos = Array.isArray(a.photos)
+                    ? a.photos
+                    : (a.photos && typeof a.photos === 'object' ? Object.values(a.photos) : null);
+
+                let albumPhotos = [];
+                if (rawAlbumPhotos) {
+                    albumPhotos = rawAlbumPhotos
+                        .map(p => normalizePortfolioPhoto(p, albumId, albumName))
+                        .filter(Boolean);
+                } else {
+                    const pidSet = new Set(
+                        Array.isArray(a.photo_ids)
+                            ? a.photo_ids.map(String)
+                            : (a.photo_ids && typeof a.photo_ids === 'object' ? Object.values(a.photo_ids).map(String) : [])
+                    );
+                    albumPhotos = flatLegacyPhotos
+                        .filter(p => {
+                            if (p.portfolio_album_id && p.portfolio_album_id === albumId) return true;
+                            if (fid && String(p.folder_id) === fid) {
+                                return pidSet.size ? pidSet.has(String(p.id)) : true;
+                            }
+                            return false;
+                        })
+                        .map(p => ({ ...p, portfolio_album_id: albumId, album_name: albumName }));
+                }
+
+                const seenIds = new Set();
+                albumPhotos = albumPhotos.filter(p => {
+                    const k = String(p.id);
+                    if (seenIds.has(k)) return false;
+                    seenIds.add(k);
+                    return true;
+                });
+
+                const coverIdRaw = a.cover_photo_id ? String(a.cover_photo_id) : '';
+                const coverId = (coverIdRaw && albumPhotos.some(p => String(p.id) === coverIdRaw))
+                    ? coverIdRaw
+                    : String(albumPhotos[0]?.id || '');
+
+                return {
+                    id: albumId,
+                    folder_id: fid,
+                    album_name: albumName,
+                    description: String(a.description || '').trim(),
+                    order: Number.isFinite(Number(a.order)) && Number(a.order) > 0 ? Number(a.order) : idx + 1,
+                    visible: a.visible === undefined ? true : Boolean(a.visible),
+                    created_at: a.created_at || new Date().toISOString(),
+                    cover_photo_id: coverId,
+                    photo_ids: albumPhotos.map(p => String(p.id)),
+                    photos: albumPhotos
+                };
+            })
+            .sort((a, b) => (a.order - b.order));
+
         const photos = [];
-        for (const p of rawPhotos) {
-            if (!p || !p.id) continue;
-            const pid = String(p.id);
-            const fid = String(p.folder_id || '');
-            const key = `${fid}::${pid}`;
-            if (seenPhotoKeys.has(key)) continue;
-            seenPhotoKeys.add(key);
-            const item = {
-                id: pid,
-                name: String(p.name || 'IMG.jpg'),
-                folder_id: fid,
-                album_name: String(p.album_name || 'Album ảnh'),
-                category: String(p.category || p.album_name || 'Album ảnh'),
-                thumbnailLink: String(p.thumbnailLink || ''),
-                thumbnailUrl: String(p.thumbnailUrl || ''),
-                fullUrl: String(p.fullUrl || ''),
-                mimeType: String(p.mimeType || 'image/jpeg'),
-                createdTime: p.createdTime || null,
-                modifiedTime: p.modifiedTime || null
-            };
-            if (Number(p.size) > 0) item.size = Number(p.size);
-            photos.push(item);
-        }
+        albums.forEach(album => {
+            album.photos.forEach(p => {
+                photos.push({
+                    ...p,
+                    portfolio_album_id: album.id,
+                    album_name: album.album_name
+                });
+            });
+        });
+
         return {
             updated_at: src.updated_at || null,
             headline: String(src.headline || '').trim(),
@@ -689,42 +750,41 @@
             }
 
             case 'load_public_portfolio': {
-                const activeMap = new Map(
-                    (state.albums || [])
-                        .filter(a => !a.deleted_at && String(a.folder_id) !== 'test_check_folder')
-                        .map(a => [String(a.folder_id), a])
-                );
                 const portfolio = normalizePortfolioConfig(state.portfolio);
                 const primaryUser = (state.users || [])[0] || { name: 'TeeMedia Studio', phone: '0901 234 567', email: 'studio@gmail.com' };
                 const studioName = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(String(primaryUser.name || ''))
                     ? 'TeeMedia Studio'
                     : (primaryUser.name || 'TeeMedia Studio');
 
-                const enabledFolderIds = new Set();
-                const albums = [];
-                portfolio.albums.forEach(cfg => {
-                    const fid = String(cfg.folder_id || '');
-                    if (!fid) return;
-                    if (activeMap.size > 0 && !activeMap.has(fid)) return;
-                    const active = activeMap.get(fid);
-                    enabledFolderIds.add(fid);
-                    const albumPhotos = portfolio.photos.filter(p => String(p.folder_id) === fid);
-                    if (!albumPhotos.length) return;
-                    albums.push({
-                        id: active?.id || fid,
-                        album_name: active?.album_name || cfg.album_name || 'Album ảnh',
-                        folder_id: fid,
-                        allow_save: Number(active?.allow_save ?? cfg.allow_save) === 1 ? 1 : 0,
-                        created_at: active?.created_at || cfg.created_at || null,
-                        cover_photo_id: cfg.cover_photo_id || albumPhotos[0]?.id || '',
-                        photo_count: albumPhotos.length
-                    });
-                });
+                const visibleAlbums = portfolio.albums
+                    .filter(a => a.visible !== false && Array.isArray(a.photos) && a.photos.length > 0)
+                    .sort((a, b) => (a.order - b.order));
 
-                const curatedPhotos = portfolio.photos.filter(p => enabledFolderIds.has(String(p.folder_id || '')));
-                // Fallback if owner saved photos without matching album entry
-                const validAlbumIds = new Set(albums.map(a => String(a.folder_id)));
-                const finalPhotos = curatedPhotos.filter(p => validAlbumIds.has(String(p.folder_id || '')));
+                const finalPhotos = [];
+                const albums = visibleAlbums.map(a => {
+                    const albumPhotos = a.photos.map(p => ({
+                        id: p.id,
+                        folder_id: p.folder_id,
+                        portfolio_album_id: a.id,
+                        album_name: a.album_name,
+                        thumbnailLink: p.thumbnailLink,
+                        thumbnailUrl: p.thumbnailUrl,
+                        fullUrl: p.fullUrl,
+                        mimeType: p.mimeType
+                    }));
+                    albumPhotos.forEach(p => finalPhotos.push(p));
+                    const coverPhoto = albumPhotos.find(p => String(p.id) === String(a.cover_photo_id || '')) || albumPhotos[0] || null;
+                    return {
+                        id: a.id,
+                        album_name: a.album_name,
+                        description: a.description || '',
+                        order: a.order,
+                        created_at: a.created_at || null,
+                        cover_photo_id: coverPhoto?.id || '',
+                        cover_photo: coverPhoto,
+                        photo_count: albumPhotos.length
+                    };
+                });
 
                 return {
                     success: true,
