@@ -5943,6 +5943,12 @@ body.studio-home-view .container {
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
 }
 
+.setup-tray-panel[hidden],
+.setup-sticky-dock[hidden],
+.portfolio-preview-banner[hidden] {
+    display: none !important;
+}
+
 .setup-sticky-info {
     display: flex;
     flex-direction: column;
