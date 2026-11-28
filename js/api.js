@@ -211,6 +211,13 @@
             const parsed = JSON.parse(raw);
             if (!parsed.driveFolders) parsed.driveFolders = getSeedDemoFolders();
             if (!Array.isArray(parsed.photo_selections)) parsed.photo_selections = [];
+            if (Array.isArray(parsed.users)) {
+                parsed.users.forEach(u => {
+                    if (/(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(String(u?.name || ''))) {
+                        u.name = 'TeeMedia Studio';
+                    }
+                });
+            }
             return parsed;
         } catch {
             return buildSeedMockState();
