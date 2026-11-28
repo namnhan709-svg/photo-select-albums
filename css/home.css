@@ -7470,20 +7470,36 @@ body.portfolio-public-page .portfolio-photo-card--pure img {
         justify-content: flex-start;
     }
 
+    .filter-controls > .filter-status-pills {
+        grid-column: 1 / -1;
+        width: 100%;
+        padding: 0;
+        overflow: visible;
+    }
+
     .filter-status-pills {
         width: 100%;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0.4rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.42rem;
     }
 
     .filter-status-pills .filter-btn {
+        flex: 1 1 auto;
+        min-width: max-content;
         min-height: 44px;
-        padding: 0.5rem 0.35rem;
-        font-size: 0.75rem;
+        padding: 0.5rem 0.72rem;
+        font-size: 0.78rem;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible;
+    }
+
+    .page-jump-controls {
+        top: auto;
+        bottom: 5.2rem;
+        right: 0.55rem;
+        transform: none;
+        opacity: 0.9;
     }
 
     .face-filter-panel {
