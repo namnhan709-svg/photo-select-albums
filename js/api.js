@@ -654,6 +654,15 @@
                 const token = String(payload.share_token || '');
                 if (token.startsWith('v1.')) {
                     const decoded = decodeBase64Url(token);
+                    if (decoded?.f) {
+                        const cloudAlbums = await cloudGet('workspace/albums');
+                        if (Array.isArray(cloudAlbums)) {
+                            const matched = cloudAlbums.find(a => String(a?.folder_id || '') === String(decoded.f) && !a?.deleted_at);
+                            if (matched) {
+                                return { success: true, allow_save: Number(matched.allow_save) === 1 };
+                            }
+                        }
+                    }
                     return { success: true, allow_save: decoded ? Boolean(decoded.a) : true };
                 }
                 return { success: true, allow_save: true };
@@ -956,13 +965,23 @@
             ? String(file.thumbnailLink).replace(/=[sw]\d+.*$/, '=w640')
             : '';
         const resizedFull = file.thumbnailLink
-            ? String(file.thumbnailLink).replace(/=[sw]\d+.*$/, '=w1600')
+            ? String(file.thumbnailLink).replace(/=[sw]\d+.*$/, '=w2048')
             : '';
         return {
             ...file,
+            size: Number(file.size || 0),
+            webContentLink: file.webContentLink || `https://drive.google.com/uc?export=download&id=${encodeURIComponent(id)}`,
             thumbnailUrl: resizedThumb || `https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=w640`,
-            fullUrl: resizedFull || `https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=w1600`
+            fullUrl: resizedFull || `https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=w2048`
         };
+    }
+
+    function getDriveOriginalDownloadUrl(fileOrId) {
+        const isObj = fileOrId && typeof fileOrId === 'object';
+        const file = isObj ? fileOrId : { id: fileOrId };
+        if (file.webContentLink) return String(file.webContentLink);
+        const id = String(file.id || '');
+        return id ? `https://drive.google.com/uc?export=download&id=${encodeURIComponent(id)}` : '';
     }
 
     function getDriveImageCandidates(fileOrId, size = 'thumb') {
@@ -974,7 +993,7 @@
         }
         const id = String(file.id || '');
         if (!id) return directDataUrl ? [directDataUrl] : [];
-        const widthToken = size === 'full' ? 'w1600' : 'w640';
+        const widthToken = size === 'full' ? 'w2048' : 'w640';
         const candidates = [];
         if (file.thumbnailLink) {
             candidates.push(String(file.thumbnailLink).replace(/=[sw]\d+.*$/, `=${widthToken}`));
@@ -1102,7 +1121,7 @@
             if (apiKey) {
                 const q = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
                 const pt = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
-                const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,thumbnailLink,hasThumbnail,webContentLink)&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true${pt}&key=${encodeURIComponent(apiKey)}`;
+                const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=nextPageToken,files(id,name,mimeType,size,createdTime,modifiedTime,thumbnailLink,hasThumbnail,webContentLink)&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true${pt}&key=${encodeURIComponent(apiKey)}`;
                 const res = await nativeFetch(url);
                 const data = await res.json().catch(() => ({}));
                 if (res.ok) {
@@ -1139,7 +1158,11 @@
             if (!response.ok) {
                 throw new Error(`Không thể tải ảnh từ Drive (${response.status}).`);
             }
-            return response.blob();
+            const blob = await response.blob();
+            if (!blob || (blob.type && /text\/html/i.test(blob.type))) {
+                throw new Error('Google Drive trả về trang xác nhận thay vì tệp ảnh gốc.');
+            }
+            return blob;
         }
         const response = await nativeFetch(`${CONFIG.endpoint}?drive_proxy=download&file_id=${encodeURIComponent(fileId)}`, { cache: 'no-store', signal });
         if (!response.ok) {
@@ -1234,6 +1257,7 @@
         getActiveCloudUrl,
         getActiveDriveApiKey,
         getDriveImageCandidates,
+        getDriveOriginalDownloadUrl,
         bindDriveImage,
         syncWorkspaceNow: () => ensureWorkspaceSynced(loadMockState(), true),
         encodeBase64Url,
