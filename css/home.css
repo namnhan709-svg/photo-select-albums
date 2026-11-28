@@ -2118,8 +2118,8 @@ body.customer-view header,
 body.customer-view .auth-welcome,
 body.customer-view .usage-guide,
 body.customer-view .config-panel,
-body.customer-view #adminChat,
-body.customer-view #toolbar,
+body.customer-view #toolbarCopyBtn,
+body.customer-view #toolbarExportBtn,
 body.customer-view #bottomBar {
     display: none !important;
 }
