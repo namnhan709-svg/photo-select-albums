@@ -15,6 +15,7 @@ $topFiles = @(
     'albums.html',
     'login.html',
     'studio-contracts.html',
+    'studio-invoices.html',
     'studio-photographers.html',
     'studio-customers.html',
     'studio-reports.html',
