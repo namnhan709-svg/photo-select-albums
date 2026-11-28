@@ -500,6 +500,7 @@
             'register',
             'forgot',
             'load_albums',
+            'load_public_portfolio',
             'load_deleted_albums',
             'save_album',
             'update_album_permission',
@@ -582,6 +583,46 @@
                     };
                 }));
                 return { success: true, data: enriched };
+            }
+
+            case 'load_public_portfolio': {
+                const active = (state.albums || []).filter(a => !a.deleted_at && !a.portfolio_hidden && String(a.folder_id) !== 'test_check_folder');
+                const realAlbums = active.filter(a => !SEED_DEMO_FOLDER_IDS.has(String(a.folder_id || '')));
+                const showcaseAlbums = realAlbums.length ? realAlbums : active;
+                const primaryUser = (state.users || [])[0] || { name: 'TeeMedia Studio', phone: '0901 234 567', email: 'studio@gmail.com' };
+                const studioName = /(hd[\s-]*design|photo[\s-]*select|luna[\s-]*frame)/i.test(String(primaryUser.name || ''))
+                    ? 'TeeMedia Studio'
+                    : (primaryUser.name || 'TeeMedia Studio');
+                const cloudCfg = getCloudConfig();
+                const baseUrl = new URL('./', global.location.href).toString();
+                const albums = showcaseAlbums.map(a => {
+                    const shareObj = {
+                        f: String(a.folder_id),
+                        n: a.album_name || 'Album ảnh',
+                        a: Number(a.allow_save) === 1 ? 1 : 0,
+                        o: studioName
+                    };
+                    if (cloudCfg.googleApiKey) shareObj.k = cloudCfg.googleApiKey;
+                    if (cloudCfg.firebaseDbUrl) shareObj.c = cloudCfg.firebaseDbUrl;
+                    const token = `v1.${encodeBase64Url(shareObj)}`;
+                    return {
+                        id: a.id,
+                        album_name: a.album_name,
+                        folder_id: a.folder_id,
+                        allow_save: Number(a.allow_save) === 1 ? 1 : 0,
+                        created_at: a.created_at,
+                        share_url: `${baseUrl}?share=${encodeURIComponent(token)}&from=portfolio`
+                    };
+                });
+                return {
+                    success: true,
+                    studio: {
+                        name: studioName,
+                        phone: primaryUser.phone || '0901 234 567',
+                        email: primaryUser.email || 'studio@gmail.com'
+                    },
+                    albums
+                };
             }
 
             case 'load_deleted_albums':
