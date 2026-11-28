@@ -42,6 +42,10 @@
                 window.location.replace(base + 'studio-contracts' + search);
                 return;
             }
+            if (first === 'invoices' || first === 'hoa-don' || first === 'bao-gia' || first === 'studio-invoices') {
+                window.location.replace(base + 'studio-invoices' + search);
+                return;
+            }
             if (first === 'team' || first === 'photographers' || first === 'tho' || first === 'studio-photographers') {
                 window.location.replace(base + 'studio-photographers' + search);
                 return;

@@ -113,6 +113,10 @@
                         <span class="studio-sidebar-icon" aria-hidden="true">description</span>
                         <span>Hợp đồng</span>
                     </a>
+                    <a class="studio-sidebar-link" href="studio-invoices">
+                        <span class="studio-sidebar-icon" aria-hidden="true">receipt_long</span>
+                        <span>Hóa đơn &amp; In ảnh</span>
+                    </a>
                     <a class="studio-sidebar-link" href="studio-photographers">
                         <span class="studio-sidebar-icon" aria-hidden="true">groups</span>
                         <span>Quản lý thợ</span>
@@ -293,6 +297,7 @@
                     <label for="guestNameInput">Tên của bạn:</label>
                     <input id="guestNameInput" type="text" maxlength="60" placeholder="VD: Cô dâu Lan / Chú rể Minh">
                     <button id="confirmGuestSelectionBtn" type="button" class="guest-confirm-btn">✅ Gửi danh sách đã chọn cho Studio</button>
+                    <a class="guest-zalo-btn" id="guestZaloContactBtn" href="https://zalo.me/0386038930" target="_blank" rel="noopener">💬 Zalo Studio: 0386 038 930</a>
                 </div>
                 <div id="guestDownloadActions" class="guest-download-actions" style="display:none;gap:.45rem;flex-wrap:wrap;justify-content:center;align-items:center;">
                     <button id="guestDownloadSelectedBtn" class="guest-download-btn" type="button">⬇️ Tải ảnh đã chọn (Chất lượng gốc)</button>
@@ -333,16 +338,19 @@
         <!-- TOOLBAR -->
         <div class="toolbar" id="toolbar" style="display: none;">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Tìm tên ảnh...">
+                <input type="search" id="searchInput" inputmode="search" placeholder="Tìm số thứ tự (#5, 12) hoặc tên ảnh..." aria-label="Tìm theo số thứ tự hoặc tên ảnh">
+                <button type="button" class="search-clear-btn" id="clearSearchBtn" hidden aria-label="Xóa tìm kiếm">✕</button>
             </div>
             <div class="filter-controls">
-                <button class="filter-btn active" data-filter="all">Tất cả</button>
-                <button class="filter-btn" data-filter="selected" id="selectedFilterBtn">❤️ Đã chọn: <span id="selectedFilterCount">0</span></button>
-                <button class="filter-btn" data-filter="unselected">🤍 Chưa chọn</button>
+                <div class="filter-status-pills" role="group" aria-label="Lọc trạng thái chọn ảnh">
+                    <button class="filter-btn active" data-filter="all" type="button">Tất cả (<span id="allFilterCount">0</span>)</button>
+                    <button class="filter-btn" data-filter="selected" id="selectedFilterBtn" type="button">❤️ Đã chọn (<span id="selectedFilterCount">0</span>)</button>
+                    <button class="filter-btn" data-filter="unselected" type="button">🤍 Chưa chọn (<span id="unselectedFilterCount">0</span>)</button>
+                </div>
                 <select id="categorySelect" aria-label="Nhóm ảnh">
                     <option value="all">Tất cả nhóm</option>
                 </select>
-                <select id="sortSelect">
+                <select id="sortSelect" aria-label="Sắp xếp ảnh">
                     <option value="default">Thứ tự chuẩn</option>
                     <option value="name-asc">Tên A → Z</option>
                     <option value="name-desc">Tên Z → A</option>
@@ -353,14 +361,35 @@
             </div>
         </div>
 
+        <!-- PRIVACY-FIRST ON-DEVICE FACE FILTER -->
+        <section class="face-filter-panel" id="faceFilterSection" hidden aria-label="Lọc ảnh theo khuôn mặt">
+            <div class="face-filter-head">
+                <div class="face-filter-title-wrap">
+                    <strong>👥 Lọc theo khuôn mặt</strong>
+                    <span class="face-privacy-badge">🔒 Xử lý trong trình duyệt · Phạm vi album</span>
+                </div>
+                <div class="face-filter-actions">
+                    <button type="button" class="face-action-btn" id="faceScanBtn">🔍 Quét khuôn mặt</button>
+                    <button type="button" class="face-action-btn" id="faceManageBtn" hidden>✏️ Sửa nhóm &amp; Tên</button>
+                    <button type="button" class="face-action-btn is-reset" id="faceClearSelectionBtn" hidden>↩️ Xem tất cả ảnh</button>
+                    <button type="button" class="face-action-btn is-danger" id="faceDeleteDataBtn">🗑️ Xóa dữ liệu khuôn mặt</button>
+                </div>
+            </div>
+            <div class="face-filter-status" id="faceFilterStatusBar" aria-live="polite">
+                <span>🔒 Nhận diện khuôn mặt chạy trực tiếp trên thiết bị trong phạm vi album này, không gửi dữ liệu sinh trắc học ra ngoài.</span>
+            </div>
+            <div class="face-avatar-strip" id="faceAvatarStrip" hidden role="group" aria-label="Chọn khuôn mặt để lọc"></div>
+        </section>
+
         <!-- PHOTO GRID -->
         <div class="photo-grid" id="photoGrid" style="display: none;"></div>
 
         <!-- EMPTY STATE -->
-        <div id="emptyState" style="display: none; text-align: center; padding: 4rem 1rem;">
-            <div style="font-size: 3rem; margin-bottom: 0.5rem;">📷</div>
-            <h3>Không có bức ảnh nào để hiển thị</h3>
-            <p style="color: var(--secondary); margin-top: 0.3rem;">Vui lòng kết nối thư mục hoặc chọn bộ lọc khác</p>
+        <div id="emptyState" class="album-empty-state" style="display: none; text-align: center; padding: 3.2rem 1rem;">
+            <div class="empty-state-icon" style="font-size: 3rem; margin-bottom: 0.5rem;">📷</div>
+            <h3 id="emptyStateTitle">Không có bức ảnh nào để hiển thị</h3>
+            <p id="emptyStateDesc" style="color: var(--secondary); margin-top: 0.35rem;">Vui lòng kết nối thư mục hoặc chọn bộ lọc khác</p>
+            <button type="button" class="empty-reset-btn" id="resetAllFiltersBtn" hidden>↩️ Quay lại xem tất cả ảnh</button>
         </div>
 
         <!-- LOADING TEXT -->
@@ -405,17 +434,24 @@
     </nav>
 
     <aside class="admin-chat" id="adminChat">
-        <button class="admin-chat-toggle" id="adminChatToggle" type="button" aria-label="Chat admin" aria-expanded="false" title="Chat admin">
+        <button class="admin-chat-toggle" id="adminChatToggle" type="button" aria-label="Chat Zalo &amp; Tư vấn" aria-expanded="false" title="Chat Zalo &amp; Tư vấn">
             <svg class="admin-chat-mark" viewBox="0 0 64 64" role="img" aria-hidden="true">
                 <path fill="#2498e5" d="M5 29C5 14 17 5 32 5s27 9 27 24c0 8-4 15-10 20-7 6-17 9-29 9H8c-3 0-5-2-5-5 0-2 1-3 3-5l5-5C7 39 5 34 5 29Z"/>
                 <path fill="#62afe7" d="M30 57c13 0 23-3 29-9 4-4 7-9 8-15 1 2 2 5 2 8 0 8-4 15-10 20-7 6-17 9-29 9H17c-2 0-3-1-4-2l12-11h5Z"/>
                 <path fill="white" stroke="white" stroke-linecap="round" stroke-width="4" d="M20 24h24M20 34h15"/>
             </svg>
-            <span>Chat admin</span>
+            <span>Chat Zalo</span>
         </button>
         <form class="admin-chat-panel" id="adminChatForm">
-            <h3>Góp ý với admin</h3>
-            <p>Gửi câu hỏi hoặc góp ý trực tiếp. Bạn không cần đăng nhập.</p>
+            <h3>Chat Zalo &amp; Nhắn Studio</h3>
+            <p>Liên hệ trực tiếp Zalo <strong>0386 038 930</strong> hoặc để lại lời nhắn nhanh ngay tại đây.</p>
+            <div class="admin-chat-zalo-card">
+                <a class="admin-chat-zalo-link" href="https://zalo.me/0386038930" target="_blank" rel="noopener">
+                    <span>💬 Mở Chat Zalo (0386 038 930)</span>
+                    <span aria-hidden="true">↗</span>
+                </a>
+                <small>Email: <a href="mailto:thongtrong10@gmail.com">thongtrong10@gmail.com</a></small>
+            </div>
             <div class="admin-chat-messages" id="adminChatMessages" aria-live="polite">
                 <div class="admin-chat-empty">Chưa có tin nhắn nào.</div>
             </div>
@@ -743,7 +779,23 @@
         </div>
     </div>
 
+    <div class="modal" id="faceGroupManagerModal" role="dialog" aria-modal="true" aria-labelledby="faceGroupManagerTitle">
+        <div class="modal-content face-manager-modal-content">
+            <button class="auth-close" id="faceGroupManagerClose" type="button" aria-label="Đóng">✕</button>
+            <h3 id="faceGroupManagerTitle">✏️ Sửa nhóm &amp; Đặt tên khuôn mặt</h3>
+            <p class="face-manager-intro">Đổi tên, gộp 2 nhóm bị tách nhầm hoặc chuyển ảnh nhận diện nhầm sang đúng người. Mọi chỉnh sửa chỉ lưu cục bộ trong album này trên trình duyệt.</p>
+            <div class="face-manager-layout">
+                <div class="face-manager-groups" id="faceManagerGroupsList"></div>
+                <div class="face-manager-photos" id="faceManagerPhotosPane"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn-confirm" id="faceGroupManagerDoneBtn" type="button">Xong</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/api.js"></script>
+    <script src="js/face-filter.js"></script>
     <script src="photowedding/index.js"></script>
     <script src="js/portfolio-setup.js"></script>
 </body>
