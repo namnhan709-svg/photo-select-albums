@@ -3,24 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đang chuyển hướng - TeeMedia</title>
+    <title>TeeMedia</title>
     <script>
-        (() => {
-            const path = window.location.pathname.toLowerCase();
-            const search = window.location.search || '';
-            const base = path.replace(/\/(albums|login|app|studio-[^/]+)\/?$/i, '/');
-            if (/\/albums\/?$/.test(path)) {
-                window.location.replace(`${base}albums.html${search}`);
-            } else if (/\/login\/?$/.test(path)) {
-                window.location.replace(`${base}login.html${search}`);
-            } else {
-                window.location.replace(`${base}index.html${search}`);
+        (function () {
+            var pathname = window.location.pathname || '/';
+            var search = window.location.search || '';
+            var rawParts = pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+            var hasProjectBase = rawParts[0] && rawParts[0].toLowerCase() === 'photo-select-albums';
+            var base = hasProjectBase ? '/' + rawParts[0] + '/' : '/';
+            var restRaw = hasProjectBase ? rawParts.slice(1) : rawParts;
+            var first = (restRaw[0] || '').toLowerCase();
+
+            if (first === 'a' && restRaw[1]) {
+                var aParams = new URLSearchParams(search);
+                aParams.set('a', decodeURIComponent(restRaw[1]));
+                window.location.replace(base + '?' + aParams.toString());
+                return;
             }
+            if (first === 'portfolio') {
+                if (restRaw[1]) {
+                    var pParams = new URLSearchParams(search);
+                    pParams.set('album', decodeURIComponent(restRaw[1]));
+                    window.location.replace(base + 'portfolio?' + pParams.toString());
+                    return;
+                }
+                window.location.replace(base + 'portfolio' + search);
+                return;
+            }
+            if (first === 'albums') {
+                window.location.replace(base + 'albums' + search);
+                return;
+            }
+            if (first === 'login') {
+                window.location.replace(base + 'login' + search);
+                return;
+            }
+            if (first === 'contracts' || first === 'hop-dong' || first === 'studio-contracts') {
+                window.location.replace(base + 'studio-contracts' + search);
+                return;
+            }
+            if (first === 'team' || first === 'photographers' || first === 'tho' || first === 'studio-photographers') {
+                window.location.replace(base + 'studio-photographers' + search);
+                return;
+            }
+            if (first === 'customers' || first === 'khach-hang' || first === 'studio-customers') {
+                window.location.replace(base + 'studio-customers' + search);
+                return;
+            }
+            if (first === 'reports' || first === 'bao-cao' || first === 'studio-reports') {
+                window.location.replace(base + 'studio-reports' + search);
+                return;
+            }
+            window.location.replace(base + search);
         })();
     </script>
 </head>
-<body style="font-family:sans-serif;padding:2rem;text-align:center;">
-    <p>Đang chuyển hướng tới trang TeeMedia...</p>
-    <p><a href="./">Quay về trang chủ</a></p>
-</body>
+<body></body>
 </html>

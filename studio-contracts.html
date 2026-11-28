@@ -375,37 +375,37 @@
 </head>
 <body>
     <header class="topbar">
-        <a class="brand" href="./?home=1">
+        <a class="brand" href="./">
             <img src="photowedding/logo/teemedia-logo-mark.svg" alt="">
             <span>TeeMedia</span>
         </a>
-        <a href="studio-photographers.html">← Quản lý thợ studio</a>
+        <a href="studio-photographers">← Quản lý thợ studio</a>
     </header>
     <div class="dashboard-shell">
         <aside class="dashboard-sidebar" aria-label="Menu chính">
             <p class="sidebar-caption">Không gian làm việc</p>
             <nav class="sidebar-nav" aria-label="Điều hướng chính">
-                <a class="sidebar-link" href="./?home=1" data-sidebar-demo="Trang chủ">
+                <a class="sidebar-link" href="./" data-sidebar-demo="Trang chủ">
                     <span class="sidebar-icon" aria-hidden="true">home</span>
                     <span>Trang chủ</span>
                 </a>
-                <a class="sidebar-link" href="albums.html" data-sidebar-demo="Album gần đây">
+                <a class="sidebar-link" href="albums" data-sidebar-demo="Album gần đây">
                     <span class="sidebar-icon" aria-hidden="true">photo_library</span>
                     <span>Album gần đây</span>
                 </a>
-                <a class="sidebar-link" href="studio-contracts.html" aria-current="page">
+                <a class="sidebar-link" href="studio-contracts" aria-current="page">
                     <span class="sidebar-icon" aria-hidden="true">description</span>
                     <span>Hợp đồng</span>
                 </a>
-                <a class="sidebar-link" href="studio-photographers.html" data-sidebar-demo="Quản lý thợ">
+                <a class="sidebar-link" href="studio-photographers" data-sidebar-demo="Quản lý thợ">
                     <span class="sidebar-icon" aria-hidden="true">groups</span>
                     <span>Quản lý thợ</span>
                 </a>
-                <a class="sidebar-link" href="studio-customers.html" data-sidebar-demo="Khách hàng">
+                <a class="sidebar-link" href="studio-customers" data-sidebar-demo="Khách hàng">
                     <span class="sidebar-icon" aria-hidden="true">group</span>
                     <span>Khách hàng</span>
                 </a>
-                <a class="sidebar-link" href="studio-reports.html" data-sidebar-demo="Báo cáo">
+                <a class="sidebar-link" href="studio-reports" data-sidebar-demo="Báo cáo">
                     <span class="sidebar-icon" aria-hidden="true">insights</span>
                     <span>Báo cáo</span>
                 </a>
@@ -859,7 +859,8 @@
                     const session = await response.json();
                     if (!response.ok) throw new Error(session.message || 'Không thể tải thông tin tài khoản.');
                     if (!session.user) {
-                        window.location.replace('login.html?redirect=studio-contracts.html');
+                        const loginPath = window.location.protocol === 'file:' ? 'login.html' : 'login';
+                        window.location.replace(`${loginPath}?to=studio-contracts`);
                         return;
                     }
                     dashboardUser = session.user;

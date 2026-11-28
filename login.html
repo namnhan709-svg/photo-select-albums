@@ -240,7 +240,7 @@
 <body>
     <main class="login-shell">
         <section class="login-brand-side">
-            <a class="login-brand-top" href="./?home=1">
+            <a class="login-brand-top" href="./">
                 <img src="photowedding/logo/teemedia-logo-mark.svg" alt="">
                 <span>TeeMedia PRO</span>
             </a>
@@ -263,7 +263,7 @@
                     <div id="activeSessionEmail" style="font-size:.8rem;color:var(--muted);"></div>
                 </div>
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-                    <a class="button button-primary" id="continueDashboardBtn" href="albums.html">Vào Album gần đây →</a>
+                    <a class="button button-primary" id="continueDashboardBtn" href="albums">Vào Album gần đây →</a>
                     <a class="button" href="./?logout=1">Đăng xuất để đổi tài khoản</a>
                 </div>
             </div>
@@ -293,7 +293,16 @@
     <script>
         (() => {
             const params = new URLSearchParams(window.location.search);
-            const redirectTarget = params.get('redirect') || 'index.html';
+            const isFileProto = window.location.protocol === 'file:';
+            const normalizeTarget = (raw) => {
+                const v = String(raw || '').trim().replace(/^\/+/, '');
+                if (!v || v === 'index.html' || v === './' || v === './?home=1') {
+                    return isFileProto ? 'index.html' : './';
+                }
+                if (!isFileProto && v.endsWith('.html')) return v.slice(0, -5);
+                return v;
+            };
+            const redirectTarget = normalizeTarget(params.get('to') || params.get('redirect'));
             const forceSwitch = params.get('switch') === '1';
             const statusEl = document.getElementById('loginStatus');
 

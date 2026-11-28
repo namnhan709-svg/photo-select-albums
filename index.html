@@ -26,7 +26,7 @@
     <script>
         (function () {
             var q = window.location.search || '';
-            if (q.indexOf('share=') !== -1) {
+            if (q.indexOf('share=') !== -1 || q.indexOf('a=') !== -1 || q.indexOf('s=') !== -1) {
                 document.body.classList.remove('studio-auth-pending');
                 document.body.classList.add('customer-view');
             }
@@ -35,7 +35,7 @@
     <!-- HEADER -->
     <header>
         <div class="header-container">
-            <a class="header-left" href="index.html" style="text-decoration: none; color: inherit;">
+            <a class="header-left" href="./" style="text-decoration: none; color: inherit;">
                 <img class="header-logo" src="photowedding/logo/teemedia-logo-mark.svg" alt="">
                 TeeMedia
             </a>
@@ -44,7 +44,7 @@
                 <button class="header-btn studio-only-btn is-primary" id="setupSaveTopBtn" type="button">💾 Lưu Portfolio</button>
                 <button class="header-btn" id="loginBtnHeader" type="button" title="Đăng nhập" style="display: none;">Đăng nhập</button>
                 <button class="header-btn" id="homeBtn" type="button" title="Trang chủ" style="display:none;">Trang chủ</button>
-                <a class="header-btn" id="manageAlbumsBtn" href="albums.html" title="Album gần đây" style="display: none;">Album gần đây</a>
+                <a class="header-btn" id="manageAlbumsBtn" href="albums" title="Album gần đây" style="display: none;">Album gần đây</a>
                 <button class="header-btn notification-btn" id="notificationBtn" type="button" title="Thông báo" aria-label="Thông báo" aria-expanded="false" style="display: none;">🔔<span class="notification-badge" id="notificationBadge" hidden>0</span></button>
                 <button class="header-btn" id="shareLinkBtn" title="Chia sẻ link" style="display: none;">🔗 Chia sẻ</button>
                 <div class="user-panel" id="userPanel" aria-expanded="false" aria-haspopup="true" style="display: none;">
@@ -101,32 +101,32 @@
             <aside class="studio-setup-sidebar" aria-label="Menu không gian làm việc">
                 <p class="studio-sidebar-caption">Không gian làm việc</p>
                 <nav class="studio-sidebar-nav" aria-label="Điều hướng chính">
-                    <a class="studio-sidebar-link is-active" href="index.html" aria-current="page">
+                    <a class="studio-sidebar-link is-active" href="./" aria-current="page">
                         <span class="studio-sidebar-icon" aria-hidden="true">home</span>
                         <span>Trang chủ</span>
                     </a>
-                    <a class="studio-sidebar-link" href="albums.html">
+                    <a class="studio-sidebar-link" href="albums">
                         <span class="studio-sidebar-icon" aria-hidden="true">photo_library</span>
                         <span>Album gần đây</span>
                     </a>
-                    <a class="studio-sidebar-link" href="studio-contracts.html">
+                    <a class="studio-sidebar-link" href="studio-contracts">
                         <span class="studio-sidebar-icon" aria-hidden="true">description</span>
                         <span>Hợp đồng</span>
                     </a>
-                    <a class="studio-sidebar-link" href="studio-photographers.html">
+                    <a class="studio-sidebar-link" href="studio-photographers">
                         <span class="studio-sidebar-icon" aria-hidden="true">groups</span>
                         <span>Quản lý thợ</span>
                     </a>
-                    <a class="studio-sidebar-link" href="studio-customers.html">
+                    <a class="studio-sidebar-link" href="studio-customers">
                         <span class="studio-sidebar-icon" aria-hidden="true">group</span>
                         <span>Khách hàng</span>
                     </a>
-                    <a class="studio-sidebar-link" href="studio-reports.html">
+                    <a class="studio-sidebar-link" href="studio-reports">
                         <span class="studio-sidebar-icon" aria-hidden="true">insights</span>
                         <span>Báo cáo</span>
                     </a>
                     <div class="studio-sidebar-divider" aria-hidden="true"></div>
-                    <a class="studio-sidebar-link" href="portfolio.html" target="_blank" rel="noopener">
+                    <a class="studio-sidebar-link" href="portfolio" target="_blank" rel="noopener">
                         <span class="studio-sidebar-icon" aria-hidden="true">auto_awesome_mosaic</span>
                         <span>Xem Portfolio</span>
                     </a>
@@ -179,7 +179,7 @@
                             <p>Quản trị danh sách bộ ảnh theo chủ đề hiển thị trên trang Portfolio. Bấm vào một album để chỉnh sửa thông tin và chọn ảnh bên dưới.</p>
                         </div>
                         <div class="setup-cta-row">
-                            <a class="setup-btn" href="albums.html">+ Kho Google Drive</a>
+                            <a class="setup-btn" href="albums">+ Kho Google Drive</a>
                             <button id="setupCreateAlbumBtn" type="button" class="setup-btn is-primary">＋ Tạo album mới</button>
                         </div>
                     </div>
@@ -271,7 +271,7 @@
                 <div class="guest-hero-scrim" aria-hidden="true"></div>
                 <div class="guest-hero-topbar">
                     <div class="guest-hero-topbar-left">
-                        <a class="guest-back-portfolio-btn" id="guestBackPortfolioBtn" href="portfolio.html" hidden>← Portfolio TeeMedia</a>
+                        <a class="guest-back-portfolio-btn" id="guestBackPortfolioBtn" href="portfolio" hidden>← Portfolio TeeMedia</a>
                         <span class="guest-hero-studio-pill" id="guestHeroStudioPill">✨ TeeMedia GALLERY</span>
                     </div>
                     <button class="guest-hero-zoom-btn" id="guestHeroOpenLightboxBtn" type="button">🔍 Xem ảnh lớn</button>
