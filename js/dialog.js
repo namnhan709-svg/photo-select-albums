@@ -12,9 +12,9 @@
         const avatarUrl = String(user?.avatar || localStorage.getItem('photoSelectCurrentUserAvatar') || '').trim();
         const initials = name.charAt(0).toUpperCase() || 'U';
         document.getElementById('userNameText').textContent = name;
-        document.getElementById('userEmailText').textContent = email || 'Tài khoản Photo Select';
+        document.getElementById('userEmailText').textContent = email || 'Tài khoản TeeMedia';
         document.getElementById('greetingName').textContent = name;
-        document.getElementById('greetingEmail').textContent = email || 'Tài khoản Photo Select';
+        document.getElementById('greetingEmail').textContent = email || 'Tài khoản TeeMedia';
         ['userAvatar', 'accountAvatar'].forEach(id => {
             const avatar = document.getElementById(id);
             avatar.textContent = initials;

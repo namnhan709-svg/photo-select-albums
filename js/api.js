@@ -1,5 +1,5 @@
 /**
- * PHOTO SELECT API Layer
+ * TeeMedia API Layer
  * - Tự động nhận diện Backend thật (`photowedding/app.php` trả JSON) hoặc Static Mode (GitHub Pages / file://).
  * - Trên GitHub Pages (Static Mode):
  *   + Link chia sẻ tự mang dữ liệu (`?share=v1.<base64url>`) để khách mở xem được ngay trên mọi thiết bị.
@@ -141,7 +141,7 @@
             users: [
                 {
                     id: 1,
-                    name: 'HD Design Studio',
+                    name: 'TeeMedia Studio',
                     email: 'studio@gmail.com',
                     phone: '0901 234 567',
                     password: '123456',
@@ -172,16 +172,16 @@
                 { id: 101, user_id: 1, title: 'Khách hàng đã chọn xong ảnh', message: 'Album Pre-Wedding Minh & Lan - Đà Lạt vừa cập nhật 2 ảnh yêu thích và 2 bình luận mới.', created_at: '2026-10-02 09:25:00', is_read: 0 }
             ],
             chatMessages: [
-                { sender_type: 'admin', message: 'Xin chào! Chào mừng bạn đến với PHOTO SELECT phiên bản Static / GitHub Pages.' }
+                { sender_type: 'admin', message: 'Xin chào! Chào mừng bạn đến với TeeMedia phiên bản Static / GitHub Pages.' }
             ],
             photographers: [
-                { id: 1, user_id: 1, name: 'Nguyễn Minh Anh', role: 'Chụp ảnh cưới chính', phone: '0903 111 222', email: 'minhanh@hd-design.pro.vn', zalo: '0903111222', facebook: 'minhanh.photo', shootLocation: 'Đà Lạt / TP.HCM', shootDates: [soonDate, laterDate], status: 'active' },
-                { id: 2, user_id: 1, name: 'Trần Quốc Thịnh', role: 'Phóng sự cưới', phone: '0908 333 444', email: 'quocthinh@hd-design.pro.vn', zalo: '0908333444', facebook: 'quocthinh.studio', shootLocation: 'Quận 1, TP.HCM', shootDates: [laterDate], status: 'active' },
-                { id: 3, user_id: 1, name: 'Lê Hà Linh', role: 'Chân dung & Studio', phone: '0912 555 666', email: 'halinh@hd-design.pro.vn', zalo: '0912555666', facebook: 'halinh.portrait', shootLocation: 'Studio Quận 3', shootDates: [], status: 'leave' }
+                { id: 1, user_id: 1, name: 'Nguyễn Minh Anh', role: 'Chụp ảnh cưới chính', phone: '0903 111 222', email: 'minhanh@teemedia.vn', zalo: '0903111222', facebook: 'minhanh.photo', shootLocation: 'Đà Lạt / TP.HCM', shootDates: [soonDate, laterDate], status: 'active' },
+                { id: 2, user_id: 1, name: 'Trần Quốc Thịnh', role: 'Phóng sự cưới', phone: '0908 333 444', email: 'quocthinh@teemedia.vn', zalo: '0908333444', facebook: 'quocthinh.studio', shootLocation: 'Quận 1, TP.HCM', shootDates: [laterDate], status: 'active' },
+                { id: 3, user_id: 1, name: 'Lê Hà Linh', role: 'Chân dung & Studio', phone: '0912 555 666', email: 'halinh@teemedia.vn', zalo: '0912555666', facebook: 'halinh.portrait', shootLocation: 'Studio Quận 3', shootDates: [], status: 'leave' }
             ],
             contracts: [
                 {
-                    id: 1, user_id: 1, studioName: 'LUNA FRAME STUDIO', contractNumber: 'PS-20261002-001',
+                    id: 1, user_id: 1, studioName: 'TeeMedia Studio', contractNumber: 'PS-20261002-001',
                     studioAddress: '12 Nguyễn Huệ, Quận 1, TP.HCM', studioPhone: '0901 234 567', contractDate: '2026-10-02',
                     clientName: 'Trần Minh & Ngọc Lan', clientPhone: '0987 654 321', clientEmail: 'minhlan@gmail.com',
                     servicePreset: 'Gói chụp ảnh cưới trọn gói', serviceName: 'Gói chụp ảnh cưới trọn gói', eventType: 'Chụp cưới',
@@ -634,7 +634,7 @@
                     f: folderId,
                     n: album?.album_name || 'Album ảnh',
                     a: album ? (Number(album.allow_save) === 1 ? 1 : 0) : 1,
-                    o: user?.name || 'PHOTO SELECT'
+                    o: user?.name || 'TeeMedia'
                 };
                 if (code) shareObj.ch = await sha256Hex(code);
                 if (cloudCfg.googleApiKey) shareObj.k = cloudCfg.googleApiKey;
